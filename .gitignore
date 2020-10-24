@@ -4,9 +4,11 @@ kernel/include/version.h
 *.bin
 *.elf
 
+*.user
 *.cflags
 *.config
 *.creator
 *.cxxflags
 
 vmulmer
+kernel64

@@ -1,9 +1,13 @@
-rm -f tools/version.h
+#!/bin/bash
 
-maj_version="0"
-min_version=`git rev-list --count master`
+vpath="kernel/include/version.h"
 
-version_str="$v(maj_version).$(min_version)"
+os_name="Ulmer OS"
+os_version=`git rev-list --count master`
+os_author="Alexander Ulmer"
+os_build_date=`date --utc --rfc-3339=date`
 
-echo $(version_str)
-
+echo "#define OS_NAME \"$os_name\"" > $vpath
+echo "#define OS_VERSION \"v$os_version\"" >> $vpath
+echo "#define OS_AUTHOR \"$os_author\"" >> $vpath
+echo "#define OS_BUILD_DATE \"$os_build_date\"" >> $vpath

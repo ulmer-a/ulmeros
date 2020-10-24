@@ -1,0 +1,6 @@
+kernel/include/version.h
+
+*.o
+*.bin
+*.elf
+vmulmer

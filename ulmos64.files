@@ -1,0 +1,17 @@
+kernel/include/syscalls.h
+kernel/include/types.h
+kernel/include/version.h
+kernel/init/main.c
+kernel/init/start.S
+kernel/libk/cv.c
+kernel/libk/fifo.c
+kernel/libk/include/cv.h
+kernel/libk/include/fifo.h
+kernel/libk/include/kstring.h
+kernel/libk/include/list.h
+kernel/libk/include/mutex.h
+kernel/libk/kstring.c
+kernel/libk/list.c
+kernel/libk/mutex.c
+kernel/mem/addrspace.c
+kernel/syscalls.c

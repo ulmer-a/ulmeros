@@ -3,4 +3,10 @@ kernel/include/version.h
 *.o
 *.bin
 *.elf
+
+*.cflags
+*.config
+*.creator
+*.cxxflags
+
 vmulmer

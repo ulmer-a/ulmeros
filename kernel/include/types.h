@@ -17,5 +17,15 @@ typedef short               int16_t;
 typedef unsigned char       uint8_t;
 typedef char                int8_t;
 
+#define true 1
+#define false 0
+
 
 void debug(const char *fmt, ...);
+void panic();
+
+#define assert(x) if (!(x)) { \
+  debug("KERNEL: assertion failed in %s on line %s", \
+    __FILE__, __LINE__); \
+  panic(); \
+}

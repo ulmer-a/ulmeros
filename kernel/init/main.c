@@ -11,6 +11,8 @@ void main64()
 
   debug("[ INFO ] reached main64()\n");
 
+  // start the scheduler as FAST AS POSSIBLE
+
   // perform memory init
 
   // get some debug output

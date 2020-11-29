@@ -5,13 +5,14 @@ CFLAGS   = -c -std=c11 -Wall -O0 -g -D DEBUG \
            -fno-builtin -fno-stack-protector -mno-red-zone \
            $(INCL) -fvar-tracking
 LDFLAGS  = -nostdlib --warn-common -nmagic --no-relax
+ARCH = amd64
 
 BOOT32_OBJ = $(patsubst %.c, %32.o, $(wildcard boot/*.c)) \
              $(patsubst %.S, %32.o, $(wildcard boot/*.S)) \
              kernel.o
 
-KERNEL_OBJ = $(patsubst %.S, %.o, $(wildcard kernel/*/*.S)) \
-             $(patsubst %.c, %.o, $(wildcard kernel/*/*.c \
+KERNEL_OBJ = $(patsubst %.S, %.o, $(wildcard kernel/*/*.S arch/$(ARCH)/*.S)) \
+             $(patsubst %.c, %.o, $(wildcard kernel/*/*.c arch/$(ARCH)/*.c \
              kernel/*.c)) \
 
 all: boot32 diskimage
@@ -49,7 +50,7 @@ kernel.o: $(KERNEL_OBJ) meta
 
 diskimage: boot32 kernel.o
 	@ echo " GEN generating disk image"
-	#@ tools/mkimg.sh > /dev/null 2> /dev/null
+	@ tools/mkimg.sh > /dev/null 2> /dev/null
 
 qemu:
-	@ tools/qemu.sh -s
+	@ tools/qemu.sh

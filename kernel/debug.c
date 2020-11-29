@@ -2,16 +2,10 @@
 #include <kstring.h>
 #include <stdarg.h>
 #include <mutex.h>
-#include <asm.h>
+#include <arch/serial.h>
 
 static char kprintf_buffer[4096];
-static mutex_t kprintf_mtx;
-
-static void bochs_write(char *str)
-{
-  while (*str)
-    outb(0xe9, *str++);
-}
+static mutex_t kprintf_mtx = MUTEX_INITIALIZER;
 
 static void do_kprintf(const char *fmt, va_list args)
 {
@@ -83,7 +77,7 @@ static void do_kprintf(const char *fmt, va_list args)
   }
   *buffer_ptr = 0;
 
-  bochs_write(kprintf_buffer);
+  serial0_write(kprintf_buffer, strlen(kprintf_buffer));
   mutex_unlock(&kprintf_mtx);
 }
 

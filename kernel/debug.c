@@ -7,7 +7,7 @@
 static char kprintf_buffer[4096];
 static mutex_t kprintf_mtx = MUTEX_INITIALIZER;
 
-static void do_kprintf(const char *fmt, va_list args)
+static void do_kprintf(int level, const char *fmt, va_list args)
 {
   mutex_lock(&kprintf_mtx);
 
@@ -81,16 +81,16 @@ static void do_kprintf(const char *fmt, va_list args)
   mutex_unlock(&kprintf_mtx);
 }
 
-void debug(const char *fmt, ...)
+void debug(int level, const char *fmt, ...)
 {
   va_list args;
   va_start(args, fmt);
-  do_kprintf(fmt, args);
+  do_kprintf(level, fmt, args);
   va_end(args);
 }
 
 void panic()
 {
-  debug("\n\n--- PANIC ---\n");
+  debug(ASSERT, "\n\n--- PANIC ---\n");
   __asm__ volatile ("cli; hlt");
 }

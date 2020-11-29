@@ -1,0 +1,7 @@
+#pragma once
+
+#define OUTPUT_ENABLED BIT(31)
+
+#define VSPACE  0 | OUTPUT_ENABLED
+#define KMAIN   1 | OUTPUT_ENABLED
+#define ASSERT  2 | OUTPUT_ENABLED

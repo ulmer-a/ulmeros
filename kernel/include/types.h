@@ -4,6 +4,7 @@
 
 #define NULL      ((void*)0)
 #define BIT(x)    (1 << (x))
+#define _init
 
 typedef unsigned long   size_t;
 typedef long            ssize_t;
@@ -20,12 +21,13 @@ typedef char                int8_t;
 #define true 1
 #define false 0
 
+#include <debug.h>
 
-void debug(const char *fmt, ...);
+void debug(int level, const char *fmt, ...);
 void panic();
 
 #define assert(x) if (!(x)) { \
-  debug("KERNEL: assertion failed in %s on line %s", \
+  debug(ASSERT, "assertion failed in %s on line %s", \
     __FILE__, __LINE__); \
   panic(); \
 }

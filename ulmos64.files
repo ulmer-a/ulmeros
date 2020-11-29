@@ -1,6 +1,7 @@
 arch/amd64/atomic.c
 arch/amd64/ports.h
 arch/amd64/serial.c
+arch/amd64/vspace.c
 boot/boot.S
 boot/boot32.h
 boot/boot32.ld
@@ -19,6 +20,7 @@ kernel/include/Boot64.h
 kernel/include/arch.h
 kernel/include/arch/serial.h
 kernel/include/asm.h
+kernel/include/debug.h
 kernel/include/errno.h
 kernel/include/memory.h
 kernel/include/sched.h
@@ -41,8 +43,8 @@ kernel/libk/include/mutex.h
 kernel/libk/kstring.c
 kernel/libk/list.c
 kernel/libk/mutex.c
-kernel/mem/addrspace.c
 kernel/mem/kmalloc.c
+kernel/mem/pages.c
 kernel/pipe.c
 kernel/sched/interrupt.c
 kernel/sched/scheduler.c

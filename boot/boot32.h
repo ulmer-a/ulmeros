@@ -9,6 +9,9 @@ typedef unsigned char uint8_t;
 #define PAGE_SIZE 4096
 
 extern uint64_t ramSize;
+extern uint8_t* mmap_ptr;
+extern uint32_t mmap_len;
+extern uint32_t binary_size;
 
 extern void clearBss();
 extern void printMessage(const char *msg);

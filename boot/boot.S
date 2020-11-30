@@ -35,19 +35,19 @@ _start32:
     push %ecx
     popf
     xor %ecx, %eax
-    jz .error
+    //jz .error
 
     // check if extended function is present
     mov $0x80000000, %eax
     cpuid
     cmp $0x80000001, %eax
-    jb .error
+    //jb .error
 
     // check if long mode is available
     mov $0x80000001, %eax
     cpuid
     test $(1 << 29), %edx
-    jz .error // comment out to debug
+    //jz .error // comment out to debug
 
     // setup_longmode(struct mb_struct)
     // ebx points to struct multiboot

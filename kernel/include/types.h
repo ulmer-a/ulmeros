@@ -18,6 +18,9 @@ typedef short               int16_t;
 typedef unsigned char       uint8_t;
 typedef char                int8_t;
 
+struct boot_info_;
+typedef struct boot_info_ boot_info_t;
+
 #define true 1
 #define false 0
 
@@ -26,8 +29,8 @@ typedef char                int8_t;
 void debug(int level, const char *fmt, ...);
 void panic();
 
-#define assert(x) if (!(x)) { \
-  debug(ASSERT, "assertion failed in %s on line %s", \
-    __FILE__, __LINE__); \
+#define assert(x, y) if (!(x)) { \
+  debug(ASSERT, "assertion failed in %s on line %s: %s\n", \
+    __FILE__, __LINE__, (y)); \
   panic(); \
 }

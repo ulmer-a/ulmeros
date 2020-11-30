@@ -1,4 +1,8 @@
 arch/amd64/atomic.c
+arch/amd64/boot.h
+arch/amd64/definitions.h
+arch/amd64/memscan.c
+arch/amd64/multiboot.h
 arch/amd64/ports.h
 arch/amd64/serial.c
 arch/amd64/vspace.c
@@ -16,7 +20,6 @@ hddimg/disk.img
 hddimg/disk.img.lock
 kernel/debug.c
 kernel/fs/vfs.c
-kernel/include/Boot64.h
 kernel/include/arch.h
 kernel/include/arch/serial.h
 kernel/include/asm.h

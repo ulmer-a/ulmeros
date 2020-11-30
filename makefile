@@ -1,11 +1,11 @@
 CC       = gcc
-INCL     = -I kernel/include -I kernel/libk/include
-CFLAGS   = -c -std=c11 -Wall -O0 -g -D DEBUG \
+ARCH	 = amd64
+INCL     = -I kernel/include -I kernel/libk/include -I arch -I arch/$(ARCH)
+CFLAGS   = -c -std=c11 -Wall -g -O0 -D DEBUG \
            -ffreestanding -nostdinc -fno-strict-aliasing \
            -fno-builtin -fno-stack-protector -mno-red-zone \
-           $(INCL) -fvar-tracking
+	   $(INCL) -DARCH=$(ARCH) -fvar-tracking
 LDFLAGS  = -nostdlib --warn-common -nmagic --no-relax
-ARCH = amd64
 
 BOOT32_OBJ = $(patsubst %.c, %32.o, $(wildcard boot/*.c)) \
              $(patsubst %.S, %32.o, $(wildcard boot/*.S)) \
@@ -23,7 +23,7 @@ meta:
 
 %32.o: %.c
 	@ echo "CC32 $<"
-	@ $(CC) $< -m32 $(CFLAGS) -o $@
+	@ $(CC) $< -m32 $(CFLAGS) -DM32 -o $@
 
 %32.o: %.S
 	@ echo "AS32 $<"

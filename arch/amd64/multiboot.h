@@ -1,11 +1,6 @@
-#ifndef MULTIBOOT_H
-#define MULTIBOOT_H
+#pragma once
 
-#ifdef M32
-#include "boot32.h"
-#else
 #include <types.h>
-#endif
 
 struct mb_struct
 {
@@ -47,5 +42,3 @@ struct mmape_struct
     uint64_t size;
     uint32_t type;
 } __attribute__((packed));
-
-#endif

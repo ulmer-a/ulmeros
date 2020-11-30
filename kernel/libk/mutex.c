@@ -13,7 +13,7 @@ mutex_t* mutex_alloc()
 void mutex_init(mutex_t* mtx)
 {
   if (!mtx || mtx->magic == MUTEX_MAGIC)
-    assert(false);
+    assert(false, "mutex_init(): already already initialized");
 
   mtx->magic = MUTEX_MAGIC;
   mtx->lock = 0;
@@ -22,7 +22,7 @@ void mutex_init(mutex_t* mtx)
 void mutex_lock(mutex_t* mtx)
 {
   if (!mtx || mtx->magic != MUTEX_MAGIC)
-    assert(false);
+    assert(false, "mutex_lock(): uninitialized");
 
   while (xchg(1, &mtx->lock))
     yield();
@@ -31,7 +31,7 @@ void mutex_lock(mutex_t* mtx)
 void mutex_unlock(mutex_t* mtx)
 {
   if (!mtx || mtx->magic != MUTEX_MAGIC)
-    assert(false);
+    assert(false, "mutex_unlock(): uninitialized");
 
   mtx->lock = 0;
 }
@@ -39,7 +39,7 @@ void mutex_unlock(mutex_t* mtx)
 int mutex_locked(mutex_t* mtx)
 {
   if (!mtx || mtx->magic != MUTEX_MAGIC)
-    assert(false);
+    assert(false, "mutex_locked(): uninitialized");
 
   return mtx->lock;
 }

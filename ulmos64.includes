@@ -1,5 +1,7 @@
 boot
 kernel/include
 kernel/libk/include
-arch/amd64
+arch
 kernel/mem
+kernel/include/arch
+arch/amd64

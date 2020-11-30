@@ -1,21 +1,31 @@
 #include <types.h>
 #include <kstring.h>
 #include <vspace.h>
+#include <memory.h>
 
 extern char _bss_start;
 extern char _bss_end;
 
-void main64()
+void main64(boot_info_t* bootinfo)
 {
-  // clear BSS
+  debug(KMAIN, "reached kmain()\n");
+
+  /* clear BSS segment */
   memset(&_bss_start, 0, (size_t)&_bss_end - (size_t)&_bss_start);
 
-  debug(KMAIN, "reached main64()\n");
+  /* allocate the free pages refcounter and perform
+   * a memory scan and mark the pages used by the
+   * kernel and the boot32 heap as reserved. */
+  page_init(bootinfo);
 
-  // initialize the kernel page tables
+  /* read the kernel page tables and save pointers to
+   * them. this will enable vspace_init() to map the
+   * kernel above the user break. */
   vspace_init_kernel();
 
-  // SETUP KERNEL HEAP
+  /* initialize the kernel heap. this will create a
+   * mapping at the very top of the address space */
+  kheap_init();
 
   // start the scheduler as FAST AS POSSIBLE
 

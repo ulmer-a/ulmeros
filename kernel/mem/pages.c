@@ -27,6 +27,7 @@ size_t page_alloc(int flags)
       mutex_unlock(&refcounter_lock_);
 
       page_clear(i);
+      debug(PAGEMGR, "allocate page %zd\n", i);
       return i;
     }
   }
@@ -39,6 +40,7 @@ size_t page_alloc(int flags)
 
 void page_release(size_t page)
 {
+  debug(PAGEMGR, "release page %zd\n", page);
   assert(refcounter_, "page_release(): uninitialized");
   assert(page < total_pages_, "page_release(): page >= total_pages");
 

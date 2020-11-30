@@ -120,23 +120,30 @@ int vspace_map(vspace_t* vspace, size_t virt_page,
         vspace_get_page_ptr(next_table)
         + table_indices[level];
 
+    if (entry->present && level == 0)
+    {
+      mutex_unlock(&vspace->lock);
+      return false;
+    }
+
     if (!entry->present)
     {
       // clear entry
       *(uint64_t*)entry = 0;
 
       // allocate physical page
-      entry->page_ppn = page_alloc(0);
       entry->present = 1;
 
       // set permissions according to flags
       if (level != 0)
       {
+        entry->page_ppn = page_alloc(0);
         entry->user_access = 1;
         entry->writeable = 1;
       }
       else
       {
+        entry->page_ppn = phys_page;
         if (flags & PG_USER)    entry->user_access = 1;
         if (flags & PG_WRITE)   entry->writeable   = 1;
         if (flags & PG_NOEXEC)  entry->noexec      = 1;
@@ -147,13 +154,72 @@ int vspace_map(vspace_t* vspace, size_t virt_page,
   }
 
   mutex_unlock(&vspace->lock);
+  debug(VSPACE, "vspace_map(): mapped page at %p\n", virt_page << 12);
   return true;
+}
+
+static int vspace_unmap_recursive(vspace_t* vspace, size_t table_page,
+                                  size_t* table_indices, int level)
+{
+  GenericPagingTable* entry = (GenericPagingTable*)
+      vspace_get_page_ptr(table_page)
+      + table_indices[level];
+
+  // bit 0 set means unmap successful
+  // bit 1 set means delete this table
+  int ret = 0;
+
+  if (entry->present)
+  {
+    if (level == 0)
+    {
+      page_release(entry->page_ppn);
+      entry->present = 0;
+      ret |= BIT(0);
+    }
+    else
+    {
+      size_t ret_recursive = vspace_unmap_recursive(
+            vspace, entry->page_ppn, table_indices, level - 1);
+
+      if (ret_recursive & BIT(0))
+        ret |= BIT(0);
+      if (ret_recursive & BIT(1))
+      {
+        page_release(entry->page_ppn);
+        entry->present = 0;
+      }
+    }
+  }
+
+  for (int i = 0; i < 512; i++)
+  {
+    GenericPagingTable* cur_entry = (GenericPagingTable*)
+        vspace_get_page_ptr(table_page) + i;
+    if (cur_entry->present)
+      return ret;
+  }
+
+  ret |= BIT(1);
+  return ret;
 }
 
 int vspace_unmap(vspace_t* vspace, size_t virt_page)
 {
+  vspace_trigger_cow(vspace, virt_page);
 
-  return false;
+  size_t table_indices[4];
+  resolve_virt(virt_page, table_indices);
+
+  mutex_lock(&vspace->lock);
+
+  int success = false;
+  if (vspace_unmap_recursive(vspace, vspace->pml4_page, table_indices, 3) & BIT(0))
+    success = true;
+
+  mutex_unlock(&vspace->lock);
+  debug(VSPACE, "vspace_unmap(): unmapped page at %p\n", virt_page << 12);
+  return success;
 }
 
 size_t ctx_pf_addr()

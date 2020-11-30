@@ -80,6 +80,7 @@ static void crop(struct hblock *block, size_t new_size)
 
 void *kmalloc(size_t size)
 {
+  debug(KHEAP, "kmalloc(): size %zd\n", size);
   mutex_lock(&kheap_mutex);
 
   struct hblock *entry;
@@ -141,6 +142,7 @@ static void merge_blocks(struct hblock *first, struct hblock *second)
 
 void kfree(void *ptr)
 {
+  debug(KHEAP, "kfree(): %p\n", ptr);
   if (ptr == NULL) {
     return;
   }

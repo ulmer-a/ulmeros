@@ -27,6 +27,10 @@ void main64(boot_info_t* bootinfo)
    * mapping at the very top of the address space */
   kheap_init();
 
+  char* test = kmalloc(5000);
+  strcpy(test, "Hello!");
+  kfree(test);
+
   // start the scheduler as FAST AS POSSIBLE
 
   // perform memory init

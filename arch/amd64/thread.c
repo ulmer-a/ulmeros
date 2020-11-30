@@ -1,4 +1,10 @@
 #include <arch/context.h>
+#include <memory.h>
+
+#define CS_KERNEL   0x08
+#define DS_KERNEL   0x10
+#define CS_USER     0x18
+#define DS_USER     0x20
 
 struct arch_context_
 {
@@ -28,6 +34,27 @@ struct arch_context_
     size_t ss;
 } __attribute__((packed));
 
+arch_context_t* ctx_create(void *entry, void *stack, int flags)
+{
+  arch_context_t* ctx = kmalloc(sizeof(arch_context_t));
+  ctx->rsp = (size_t)stack;
+  ctx->rip = (size_t)entry;
+
+  if (flags & CTX_USER)
+  {
+    ctx->cs = CS_USER;
+    ctx->ss = DS_USER;
+  }
+  else
+  {
+    ctx->cs = CS_KERNEL;
+    ctx->ss = DS_KERNEL;
+  }
+
+  // enable interrupts
+  ctx->rflags = BIT(9);
+  return ctx;
+}
 
 size_t ctx_irq(arch_context_t* ctx)
 {

@@ -8,6 +8,7 @@ arch/amd64/multiboot.h
 arch/amd64/ports.h
 arch/amd64/serial.c
 arch/amd64/thread.c
+arch/amd64/timer.c
 arch/amd64/vspace.c
 boot/boot.S
 boot/boot32.h

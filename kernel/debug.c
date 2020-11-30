@@ -83,6 +83,9 @@ static void do_kprintf(int level, const char *fmt, va_list args)
 
 void debug(int level, const char *fmt, ...)
 {
+  if ((level & OUTPUT_ENABLED) == 0)
+    return;
+
   va_list args;
   va_start(args, fmt);
   do_kprintf(level, fmt, args);

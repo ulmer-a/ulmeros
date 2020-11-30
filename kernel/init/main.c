@@ -3,9 +3,16 @@
 #include <vspace.h>
 #include <memory.h>
 #include <interrupt.h>
+#include <task.h>
+#include <arch.h>
 
 extern char _bss_start;
 extern char _bss_end;
+
+static void sysinit()
+{
+  debug(KMAIN, "Welcome from the first kernel task!\n");
+}
 
 void main64(boot_info_t* bootinfo)
 {
@@ -24,26 +31,16 @@ void main64(boot_info_t* bootinfo)
    * kernel above the user break. */
   vspace_init_kernel();
 
-  /* initialize the interrupt handlers */
+  /* initialize the interrupt handlers and the
+   * system timer */
   irq_init();
+  timer_reset(50);
 
   /* initialize the kernel heap. this will create a
    * mapping at the very top of the address space */
   kheap_init();
 
-  char* test = kmalloc(5000);
-  strcpy(test, "Hello!");
-  kfree(test);
+  create_ktask(sysinit);
 
-  // start the scheduler as FAST AS POSSIBLE
-
-  // perform memory init
-
-  // get some debug output
-
-  // take care of interrupts
-
-  // start the scheduler
-
-  // start the intitialization kernel thread
+  for (;;) __asm__ volatile("hlt");
 }

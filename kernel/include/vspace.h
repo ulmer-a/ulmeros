@@ -12,7 +12,7 @@ extern vspace_t vspace_kernel_;
 
 #define PG_KERNEL   0
 #define PG_USER     BIT(0)
-#define PG_READONLY BIT(1)
+#define PG_WRITE    BIT(1)
 #define PG_NOEXEC   BIT(2)
 #define PG_SHARED   BIT(3)
 

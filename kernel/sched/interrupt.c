@@ -17,7 +17,7 @@ void exception(size_t exc)
   {
   case EXC_PAGEFAULT:
     page_fault(ctx_error(saved_context_));
-    break;
+    return;
   }
 
   debug(IRQ, "CPU exception #%zd\n", exc);

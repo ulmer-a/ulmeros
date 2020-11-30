@@ -19,7 +19,7 @@ void page_fault()
       && fault_addr < (size_t)kheap_break_)
   {
     if (vspace_map(VSPACE_KERNEL, fault_addr_virt,
-               page_alloc(0), PG_KERNEL))
+               page_alloc(0), PG_KERNEL|PG_WRITE))
       return;
   }
 

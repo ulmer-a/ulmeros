@@ -1,7 +1,7 @@
 CC       = gcc
 ARCH	 = amd64
 INCL     = -I kernel/include -I kernel/libk/include -I arch -I arch/$(ARCH)
-CFLAGS   = -c -std=c11 -Wall -g -O0 -D DEBUG \
+CFLAGS   = -O0 -g -c -std=c11 -Wall -D DEBUG \
            -ffreestanding -nostdinc -fno-strict-aliasing \
            -fno-builtin -fno-stack-protector -mno-red-zone \
 	   $(INCL) -DARCH=$(ARCH) -fvar-tracking

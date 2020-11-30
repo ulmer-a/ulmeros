@@ -2,6 +2,7 @@
 #include <types.h>
 #include <memory.h>
 #include <arch/context.h>
+#include <mutex.h>
 
 #define IDENT_OFFSET 0xffff800000000000ul
 
@@ -19,12 +20,13 @@ typedef struct
   uint64_t cow_was_writable          :1;
   uint64_t shared                    :1;
   uint64_t ignored_1                 :9;
-  uint64_t execution_disabled        :1;
+  uint64_t noexec                    :1;
 } __attribute__((__packed__)) GenericPagingTable;
 
 struct vspace_struct_
 {
     size_t pml4_page;
+    mutex_t lock;
 };
 
 static size_t kernel_pml4_page_;
@@ -41,6 +43,7 @@ void vspace_init_kernel()
   kernel_pml4_page_ = cr3 >> 12;
 
   vspace_kernel_.pml4_page = kernel_pml4_page_;
+  mutex_init(&vspace_kernel_.lock);
 
   debug(VSPACE, "kernel PML4 at %p\n", kernel_pml4_);
 }
@@ -86,11 +89,65 @@ void vspace_destroy(vspace_t* vspace)
 
 }
 
+static void resolve_virt(size_t virt_page, size_t* indices)
+{
+  indices[3] = (virt_page >> 27) & 0x1ff;
+  indices[2] = (virt_page >> 18) & 0x1ff;
+  indices[1] = (virt_page >> 9) & 0x1ff;
+  indices[0] = (virt_page) & 0x1ff;
+}
+
+int vspace_trigger_cow(vspace_t* vspace, size_t virt_page)
+{
+  (void)vspace; (void)virt_page;
+  return true;
+}
+
 int vspace_map(vspace_t* vspace, size_t virt_page,
                size_t phys_page, int flags)
 {
+  vspace_trigger_cow(vspace, virt_page);
 
-  return false;
+  size_t table_indices[4];
+  resolve_virt(virt_page, table_indices);
+
+  mutex_lock(&vspace->lock);
+
+  size_t next_table = vspace->pml4_page;
+  for (int level = 3; level >= 0; level--)
+  {
+    GenericPagingTable* entry = (GenericPagingTable*)
+        vspace_get_page_ptr(next_table)
+        + table_indices[level];
+
+    if (!entry->present)
+    {
+      // clear entry
+      *(uint64_t*)entry = 0;
+
+      // allocate physical page
+      entry->page_ppn = page_alloc(0);
+      entry->present = 1;
+
+      // set permissions according to flags
+      if (level != 0)
+      {
+        entry->user_access = 1;
+        entry->writeable = 1;
+      }
+      else
+      {
+        if (flags & PG_USER)    entry->user_access = 1;
+        if (flags & PG_WRITE)   entry->writeable   = 1;
+        if (flags & PG_NOEXEC)  entry->noexec      = 1;
+      }
+    }
+
+    next_table = entry->page_ppn;
+  }
+
+  mutex_unlock(&vspace->lock);
+  return true;
 }
 
 int vspace_unmap(vspace_t* vspace, size_t virt_page)

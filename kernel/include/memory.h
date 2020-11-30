@@ -30,3 +30,6 @@ size_t page_alloc(int flags);
  * @param page
  */
 void page_release(size_t page);
+
+extern void* kheap_start_;
+extern void* kheap_break_;

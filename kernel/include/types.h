@@ -30,7 +30,7 @@ void debug(int level, const char *fmt, ...);
 void panic();
 
 #define assert(x, y) if (!(x)) { \
-  debug(ASSERT, "assertion failed in %s on line %s: %s\n", \
+  debug(ASSERT, "assertion failed in %s on line %zd: %s\n", \
     __FILE__, __LINE__, (y)); \
   panic(); \
 }

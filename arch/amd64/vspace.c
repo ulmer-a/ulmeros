@@ -1,6 +1,7 @@
 #include <vspace.h>
 #include <types.h>
 #include <memory.h>
+#include <arch/context.h>
 
 #define IDENT_OFFSET 0xffff800000000000ul
 
@@ -98,4 +99,15 @@ int vspace_unmap(vspace_t* vspace, size_t virt_page)
   return false;
 }
 
+size_t ctx_pf_addr()
+{
+  size_t addr;
+  __asm__ volatile ("mov %%cr2, %0" : "=r"(addr));
+  return addr;
+}
+
+size_t ctx_pf_error()
+{
+  return ctx_error(saved_context_);
+}
 

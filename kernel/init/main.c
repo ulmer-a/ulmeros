@@ -2,6 +2,7 @@
 #include <kstring.h>
 #include <vspace.h>
 #include <memory.h>
+#include <interrupt.h>
 
 extern char _bss_start;
 extern char _bss_end;
@@ -22,6 +23,9 @@ void main64(boot_info_t* bootinfo)
    * them. this will enable vspace_init() to map the
    * kernel above the user break. */
   vspace_init_kernel();
+
+  /* initialize the interrupt handlers */
+  irq_init();
 
   /* initialize the kernel heap. this will create a
    * mapping at the very top of the address space */

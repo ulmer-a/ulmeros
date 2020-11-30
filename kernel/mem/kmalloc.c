@@ -16,30 +16,37 @@ struct hblock
 #define HEAP_MAGIC  (0xabcdefabu)
 #define HEADER_SIZE (sizeof(struct hblock))
 
-static void*    kheap_start = ARCH_KHEAP_START;
-static void*    kheap_break = NULL;
-static mutex_t  kheap_mutex = MUTEX_INITIALIZER;
+void* kheap_start_ = ARCH_KHEAP_START;
+void* kheap_break_ = ARCH_KHEAP_START;
 
 static struct hblock *heap_start = NULL;
 static struct hblock *heap_last = NULL;
+static mutex_t  kheap_mutex = MUTEX_INITIALIZER;
 
 void kheap_init()
 {
-  debug(KHEAP, "initializing kernel heap @ %p", kheap_start);
+  debug(KHEAP, "initializing kernel heap @ %p\n", kheap_start_);
 
-  /* map the first heap page and initialize */
-  size_t phys_page = page_alloc(0);
-  size_t heap_start_virt = (size_t)kheap_start / PAGE_SIZE;
-  vspace_map(VSPACE_KERNEL, heap_start_virt, phys_page, PG_KERNEL);
-  kheap_break = kheap_start + PAGE_SIZE;
 
-  /* */
 }
 
 static void* kbrk(ssize_t increment)
 {
-  // TODO initialize heap
-  return NULL;
+  void *orig_brk = kheap_break_;
+  kheap_break_ += increment;
+
+  if (orig_brk > kheap_break_)
+  {
+    size_t first_unmap = (size_t)kheap_break_ / PAGE_SIZE;
+    if ((size_t)kheap_break_ % PAGE_SIZE != 0)
+      first_unmap += 1;
+    size_t last_unmap = (size_t)orig_brk / PAGE_SIZE;
+
+    for (size_t page = first_unmap; page <= last_unmap; page++)
+      vspace_unmap(VSPACE_KERNEL, page);
+  }
+
+  return orig_brk;
 }
 
 static void crop(struct hblock *block, size_t new_size)

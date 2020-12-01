@@ -51,11 +51,15 @@ arch_context_t* ctx_create(void *entry, void* kstack, void *stack, int flags)
   {
     ctx->cs = CS_USER;
     ctx->ss = DS_USER;
+    ctx->fs = DS_USER;
+    ctx->gs = DS_USER;
   }
   else
   {
     ctx->cs = CS_KERNEL;
     ctx->ss = DS_KERNEL;
+    ctx->fs = DS_KERNEL;
+    ctx->gs = DS_KERNEL;
   }
 
   // enable interrupts

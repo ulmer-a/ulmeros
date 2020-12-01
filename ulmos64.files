@@ -59,6 +59,7 @@ kernel/mem/pagefault.c
 kernel/mem/pages.c
 kernel/pipe.c
 kernel/sched/interrupt.c
+kernel/sched/proc.c
 kernel/sched/sched.c
 kernel/sched/task.c
 kernel/syscalls.c

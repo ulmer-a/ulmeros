@@ -4,6 +4,17 @@
 #include <mutex.h>
 #include <arch/serial.h>
 
+static char* debug_levels[] = {
+  "VSPACE ",
+  "KMAIN  ",
+  "ASSERT ",
+  "PAGEMGR",
+  "KHEAP  ",
+  "IRQ    ",
+  "PAGEFLT",
+  "SCHED  "
+};
+
 static char kprintf_buffer[4096];
 static mutex_t kprintf_mtx = MUTEX_INITIALIZER;
 
@@ -13,6 +24,14 @@ static void do_kprintf(int level, const char *fmt, va_list args)
 
   char conv_buffer[256];
   char *buffer_ptr = kprintf_buffer;
+
+  char* debug_level = debug_levels[level];
+  *buffer_ptr++ = '[';
+  while (*debug_level)
+    *buffer_ptr++ = *debug_level++;
+  *buffer_ptr++ = ']';
+  *buffer_ptr++ = ' ';
+
   while (*fmt)
   {
     char c = *fmt++;
@@ -88,7 +107,7 @@ void debug(int level, const char *fmt, ...)
 
   va_list args;
   va_start(args, fmt);
-  do_kprintf(level, fmt, args);
+  do_kprintf(level & 0xff, fmt, args);
   va_end(args);
 }
 

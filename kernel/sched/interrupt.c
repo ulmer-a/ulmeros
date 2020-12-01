@@ -4,6 +4,7 @@
 #include <arch/context.h>
 
 #define EXC_PAGEFAULT   14
+#define EXC_YIELD       15
 
 extern void page_fault(size_t error);
 extern void schedule();
@@ -37,7 +38,10 @@ void exception(size_t exc)
   switch (exc)
   {
   case EXC_PAGEFAULT:
-    page_fault(ctx_error(saved_context_));
+    page_fault(ctx_error(saved_context));
+    return;
+  case EXC_YIELD:
+    schedule();
     return;
   }
 

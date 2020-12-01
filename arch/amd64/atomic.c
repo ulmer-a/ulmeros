@@ -1,5 +1,6 @@
 #include <sched.h>
 #include <types.h>
+#include <arch.h>
 
 size_t xchg(size_t val, size_t* mem)
 {
@@ -18,4 +19,9 @@ size_t atomic_add(size_t* mem, ssize_t increment)
     : "=a" (increment), "=m"(*mem)
     : "a" (increment));
   return ret;
+}
+
+void arch_idle()
+{
+  __asm__ volatile ("hlt");
 }

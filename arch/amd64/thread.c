@@ -1,6 +1,8 @@
 #include <arch/context.h>
 #include <memory.h>
 
+#include "amd64.h"
+
 #define CS_KERNEL   0x08
 #define DS_KERNEL   0x10
 #define CS_USER     0x18
@@ -34,9 +36,14 @@ struct arch_context_
     size_t ss;
 } __attribute__((packed));
 
-arch_context_t* ctx_create(void *entry, void *stack, int flags)
+void arch_yield()
 {
-  arch_context_t* ctx = kmalloc(sizeof(arch_context_t));
+  __asm__ volatile ("int $15;");
+}
+
+arch_context_t* ctx_create(void *entry, void* kstack, void *stack, int flags)
+{
+  arch_context_t* ctx = (arch_context_t*)kstack - 1;
   ctx->rsp = (size_t)stack;
   ctx->rip = (size_t)entry;
 
@@ -54,6 +61,11 @@ arch_context_t* ctx_create(void *entry, void *stack, int flags)
   // enable interrupts
   ctx->rflags = BIT(9);
   return ctx;
+}
+
+void ctx_set_kernel_stack(void* stack_ptr)
+{
+  set_rsp0(stack_ptr);
 }
 
 size_t ctx_irq(arch_context_t* ctx)

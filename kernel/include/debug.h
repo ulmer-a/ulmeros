@@ -11,3 +11,4 @@
 #define KHEAP       4   | OUTPUT_ENABLED
 #define IRQ         5   | OUTPUT_ENABLED
 #define PAGEFAULT   6   | OUTPUT_ENABLED
+#define SCHED       7   | OUTPUT_ENABLED

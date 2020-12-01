@@ -5,16 +5,39 @@
 #include <interrupt.h>
 #include <task.h>
 #include <arch.h>
+#include <sched.h>
 
 extern char _bss_start;
 extern char _bss_end;
 
-static void sysinit()
+static void sysinit_task()
 {
   debug(KMAIN, "Welcome from the first kernel task!\n");
 }
 
-void main64(boot_info_t* bootinfo)
+static void idle_task()
+{
+  char* videomem = (char*)0xb8000;
+  char* seq = "|/-\\|/-\\";
+  int x = 0, y = 0;
+  while (1)
+  {
+    if (seq[x] == 0)
+      x = 0;
+    char c = seq[x];
+
+    if (y++ > 2)
+    {
+      y = 0;
+      x++;
+    }
+
+    *videomem = c;
+    arch_idle();
+  }
+}
+
+void kmain(boot_info_t* bootinfo)
 {
   debug(KMAIN, "reached kmain()\n");
 
@@ -40,7 +63,15 @@ void main64(boot_info_t* bootinfo)
    * mapping at the very top of the address space */
   kheap_init();
 
-  create_ktask(sysinit);
+  /* initialize the scheduler. this will allocate
+   * the task list and perform some initialization. */
+  sched_init();
 
-  for (;;) __asm__ volatile("hlt");
+  /* create the system initialization task and the
+   * idle task and insert them into the scheduler. */
+  //create_ktask(sysinit_task);
+  create_ktask(idle_task);
+
+  /* start the scheduler */
+  sched_start();
 }

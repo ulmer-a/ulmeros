@@ -1,12 +1,15 @@
+arch/amd64/amd64.h
 arch/amd64/atomic.c
 arch/amd64/boot.h
 arch/amd64/context.S
 arch/amd64/definitions.h
+arch/amd64/gdt64.c
 arch/amd64/irq.c
 arch/amd64/memscan.c
 arch/amd64/multiboot.h
 arch/amd64/ports.h
 arch/amd64/serial.c
+arch/amd64/start.S
 arch/amd64/thread.c
 arch/amd64/timer.c
 arch/amd64/vspace.c
@@ -40,7 +43,6 @@ kernel/include/types.h
 kernel/include/vspace.h
 kernel/init/init.c
 kernel/init/main.c
-kernel/init/start.S
 kernel/kernel.ld
 kernel/libk/cv.c
 kernel/libk/fifo.c
@@ -57,7 +59,7 @@ kernel/mem/pagefault.c
 kernel/mem/pages.c
 kernel/pipe.c
 kernel/sched/interrupt.c
-kernel/sched/scheduler.c
+kernel/sched/sched.c
 kernel/sched/task.c
 kernel/syscalls.c
 kernel64

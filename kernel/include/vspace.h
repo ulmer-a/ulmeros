@@ -10,6 +10,8 @@ typedef struct vspace_struct_ vspace_t;
 extern vspace_t vspace_kernel_;
 #define VSPACE_KERNEL (&vspace_kernel_)
 
+extern vspace_t* current_vspace;
+
 #define PG_KERNEL   0
 #define PG_USER     BIT(0)
 #define PG_WRITE    BIT(1)

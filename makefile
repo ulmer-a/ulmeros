@@ -52,5 +52,11 @@ diskimage: boot32 kernel.o
 	@ echo " GEN generating disk image"
 	@ tools/mkimg.sh > /dev/null 2> /dev/null
 
+clean:
+	rm -f *.o */*.o */*/*.o
+	rm -f *.bin
+	rm -f kernel64 vmulmer
+	rm -rf hddimg/
+
 qemu:
 	@ tools/qemu.sh

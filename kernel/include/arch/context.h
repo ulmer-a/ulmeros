@@ -8,19 +8,35 @@ typedef struct arch_context_ arch_context_t;
 #define CTX_KERNEL  0
 #define CTX_USER    BIT(0)
 
-arch_context_t* ctx_create(void* entry, void* stack, int flags);
+void arch_yield();
+
+/**
+ * @brief ctx_create
+ * @param entry
+ * @param stack
+ * @param flags
+ * @return
+ */
+arch_context_t* ctx_create(void* entry, void *kstack, void* stack, int flags);
+
+/**
+ * @brief ctx_set_kernel_stack set the stack that a user space
+ * thread uses when it enters kernel space.
+ * @param stack_ptr the stack pointer value
+ */
+void ctx_set_kernel_stack(void* stack_ptr);
 
 /**
  * @brief ctx_irq get the interrupt number of the interrupt
- * @param ctx the irq number
- * @return
+ * @param ctx  the context
+ * @return the irq number
  */
 size_t ctx_irq(arch_context_t* ctx);
 
 /**
  * @brief ctx_error get the cpu error of the exception
- * @param ctx the cpu error
- * @return
+ * @param ctx the context
+ * @return the cpu error
  */
 size_t ctx_error(arch_context_t* ctx);
 
@@ -36,4 +52,4 @@ size_t ctx_pf_addr();
  */
 size_t ctx_pf_error();
 
-extern arch_context_t* saved_context_;
+extern arch_context_t* saved_context;

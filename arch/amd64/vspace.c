@@ -74,6 +74,7 @@ vspace_t* vspace_init()
 void vspace_apply(vspace_t *vspace)
 {
   size_t phys_pml4 = vspace->pml4_page << 12;
+  current_vspace = vspace;
   __asm__ volatile ("mov %0, %%cr3" : : "r"(phys_pml4));
 }
 
@@ -231,6 +232,6 @@ size_t ctx_pf_addr()
 
 size_t ctx_pf_error()
 {
-  return ctx_error(saved_context_);
+  return ctx_error(saved_context);
 }
 

@@ -2,6 +2,7 @@
 
 #include <types.h>
 #include <arch/context.h>
+#include <vspace.h>
 
 typedef enum
 {
@@ -17,7 +18,11 @@ typedef struct
     arch_context_t* context;
 
     void* kernel_stack;
+    size_t kernel_stack_size;
+
     void* ktask_stack;
+
+    vspace_t* vspace;
 } task_t;
 
 void ktask_init();

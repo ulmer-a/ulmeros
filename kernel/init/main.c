@@ -13,6 +13,9 @@ extern char _bss_end;
 static void sysinit_task()
 {
   debug(KMAIN, "Welcome from the first kernel task!\n");
+
+  for (;;)
+    __asm__ volatile ("hlt");
 }
 
 static void idle_task()
@@ -71,9 +74,9 @@ void kmain(boot_info_t* bootinfo)
 
   /* create the system initialization task and the
    * idle task and insert them into the scheduler. */
-  //create_ktask(sysinit_task);
+  create_ktask(sysinit_task);
   create_ktask(idle_task);
 
-  /* start the scheduler */
+  /* start the scheduler, this will not return */
   sched_start();
 }

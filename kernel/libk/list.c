@@ -101,5 +101,6 @@ void list_rotate(list_t* list)
   item->prev = list->last;
   list->first = item->next;
   item->next = NULL;
+  list->last->next = item;
   list->last = item;
 }

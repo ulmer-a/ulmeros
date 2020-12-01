@@ -3,6 +3,7 @@
 #include <types.h>
 
 size_t strlen(const char* str);
+size_t strnlen(const char *src, size_t n);
 void *memcpy(void *dest, const void *src, size_t length);
 void *memmove(void *dest, const void *src, size_t length);
 void *memccpy(void *dest, const void *src, uint8_t c, size_t length);

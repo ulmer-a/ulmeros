@@ -6,3 +6,5 @@ kernel/mem
 kernel/include/arch
 arch/amd64
 kernel/sched
+kernel/fs
+kernel/include/fs

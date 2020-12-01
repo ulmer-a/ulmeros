@@ -15,6 +15,8 @@ void list_add(list_t* list, void* payload);
 
 void list_remove(list_t* list, size_t index);
 
+void list_clear(list_t* list);
+
 void* list_get(list_t* list, size_t index);
 
 size_t list_size(list_t* list);

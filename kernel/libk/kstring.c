@@ -35,7 +35,25 @@ char *strcpy(char *dest, const char* src)
   return (char*)memcpy(dest, src, len);
 }
 
-char *strncpy(char *dest, const char* src, size_t size);
+size_t strnlen(const char *src, size_t n)
+{
+  for (size_t i = 0; i < n; i++)
+  {
+    if (src[i] == 0)
+      return i + 1;
+  }
+  return n;
+}
+
+char *strncpy(char *dest, const char* src, size_t size)
+{
+  char* dest_orig = dest;
+  size_t len = strnlen(src, size);
+  while (len--)
+    *dest++ = *src++;
+  return dest_orig;
+}
+
 char *strdup(const char *src);
 char *strcat(char *dest, const char*append);
 char *strncat(char *dest, const char*append, size_t size);

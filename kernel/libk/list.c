@@ -26,9 +26,14 @@ list_t* list_init()
 
 void list_destroy(list_t* list)
 {
+  list_clear(list);
+  kfree(list);
+}
+
+void list_clear(list_t* list)
+{
   while (list->items > 0)
     list_remove(list, 0);
-  kfree(list);
 }
 
 void list_add(list_t* list, void* payload)

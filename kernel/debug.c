@@ -12,7 +12,9 @@ static char* debug_levels[] = {
   "KHEAP  ",
   "IRQ    ",
   "PAGEFLT",
-  "SCHED  "
+  "SCHED  ",
+  "EXT2FS ",
+  "VFS    "
 };
 
 static char kprintf_buffer[4096];

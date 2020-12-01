@@ -6,6 +6,7 @@
 #include <task.h>
 #include <arch.h>
 #include <sched.h>
+#include <fs/vfs.h>
 
 extern char _bss_start;
 extern char _bss_end;
@@ -14,6 +15,11 @@ static void sysinit_task()
 {
   debug(KMAIN, "Welcome from the first kernel task!\n");
 
+  /* initialize the virtual file system. this will load
+   * common file system drivers and mount the root fs. */
+  vfs_init();
+
+  debug(KMAIN, "done");
   for (;;)
     __asm__ volatile ("hlt");
 }

@@ -26,6 +26,7 @@ boot/paging.c
 hddimg/disk.img
 hddimg/disk.img.lock
 kernel/debug.c
+kernel/fs/ext2fs.c
 kernel/fs/vfs.c
 kernel/include/arch.h
 kernel/include/arch/context.h
@@ -33,6 +34,8 @@ kernel/include/arch/serial.h
 kernel/include/asm.h
 kernel/include/debug.h
 kernel/include/errno.h
+kernel/include/fs/blockdev.h
+kernel/include/fs/vfs.h
 kernel/include/interrupt.h
 kernel/include/memory.h
 kernel/include/sched.h

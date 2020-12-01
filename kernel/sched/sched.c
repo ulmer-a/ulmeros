@@ -38,8 +38,15 @@ void sched_insert(task_t* task)
 
 static task_t* get_next_task()
 {
-  list_rotate(task_list_);
-  return list_get(task_list_, 0);
+  task_t* next_task;
+  do
+  {
+    list_rotate(task_list_);
+  }
+  while ((next_task = list_get(task_list_, 0))
+         ->state != TASK_RUNNING);
+
+  return next_task;
 }
 
 void schedule()

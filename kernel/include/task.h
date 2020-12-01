@@ -20,8 +20,6 @@ typedef struct
     void* kernel_stack;
     size_t kernel_stack_size;
 
-    void* ktask_stack;
-
     vspace_t* vspace;
 } task_t;
 

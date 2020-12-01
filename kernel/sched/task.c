@@ -24,11 +24,10 @@ size_t create_ktask(void* func)
   task->kernel_stack = kmalloc(KERNEL_STACK_SIZE);
   task->kernel_stack_size = KERNEL_STACK_SIZE;
 
-  task->ktask_stack  = kmalloc(KTASK_STACK_SIZE);
+  void* stack_ptr = task->kernel_stack + task->kernel_stack_size;
 
   task->vspace  = VSPACE_KERNEL;
-  task->context = ctx_create(func, task->kernel_stack
-    + task->kernel_stack_size, task->ktask_stack, CTX_KERNEL);
+  task->context = ctx_create(func, stack_ptr, stack_ptr, CTX_KERNEL);
 
   sched_insert(task);
   debug(SCHED, "task %zd: inserted\n", task->tid);

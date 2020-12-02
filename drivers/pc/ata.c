@@ -1,3 +1,22 @@
+/*
+ * ULMER Operating System
+ *
+ * ATA PCI IDE controller driver
+ * this driver can control one or more IDE controllers
+ * present on the system's PCI bus to be able to read and
+ * write sectors to and from IDE/SATA hard disk drives.
+ *
+ * this driver currently supports the following devices:
+ *  - Intel 82371AB/EB/MB PIIX4 IDE Controller (not tested)
+ *  - Intel 82371SB PIIX3 IDE Controller [Natoma/Triton II]
+ *
+ * Copyright (C) 2018-2020
+ * Written by Alexander Ulmer <ulmer@student.tugraz.at>
+ *
+ * Some of the driver is based on code that can be found at
+ * https://wiki.osdev.org/PCI_IDE_Controller (accessed Dec 2, 2020)
+ */
+
 #include <types.h>
 #include <bus/pci.h>
 #include <memory.h>
@@ -116,9 +135,17 @@ typedef struct
  * by the kernel when the driver registers itself. */
 static size_t ata_major;
 
+/* list of IDE controllers managed by this driver */
 static list_t* controller_list;
 static mutex_t controller_list_lock = MUTEX_INITIALIZER;
 
+/**
+ * @brief ide_write write to a controller's configuration register
+ * @param controller the controller managing the device
+ * @param channel 0=primary 1=secondary
+ * @param reg register to be written. use constants above.
+ * @param data value to be written
+ */
 static void ide_write(pci_ide_dev_t* controller, uint8_t channel,
                       uint8_t reg, uint8_t data)
 {
@@ -144,6 +171,13 @@ static void ide_write(pci_ide_dev_t* controller, uint8_t channel,
   }
 }
 
+/**
+ * @brief ide_write read from a controller's configuration register
+ * @param controller the controller managing the device
+ * @param channel 0=primary 1=secondary
+ * @param reg register to be written. use constants above.
+ * @return dava value
+ */
 static uint8_t ide_read(pci_ide_dev_t* controller, uint8_t channel,
                         uint8_t reg)
 {
@@ -171,24 +205,52 @@ static uint8_t ide_read(pci_ide_dev_t* controller, uint8_t channel,
   return result;
 }
 
+/**
+ * @brief msleep sleep n milliseconds
+ * this method should be improved and moved to the kernel!
+ * @param ms
+ */
 static void msleep(size_t ms)
 {
   size_t waitfor = ms * 10000000;
   while (waitfor--);
 }
 
+/**
+ * @brief ata_read
+ * @param minor
+ * @param buf
+ * @param count
+ * @param lba
+ * @return
+ */
 static ssize_t ata_read(size_t minor, char* buf,
                         size_t count, size_t lba)
 {
   return -ENOSYS;
 }
 
+/**
+ * @brief ata_write
+ * @param minor
+ * @param buf
+ * @param count
+ * @param lba
+ * @return
+ */
 static ssize_t ata_write(size_t minor, char* buf,
                          size_t count, size_t lba)
 {
   return -ENOSYS;
 }
 
+/**
+ * @brief ide_identify perform an identification operation
+ * on the sepecified drive connected to a given controller
+ * @param controller the IDE controller
+ * @param channel 0=Primary, 1=Secondary
+ * @param drive 0=Master, 1=Slave
+ */
 static void ide_identify(pci_ide_dev_t* controller, uint8_t channel, uint8_t drive)
 {
   uint8_t drv_id = channel * 2 + drive;
@@ -208,6 +270,7 @@ static void ide_identify(pci_ide_dev_t* controller, uint8_t channel, uint8_t dri
   if (ide_read(controller, channel, ATA_REG_STATUS) == 0)
     return;
 
+  /* poll until success */
   uint8_t status;
   while (1)
   {
@@ -215,25 +278,34 @@ static void ide_identify(pci_ide_dev_t* controller, uint8_t channel, uint8_t dri
 
     if (status & ATA_SR_ERR)
     {
-      // device is not ATA!
+      /* device is not ATA! maybe perform some further
+       * detection. probably the device is ATAPI/SCSI */
       debug(ATADISK, "%s-%s: SCSI is unimplemented\n",
             channel == 0 ? "Primary" : "Secondary",
             drive == 0 ? "Master" : "Slave");
       return;
     }
 
-    // check if everything is alright
     if ((!(status & ATA_SR_BSY)) && (status & ATA_SR_DRQ))
+    {
+      /* everything is alright! */
       break;
+    }
   }
 
-  // read identification space
+  /* read the identification space of the specified
+   * device. this will return detailed info about the device. */
   uint8_t idspace[512];
-  if ((ide_read(controller, channel, ATA_REG_STATUS) & ATA_SR_ERR) == 0)
+  if ((ide_read(controller, channel,
+                ATA_REG_STATUS) & ATA_SR_ERR) == 0)
   {
-    repinsw(controller->ide_channels[channel].base + ATA_REG_DATA, (uint16_t*)idspace, 256);
+    repinsw(controller->ide_channels[channel].base
+            + ATA_REG_DATA, (uint16_t*)idspace, 256);
   }
 
+  /* complete the missing data in the ide_device[] entry. this
+   * includes information like serial number, model description,
+   * command sets and the capacity */
   ide_device[drv_id].present  = 1;
   ide_device[drv_id].channel  = channel;
   ide_device[drv_id].drive    = drive;
@@ -263,12 +335,9 @@ static void ide_identify(pci_ide_dev_t* controller, uint8_t channel, uint8_t dri
   ide_device[drv_id].model[40] = 0;
 }
 
-static const pci_idpair_t ata_pci_ids[] = {
-  { 0x8086, 0x7111 }, // Intel 82371AB/EB/MB PIIX4 IDE Controller (not tested)
-  { 0x8086, 0x7010 }, // Intel 82371SB PIIX3 IDE Controller [Natoma/Triton II]
-  { 0, 0 }
-};
-
+/* block device driver description structure. this
+ * will tell the block device manager what kind of
+ * operations this driver supports and how to call them. */
 static bd_driver_t ata_bd_driver = {
   .name = "pc_ata_pci",
   .file_prefix = "hd",
@@ -280,12 +349,15 @@ static bd_driver_t ata_bd_driver = {
 
 static int ata_probe(pci_dev_t* device)
 {
+  /* some asserting checks */
   if (device->class != 1 && device->subclass != 1)
     return false;
 
   debug(ATADISK, "%x:%x: PCI IDE PATA/SATA Hard Drive controller\n",
         device->id.vendor, device->id.device);
 
+  /* get the IO space addresses from the PCI
+   * configuration space base address registers. */
   uint32_t bar0 = pci_get_bar(device, 0); // Primary Channel IO Base
   uint32_t bar1 = pci_get_bar(device, 1); // Primary Channel Control Base
   uint32_t bar2 = pci_get_bar(device, 2); // Secondary Channel IO Base
@@ -297,6 +369,8 @@ static int ata_probe(pci_dev_t* device)
   if (bar2 == 0x0 || bar2 == 0x1) bar2 = 0x170;
   if (bar3 == 0x0 || bar3 == 0x1) bar3 = 0x376;
 
+  /* initialize the IDE channels of the controller
+   * structure describing this device. */
   pci_ide_dev_t* controller = kmalloc(sizeof(pci_ide_dev_t));
   controller->ide_channels[ATA_PRIMARY].base =        (bar0 & 0xfffffffc);
   controller->ide_channels[ATA_PRIMARY].ctrl =        (bar1 & 0xfffffffc);
@@ -305,19 +379,29 @@ static int ata_probe(pci_dev_t* device)
   controller->ide_channels[ATA_SECONDARY].ctrl =      (bar3 & 0xfffffffc);
   controller->ide_channels[ATA_SECONDARY].busmaster = (bar4 & 0xfffffffc) + 8;
 
-  // disable IRQ's on both channels
+  /* disable IRQ's on both channels */
   ide_write(controller, ATA_PRIMARY, ATA_REG_CONTROL, 2);
   ide_write(controller, ATA_SECONDARY, ATA_REG_CONTROL, 2);
 
-  // identifiy each of the drives
+  /* identifiy each of the drives. this checks their type,
+   * if they are present and obtains some basic parameters,
+   * like capacity, model and serial numbers, ... */
   ide_identify(controller, ATA_PRIMARY, ATA_MASTER);
   ide_identify(controller, ATA_PRIMARY, ATA_SLAVE);
   ide_identify(controller, ATA_SECONDARY, ATA_MASTER);
   ide_identify(controller, ATA_SECONDARY, ATA_SLAVE);
 
+  /* add the IDE controller to the list of controllers
+   * managed by this device. since there can be multiple,
+   * we have to synchronize this properly. */
   mutex_lock(&controller_list_lock);
   size_t minors = list_size(controller_list) * 4;
   list_add(controller_list, controller);
+  mutex_unlock(&controller_list_lock);
+
+  /* iterate through the devices that are present and
+   * print some descriptive information to the kernel
+   * output. */
   for (int i = 0; i < 3; i++)
   {
     ide_dev_t* dev = &controller->ide_devices[i];
@@ -330,18 +414,27 @@ static int ata_probe(pci_dev_t* device)
           dev->sectors, dev->sectors * 512 / (1024*1024),
           dev->model);
 
-    /* register the drive as block device */
+    /* finally, register all the devices as
+     * block devices, so they can be referenced. */
     bd_t* disk = kmalloc(sizeof(bd_t));
     disk->driver = &ata_bd_driver;
     disk->minor = minors + i;
     disk->capacity = dev->sectors;
     bd_register(disk);
   }
-  mutex_unlock(&controller_list_lock);
 
   return true;
 }
 
+/* PCI driver description structure. this will tell
+ * the kernel which devices this driver can handle. */
+static const pci_idpair_t ata_pci_ids[] = {
+  { 0x8086, 0x7111 }, // Intel 82371AB/EB/MB PIIX4 IDE Controller (not tested)
+  { 0x8086, 0x7010 }, // Intel 82371SB PIIX3 IDE Controller [Natoma/Triton II]
+  { 0, 0 }
+};
+
+/* PCI driver description structure function map */
 static const pci_driver_t ata_pci_driver = {
   .devices = ata_pci_ids,
   .probe = ata_probe
@@ -349,10 +442,19 @@ static const pci_driver_t ata_pci_driver = {
 
 void ata_init()
 {
-  debug(ATADISK, "setting up SATA/PATA disk driver\n");
+  debug(ATADISK, "loading SATA/PATA disk driver\n");
 
+  /* initialize the list of IDE controllers handled
+   * by this driver. */
   controller_list = list_init();
 
+  /* obtain a global major-number by registering as
+   * a block device driver. */
   ata_major = bd_register_driver(&ata_bd_driver);
+
+  /* register as a PCI device driver. this will result
+   * in a call to ata_probe() in the case that a device
+   * that can be handled by this driver is present. this
+   * should be the last thing to be done in ata_init(). */
   pci_register_driver(&ata_pci_driver);
 }

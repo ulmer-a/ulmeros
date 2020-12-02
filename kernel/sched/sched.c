@@ -15,10 +15,34 @@ static int sched_blocked = 0;
 static list_t* task_list_;
 
 
-void sched_init(task_t *initial)
+static void idle_task()
+{
+  char* videomem = (char*)0xb8000;
+  char* seq = "|/-\\|/-\\";
+  int x = 0, y = 0;
+  while (1)
+  {
+    if (seq[x] == 0)
+      x = 0;
+    char c = seq[x];
+
+    if (y++ > 2)
+    {
+      y = 0;
+      x++;
+    }
+
+    *videomem = c;
+    arch_idle();
+  }
+}
+
+void sched_init()
 {
   debug(SCHED, "setting up scheduler task list\n");
   task_list_ = list_init();
+
+  create_ktask(&idle_task);
 }
 
 void sched_start()
@@ -89,26 +113,4 @@ void set_context(arch_context_t* context)
 arch_context_t* get_context()
 {
   return saved_context;
-}
-
-void idle_task()
-{
-  char* videomem = (char*)0xb8000;
-  char* seq = "|/-\\|/-\\";
-  int x = 0, y = 0;
-  while (1)
-  {
-    if (seq[x] == 0)
-      x = 0;
-    char c = seq[x];
-
-    if (y++ > 2)
-    {
-      y = 0;
-      x++;
-    }
-
-    *videomem = c;
-    arch_idle();
-  }
 }

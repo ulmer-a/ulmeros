@@ -8,7 +8,5 @@ void sysinit_task()
    * common file system drivers and mount the root fs. */
   vfs_init();
 
-  debug(KMAIN, "done");
-  for (;;)
-    __asm__ volatile ("hlt");
+  debug(KMAIN, "done\n");
 }

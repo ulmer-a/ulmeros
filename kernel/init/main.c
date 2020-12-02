@@ -10,12 +10,12 @@
 extern char _bss_start;
 extern char _bss_end;
 
-/* for some reason, I didn't manage to get function
- * pointers to the following functions to work. they
- * will always evaluate to zero. Setting the type to
- * 'char' instead of void(*)() is a workaround. */
-extern char sysinit_task; // void sysinit()
-extern char idle_task;    // void idle_task()
+extern void sysinit_task();
+static void start_sysinit_task()
+{
+  sysinit_task();
+  for(;;) __asm__ volatile ("hlt");
+}
 
 void kmain(boot_info_t* bootinfo)
 {
@@ -49,10 +49,9 @@ void kmain(boot_info_t* bootinfo)
    * the task list and perform some initialization. */
   sched_init();
 
-  /* create the system initialization task and the
-   * idle task and insert them into the scheduler. */
-  create_ktask((void*)&sysinit_task);
-  create_ktask((void*)&idle_task);
+  /* create the system initialization task and
+   * insert it into the scheduler. */
+  create_ktask(start_sysinit_task);
 
   /* start the scheduler, this will not return */
   sched_start();

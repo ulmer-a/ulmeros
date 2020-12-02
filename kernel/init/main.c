@@ -6,45 +6,16 @@
 #include <task.h>
 #include <arch.h>
 #include <sched.h>
-#include <fs/vfs.h>
 
 extern char _bss_start;
 extern char _bss_end;
 
-static void sysinit_task()
-{
-  debug(KMAIN, "Welcome from the first kernel task!\n");
-
-  /* initialize the virtual file system. this will load
-   * common file system drivers and mount the root fs. */
-  vfs_init();
-
-  debug(KMAIN, "done");
-  for (;;)
-    __asm__ volatile ("hlt");
-}
-
-static void idle_task()
-{
-  char* videomem = (char*)0xb8000;
-  char* seq = "|/-\\|/-\\";
-  int x = 0, y = 0;
-  while (1)
-  {
-    if (seq[x] == 0)
-      x = 0;
-    char c = seq[x];
-
-    if (y++ > 2)
-    {
-      y = 0;
-      x++;
-    }
-
-    *videomem = c;
-    arch_idle();
-  }
-}
+/* for some reason, I didn't manage to get function
+ * pointers to the following functions to work. they
+ * will always evaluate to zero. Setting the type to
+ * 'char' instead of void(*)() is a workaround. */
+extern char sysinit_task; // void sysinit()
+extern char idle_task;    // void idle_task()
 
 void kmain(boot_info_t* bootinfo)
 {
@@ -80,8 +51,8 @@ void kmain(boot_info_t* bootinfo)
 
   /* create the system initialization task and the
    * idle task and insert them into the scheduler. */
-  create_ktask(sysinit_task);
-  create_ktask(idle_task);
+  create_ktask((void*)&sysinit_task);
+  create_ktask((void*)&idle_task);
 
   /* start the scheduler, this will not return */
   sched_start();

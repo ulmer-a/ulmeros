@@ -32,4 +32,4 @@ void mktask();
  * @param func
  * @return
  */
-size_t create_ktask(void* func);
+size_t create_ktask(void (*func)());

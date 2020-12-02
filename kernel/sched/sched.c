@@ -5,6 +5,7 @@
 #include <mutex.h>
 #include <vspace.h>
 #include <arch/context.h>
+#include <arch.h>
 
 task_t* current_task;
 vspace_t* current_vspace;
@@ -88,4 +89,26 @@ void set_context(arch_context_t* context)
 arch_context_t* get_context()
 {
   return saved_context;
+}
+
+void idle_task()
+{
+  char* videomem = (char*)0xb8000;
+  char* seq = "|/-\\|/-\\";
+  int x = 0, y = 0;
+  while (1)
+  {
+    if (seq[x] == 0)
+      x = 0;
+    char c = seq[x];
+
+    if (y++ > 2)
+    {
+      y = 0;
+      x++;
+    }
+
+    *videomem = c;
+    arch_idle();
+  }
 }

@@ -19,9 +19,9 @@ static void start_sysinit_task()
 
 void kmain(boot_info_t* bootinfo)
 {
-  debug(KMAIN, "ULMER Operating System %s - built %s\n\n"
-               "reached kmain()\n",
+  debug(KMAIN, "ULMER Operating System %s - built %s\n\n",
         OS_VERSION, OS_BUILD_DATE);
+  debug(KMAIN, "reached kmain()\n");
 
   /* clear BSS segment */
   memset(&_bss_start, 0, (size_t)&_bss_end - (size_t)&_bss_start);

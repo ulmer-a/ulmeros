@@ -195,7 +195,7 @@ static void ide_identify(pci_ide_dev_t* controller, uint8_t channel, uint8_t dri
     if (status & ATA_SR_ERR)
     {
       // device is not ATA!
-      debug(ATADISK, "%s-%s: unimplemented: device is not ATA!\n",
+      debug(ATADISK, "%s-%s: SCSI is unimplemented\n",
             channel == 0 ? "Primary" : "Secondary",
             drive == 0 ? "Master" : "Slave");
       return;
@@ -207,10 +207,10 @@ static void ide_identify(pci_ide_dev_t* controller, uint8_t channel, uint8_t dri
   }
 
   // read identification space
-  uint16_t idspace[256];
+  uint8_t idspace[512];
   if ((ide_read(controller, channel, ATA_REG_STATUS) & ATA_SR_ERR) == 0)
   {
-    repinsw(controller->ide_channels[channel].base + ATA_REG_DATA, idspace, 256);
+    repinsw(controller->ide_channels[channel].base + ATA_REG_DATA, (uint16_t*)idspace, 256);
   }
 
   ide_device[drv_id].present  = 1;
@@ -220,15 +220,24 @@ static void ide_identify(pci_ide_dev_t* controller, uint8_t channel, uint8_t dri
   ide_device[drv_id].capa     = *((uint16_t*)(idspace + ATA_IDENT_CAPABILITIES));
   ide_device[drv_id].cmd_sets = *((uint32_t*)(idspace + ATA_IDENT_COMMANDSETS));
 
-  if (ide_device->cmd_sets & BIT(26))
-   ide_device->sectors = *((uint32_t*)(idspace + ATA_IDENT_MAX_LBA_EXT));
+  if (ide_device[drv_id].cmd_sets & BIT(26))
+   ide_device[drv_id].sectors = *((uint32_t*)(idspace + ATA_IDENT_MAX_LBA_EXT));
   else
-   ide_device->sectors = *((uint32_t*)(idspace + ATA_IDENT_MAX_LBA));
+   ide_device[drv_id].sectors = *((uint32_t*)(idspace + ATA_IDENT_MAX_LBA));
 
   for (int i = 0; i < 40; i += 2)
   {
    ide_device[drv_id].model[i] = idspace[ATA_IDENT_MODEL + i + 1];
    ide_device[drv_id].model[i + 1] = idspace[ATA_IDENT_MODEL + i];
+  }
+  for (int i = 40; i >= 0; i--)
+  {
+    if (ide_device[drv_id].model[i] != ' '
+        && ide_device[drv_id].model[i] != 0)
+      break;
+
+    if (ide_device[drv_id].model[i] == ' ')
+      ide_device[drv_id].model[i] = 0;
   }
   ide_device[drv_id].model[40] = 0;
 }
@@ -276,10 +285,11 @@ static int ata_probe(pci_dev_t* device)
     if (!dev->present)
       continue;
 
-    debug(ATADISK, "%s-%s: lba=%zd (%zd MB)\n",
+    debug(ATADISK, "%s-%s: LBA's=%zd (%zd MB) model=\"%s\"\n",
           dev->channel == 0 ? "Primary" : "Secondary",
           dev->drive   == 0 ? "Master" : "Slave",
-          dev->sectors, dev->sectors * 512 / (1024*1024));
+          dev->sectors, dev->sectors * 512 / (1024*1024),
+          dev->model);
   }
 
   return true;

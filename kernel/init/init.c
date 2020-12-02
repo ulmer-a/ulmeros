@@ -1,8 +1,16 @@
 #include <fs/vfs.h>
+#include <arch/platform.h>
+#include <bus/pci.h>
 
 void sysinit_task()
 {
-  debug(KMAIN, "Welcome from the first kernel task!\n");
+  debug(KMAIN, "Hello from the kernel initialization task!\n");
+
+  /* perform a PCI scan, if present */
+  pci_init();
+
+  /* load the platform drivers */
+  platform_init_drivers();
 
   /* initialize the virtual file system. this will load
    * common file system drivers and mount the root fs. */

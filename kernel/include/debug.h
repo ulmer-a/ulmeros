@@ -14,3 +14,5 @@
 #define SCHED       7   | OUTPUT_ENABLED
 #define EXT2FS      8   | OUTPUT_ENABLED
 #define VFS         9   | OUTPUT_ENABLED
+#define ATADISK     10  | OUTPUT_ENABLED
+#define PCIBUS      11  | OUTPUT_ENABLED

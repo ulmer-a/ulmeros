@@ -13,7 +13,7 @@ BOOT32_OBJ = $(patsubst %.c, %32.o, $(wildcard boot/*.c)) \
 
 KERNEL_OBJ = $(patsubst %.S, %.o, $(wildcard kernel/*/*.S arch/$(ARCH)/*.S)) \
              $(patsubst %.c, %.o, $(wildcard kernel/*/*.c arch/$(ARCH)/*.c \
-             kernel/*.c)) \
+             kernel/*.c drivers/*/*.c)) \
 
 all: boot32 diskimage
 

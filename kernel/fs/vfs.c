@@ -20,7 +20,7 @@ void vfs_init()
 
 void register_fs(const fs_t* fs)
 {
-  debug(VFS, "registering filesystem %s, id=%x\n",
+  debug(VFS, "registering filesystem %s, id=0x%x\n",
         fs->name, fs->mbr_id);
   list_add(fs_list, (void*)fs);
 }

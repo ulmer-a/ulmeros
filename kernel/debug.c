@@ -14,7 +14,9 @@ static char* debug_levels[] = {
   "PAGEFLT",
   "SCHED  ",
   "EXT2FS ",
-  "VFS    "
+  "VFS    ",
+  "ATADISK",
+  "PCIBUS "
 };
 
 static char kprintf_buffer[4096];

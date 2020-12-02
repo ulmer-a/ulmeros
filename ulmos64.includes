@@ -8,3 +8,7 @@ arch/amd64
 kernel/sched
 kernel/fs
 kernel/include/fs
+drivers/pc
+kernel/pci
+kernel/bus
+kernel/include/bus

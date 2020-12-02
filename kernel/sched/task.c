@@ -9,6 +9,12 @@
 #define KERNEL_STACK_SIZE 4096
 #define KTASK_STACK_SIZE  8192
 
+
+int task_schedulable(task_t* task)
+{
+  return true;
+}
+
 static size_t get_task_id()
 {
   static size_t tid_counter = 1;

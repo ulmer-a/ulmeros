@@ -6,6 +6,9 @@ void sysinit_task()
 {
   debug(KMAIN, "Hello from the kernel initialization task!\n");
 
+  /* initialize blockdevice manager */
+  bd_init();
+
   /* perform a PCI scan, if present */
   pci_init();
 

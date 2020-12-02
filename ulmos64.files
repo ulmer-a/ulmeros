@@ -30,7 +30,9 @@ hddimg/disk.img
 hddimg/disk.img.lock
 kernel/bus/pci.c
 kernel/debug.c
+kernel/fs/blockdev.c
 kernel/fs/ext2fs.c
+kernel/fs/iosched.c
 kernel/fs/vfs.c
 kernel/include/arch.h
 kernel/include/arch/context.h

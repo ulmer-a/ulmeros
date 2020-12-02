@@ -161,7 +161,8 @@ typedef struct
 
 static ssize_t ext2_get_block(bd_t* disk, char* buffer, size_t lba, size_t count)
 {
-  ssize_t ret = disk->read(buffer, count, lba);
+  ssize_t ret = disk->driver->
+      fops.read(disk->minor, buffer, count, lba);
   if (ret < 0)
     return ret;
   return ret / LBA_SIZE;
@@ -432,7 +433,7 @@ static const fs_t ext2fs = {
 
 void ext2fs_load()
 {
-  debug(EXT2FS, "loading driver\n");
+  debug(EXT2FS, "loading ext2fs filesystem driver\n");
 
   assert(sizeof(ext2_inode_t) == 128, "ext2 inode_t struct size");
   assert(sizeof(ext2_gd_t) == 32, "ext2 gd_t struct size");

@@ -8,6 +8,7 @@ typedef enum
 {
   TASK_RUNNING,
   TASK_SLEEPING,
+  TASK_IOSLEEP,
   TASK_DELETE
 } task_state_t;
 
@@ -22,6 +23,9 @@ typedef struct
 
     vspace_t* vspace;
 } task_t;
+
+int task_schedulable(task_t* task);
+void task_complete_io(size_t tid);
 
 void ktask_init();
 

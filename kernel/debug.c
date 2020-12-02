@@ -16,7 +16,8 @@ static char* debug_levels[] = {
   "EXT2FS ",
   "VFS    ",
   "ATADISK",
-  "PCIBUS "
+  "PCIBUS ",
+  "BLKDEV "
 };
 
 static char kprintf_buffer[4096];

@@ -1,7 +1,11 @@
 #include <types.h>
 #include <bus/pci.h>
 #include <memory.h>
-#include "ports.h"
+#include <fs/blockdev.h>
+#include <list.h>
+#include <amd64/ports.h>
+#include <mutex.h>
+#include <errno.h>
 
 // Status
 #define ATA_SR_BSY     0x80    // Busy
@@ -108,7 +112,12 @@ typedef struct
   ide_dev_t ide_devices[4];
 } pci_ide_dev_t;
 
+/* the driver's major number. it is assigned
+ * by the kernel when the driver registers itself. */
+static size_t ata_major;
 
+static list_t* controller_list;
+static mutex_t controller_list_lock = MUTEX_INITIALIZER;
 
 static void ide_write(pci_ide_dev_t* controller, uint8_t channel,
                       uint8_t reg, uint8_t data)
@@ -166,6 +175,18 @@ static void msleep(size_t ms)
 {
   size_t waitfor = ms * 10000000;
   while (waitfor--);
+}
+
+static ssize_t ata_read(size_t minor, char* buf,
+                        size_t count, size_t lba)
+{
+  return -ENOSYS;
+}
+
+static ssize_t ata_write(size_t minor, char* buf,
+                         size_t count, size_t lba)
+{
+  return -ENOSYS;
 }
 
 static void ide_identify(pci_ide_dev_t* controller, uint8_t channel, uint8_t drive)
@@ -242,6 +263,21 @@ static void ide_identify(pci_ide_dev_t* controller, uint8_t channel, uint8_t dri
   ide_device[drv_id].model[40] = 0;
 }
 
+static const pci_idpair_t ata_pci_ids[] = {
+  { 0x8086, 0x7111 }, // Intel 82371AB/EB/MB PIIX4 IDE Controller (not tested)
+  { 0x8086, 0x7010 }, // Intel 82371SB PIIX3 IDE Controller [Natoma/Triton II]
+  { 0, 0 }
+};
+
+static bd_driver_t ata_bd_driver = {
+  .name = "pc_ata_pci",
+  .file_prefix = "hd",
+  .fops = {
+    .read = ata_read,
+    .write = ata_write
+  }
+};
+
 static int ata_probe(pci_dev_t* device)
 {
   if (device->class != 1 && device->subclass != 1)
@@ -279,6 +315,9 @@ static int ata_probe(pci_dev_t* device)
   ide_identify(controller, ATA_SECONDARY, ATA_MASTER);
   ide_identify(controller, ATA_SECONDARY, ATA_SLAVE);
 
+  mutex_lock(&controller_list_lock);
+  size_t minors = list_size(controller_list) * 4;
+  list_add(controller_list, controller);
   for (int i = 0; i < 3; i++)
   {
     ide_dev_t* dev = &controller->ide_devices[i];
@@ -290,16 +329,18 @@ static int ata_probe(pci_dev_t* device)
           dev->drive   == 0 ? "Master" : "Slave",
           dev->sectors, dev->sectors * 512 / (1024*1024),
           dev->model);
+
+    /* register the drive as block device */
+    bd_t* disk = kmalloc(sizeof(bd_t));
+    disk->driver = &ata_bd_driver;
+    disk->minor = minors + i;
+    disk->capacity = dev->sectors;
+    bd_register(disk);
   }
+  mutex_unlock(&controller_list_lock);
 
   return true;
 }
-
-static const pci_idpair_t ata_pci_ids[] = {
-  { 0x8086, 0x7111 }, // Intel 82371AB/EB/MB PIIX4 IDE Controller (not tested)
-  { 0x8086, 0x7010 }, // Intel 82371SB PIIX3 IDE Controller [Natoma/Triton II]
-  { 0, 0 }
-};
 
 static const pci_driver_t ata_pci_driver = {
   .devices = ata_pci_ids,
@@ -310,5 +351,8 @@ void ata_init()
 {
   debug(ATADISK, "setting up SATA/PATA disk driver\n");
 
+  controller_list = list_init();
+
+  ata_major = bd_register_driver(&ata_bd_driver);
   pci_register_driver(&ata_pci_driver);
 }

@@ -2,12 +2,21 @@
 
 #include <types.h>
 
-struct list_struct_;
-typedef struct list_struct_ list_t;
 struct list_item_struct_;
 typedef struct list_item_struct_ list_item_t;
 
+struct list_struct_
+{
+  size_t items;
+  list_item_t* first;
+  list_item_t* last;
+};
+typedef struct list_struct_ list_t;
+
+
 list_t* list_init();
+
+void list_init_without_alloc(list_t* list);
 
 void list_destroy(list_t* list);
 

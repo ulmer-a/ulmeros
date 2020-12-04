@@ -20,8 +20,8 @@ void idMapPages(uint64_t* pml4, unsigned long count)
   int pml4i = 0;
   int pdpti = 0;
   int pdiri = 0;
-  int ptbli = 0;
-  uint32_t phys = 0;
+  int ptbli = 1;
+  uint32_t phys = 1;
 
   uint64_t* pdpt = getEmptyPage();
   uint64_t* pdir = getEmptyPage();

@@ -11,6 +11,7 @@ static list_t* fs_list;
 void vfs_init()
 {
   debug(VFS, "setting up filesystem\n");
+  fs_list = list_init();
 
   /* load known filesystem's drivers */
   ext2fs_load();

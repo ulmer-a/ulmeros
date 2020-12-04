@@ -6,6 +6,7 @@
 #include <vspace.h>
 #include <arch/context.h>
 #include <arch.h>
+#include <kstring.h>
 
 task_t* current_task;
 vspace_t* current_vspace;
@@ -18,6 +19,16 @@ static list_t* task_list_;
 static void idle_task()
 {
   char* videomem = (char*)0xb8000;
+
+  static const char* str = "  Ulmer OS 64bit";
+  for (int i = 0; i < strlen(str); i++)
+  {
+    videomem[2 *i] = str[i];
+    videomem[2*i + 1] = 0xf0;
+  }
+  videomem[1] = 0x0f;
+  videomem[3] = 0x0f;
+
   char* seq = "|/-\\|/-\\";
   int x = 0, y = 0;
   while (1)

@@ -21,6 +21,8 @@ typedef struct
     void* kernel_stack;
     size_t kernel_stack_size;
 
+    int waiting_for_lock;
+
     vspace_t* vspace;
 } task_t;
 

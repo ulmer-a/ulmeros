@@ -12,3 +12,4 @@ drivers/pc
 kernel/pci
 kernel/bus
 kernel/include/bus
+kernel/libk

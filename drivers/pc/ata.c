@@ -30,6 +30,7 @@
 #include <sched.h>
 #include <interrupt.h>
 #include <kstring.h>
+#include <cond.h>
 
 // Status
 #define ATA_SR_BSY     0x80    // Busy
@@ -140,7 +141,12 @@ typedef struct
 typedef struct
 {
   region_desc_t* prdt;
-  size_t irq_arrived;
+
+  size_t irq_ready;
+  uint8_t irq_status;
+  mutex_t irq_mutex;
+  cond_t irq_cond;
+
   uint16_t base;
   uint16_t ctrl;
   uint16_t busmaster;
@@ -268,8 +274,8 @@ static pci_ide_dev_t* get_controller(size_t minor)
 
 static int ata_check_irq(pci_ide_dev_t* controller, uint8_t channel)
 {
-  size_t busmaster_base = controller->
-      ide_channels[channel].busmaster;
+  ide_channel_t* ch = &(controller->ide_channels[channel]);
+  size_t busmaster_base = ch->busmaster;
 
   // check if the IRQ bit is set in the busmaster
   // status register, then clear it
@@ -280,7 +286,11 @@ static int ata_check_irq(pci_ide_dev_t* controller, uint8_t channel)
   {
     // if the device generated an IRQ, wake up the
     // task that is waiting for it.
-    controller->ide_channels[channel].irq_arrived = 1;
+    mutex_lock(&ch->irq_mutex);
+    ch->irq_ready = 1;
+    ch->irq_status = status;
+    cond_signal(&ch->irq_cond);
+    mutex_unlock(&ch->irq_mutex);
     return true;
   }
 
@@ -345,7 +355,7 @@ static ssize_t ata_read(size_t minor, char* buf,
         = tr_size * 512;
 
     // reset the interrupt status
-    channel->irq_arrived = 0;
+    channel->irq_ready = 0;
 
     // set the DMA data direction to READ
     outb(channel->busmaster + DMA_CMD, DMA_CMD_READ|DMA_CMD_STOP);
@@ -379,8 +389,10 @@ static ssize_t ata_read(size_t minor, char* buf,
 
     /* while the device transfers data to memory, this
      * thread can go to sleep. */
-    while (!channel->irq_arrived)
-      yield();
+    mutex_lock(&channel->irq_mutex);
+    while (!channel->irq_ready)
+      cond_wait(&channel->irq_cond, &channel->irq_mutex);
+    mutex_unlock(&channel->irq_mutex);
 
     /* the transfer completed, so stop DMA. */
     outb(channel->busmaster + DMA_CMD, DMA_CMD_READ|DMA_CMD_STOP);
@@ -581,6 +593,11 @@ static int ata_probe(pci_dev_t* device)
   controller->ide_channels[ATA_SECONDARY].base =      (bar2 & 0xfffffffc);
   controller->ide_channels[ATA_SECONDARY].ctrl =      (bar3 & 0xfffffffc);
   controller->ide_channels[ATA_SECONDARY].busmaster = (bar4 & 0xfffffffc) + 8;
+
+  cond_init(&controller->ide_channels[ATA_PRIMARY].irq_cond);
+  mutex_init(&controller->ide_channels[ATA_PRIMARY].irq_mutex);
+  cond_init(&controller->ide_channels[ATA_SECONDARY].irq_cond);
+  mutex_init(&controller->ide_channels[ATA_SECONDARY].irq_mutex);
 
   /* disable IRQ's on both channels */
   ide_write(controller, ATA_PRIMARY, ATA_REG_CONTROL, 2);

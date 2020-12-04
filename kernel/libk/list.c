@@ -69,6 +69,17 @@ static list_item_t* list_get_index(list_t* list, size_t index)
   return NULL;
 }
 
+
+void* list_pop_front(list_t* list)
+{
+  if (list->items == 0)
+    return NULL;
+
+  list_item_t* item = list->first;
+  list_remove(list, 0);
+  return item;
+}
+
 void list_remove(list_t* list, size_t index)
 {
   list_item_t* item = list_get_index(list, index);

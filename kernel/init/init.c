@@ -22,6 +22,9 @@ void sysinit_task()
   /* mount the root filesystem */
   size_t root_major = 1, root_minor = 0;
 
+  char buf[1024];
+  bd_read(root_major, root_minor, buf, 2, 0);
+
 
   debug(KMAIN, "done\n");
 }

@@ -57,8 +57,10 @@ kernel/include/vspace.h
 kernel/init/init.c
 kernel/init/main.c
 kernel/kernel.ld
+kernel/libk/cond.c
 kernel/libk/cv.c
 kernel/libk/fifo.c
+kernel/libk/include/cond.h
 kernel/libk/include/cv.h
 kernel/libk/include/fifo.h
 kernel/libk/include/kstring.h

@@ -143,7 +143,7 @@ void arch_irq_init()
   setup_idt();
 
   debug(IRQ, "enabling interrupts\n");
-  __asm__ volatile ("sti");
+  sti();
 }
 
 
@@ -155,11 +155,15 @@ void arch_irq_handler(arch_context_t* context)
   size_t irq = ctx_irq(context);
   if (irq < 32)
   {
+    sti();
     exception(irq);
+    cli();
   }
   else
   {
+    sti();
     interrupt(irq - 32);
+    cli();
     if (irq >= 40)
       outb(0xa0, 0x20);
     outb(0x20, 0x20);

@@ -27,6 +27,8 @@ size_t create_ktask(void (*func)())
   task->state   = TASK_RUNNING;
   task->tid     = get_task_id();
 
+  task->waiting_for_lock = false;
+
   task->kernel_stack = kmalloc(KERNEL_STACK_SIZE);
   task->kernel_stack_size = KERNEL_STACK_SIZE;
 

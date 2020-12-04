@@ -46,6 +46,8 @@ size_t ctx_error(arch_context_t* ctx);
  */
 size_t ctx_pf_addr();
 
+void ctx_dump(arch_context_t* ctx);
+
 /**
  * @brief ctx_pf_error read the page fault error code
  * @return the error code of the cpu exception

@@ -67,6 +67,12 @@ arch_context_t* ctx_create(void *entry, void* kstack, void *stack, int flags)
   return ctx;
 }
 
+void ctx_dump(arch_context_t* ctx)
+{
+  debug(ASSERT, "rip=%p, rsp=%p, err=%p\n",
+        ctx->rip, ctx->rsp, ctx->error);
+}
+
 void ctx_set_kernel_stack(void* stack_ptr)
 {
   set_rsp0(stack_ptr);

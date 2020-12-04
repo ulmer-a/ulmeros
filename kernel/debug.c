@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <mutex.h>
 #include <arch/debug.h>
+#include <arch/context.h>
 
 static char* debug_levels[] = {
   "VSPACE ",
@@ -124,6 +125,7 @@ void debug(int level, const char *fmt, ...)
 
 void panic()
 {
+  ctx_dump(saved_context);
   debug(ASSERT, "\n\n--- PANIC ---\n");
   __asm__ volatile ("cli; hlt");
 }

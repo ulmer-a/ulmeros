@@ -25,6 +25,11 @@
 #include <amd64/ports.h>
 #include <mutex.h>
 #include <errno.h>
+#include <vspace.h>
+#include <task.h>
+#include <sched.h>
+#include <interrupt.h>
+#include <kstring.h>
 
 // Status
 #define ATA_SR_BSY     0x80    // Busy
@@ -49,12 +54,8 @@
 // Commands
 #define ATA_CMD_READ_PIO          0x20
 #define ATA_CMD_READ_PIO_EXT      0x24
-#define ATA_CMD_READ_DMA          0xC8
-#define ATA_CMD_READ_DMA_EXT      0x25
 #define ATA_CMD_WRITE_PIO         0x30
 #define ATA_CMD_WRITE_PIO_EXT     0x34
-#define ATA_CMD_WRITE_DMA         0xCA
-#define ATA_CMD_WRITE_DMA_EXT     0x35
 #define ATA_CMD_CACHE_FLUSH       0xE7
 #define ATA_CMD_CACHE_FLUSH_EXT   0xEA
 #define ATA_CMD_PACKET            0xA0
@@ -93,7 +94,6 @@
 #define ATA_REG_CONTROL    0x0C
 #define ATA_REG_ALTSTATUS  0x0C
 #define ATA_REG_DEVADDRESS 0x0D
-
 // Channels
 #define      ATA_PRIMARY      0x00
 #define      ATA_SECONDARY    0x01
@@ -104,8 +104,43 @@
 #define      ATA_READ      0x00
 #define      ATA_WRITE     0x01
 
+// ----------- PCI busmastering DMA ---------------------------
+#define DMA_CMD                   0x00
+#define DMA_STAT                  0x02
+#define DMA_ADDR                  0x04
+
+#define ATA_CMD_READ_DMA          0xC8
+#define ATA_CMD_READ_DMA_EXT      0x25
+#define ATA_CMD_WRITE_DMA         0xca
+#define ATA_CMD_WRITE_DMA_EXT     0x35
+
+#define DMA_CMD_START     BIT(0) // BIT(0) = 1
+#define DMA_CMD_STOP      BIT(0) // BIT(0) = 0
+#define DMA_CMD_READ      BIT(3) // BIT(3) = 1
+#define DMA_CMD_WRITE     0      // BIT(3) = 0
+
+#define DMA_STAT_ACTIVE   BIT(0)  // DMA is active
+#define DMA_STAT_FAIL     BIT(1)  // DMA failed
+#define DMA_STAT_IRQ      BIT(2)  // IRQ raised
+#define DMA_STAT_MA_CAP   BIT(5)  // Master is ready for DMA
+#define DMA_STAT_SL_CAP   BIT(6)  // Slave is ready for DMA
+
+#define PRD_PAGES   ((1024*64)/4096)  // 64K / PAGE_SIZE
+#define BLOCKS_PER_PRD    (((1024*64)/512)-1)
+
 typedef struct
 {
+  uint64_t buffer     : 32;
+  uint64_t bytes      : 16;
+  uint64_t last_entry : 1;
+  uint64_t reserved   : 15;
+} __attribute__((packed)) region_desc_t;
+
+// ------------- driver handling structures --------------------
+typedef struct
+{
+  region_desc_t* prdt;
+  size_t irq_arrived;
   uint16_t base;
   uint16_t ctrl;
   uint16_t busmaster;
@@ -122,11 +157,12 @@ typedef struct
   uint16_t capa;      // drive capabilities
   uint32_t cmd_sets;  // supported command sets
   uint32_t sectors;   // size in sectors
-  char model[41]; // model string
+  char model[41];     // model string
 } ide_dev_t;
 
 typedef struct
 {
+  mutex_t transfer_lock;
   ide_channel_t ide_channels[2];
   ide_dev_t ide_devices[4];
 } pci_ide_dev_t;
@@ -217,6 +253,57 @@ static void msleep(size_t ms)
 }
 
 /**
+ * @brief get_controller get the controller struct by minor number
+ * @param minor the minor number of the block device
+ * @return pci_ide_dev_t* the controller
+ */
+static pci_ide_dev_t* get_controller(size_t minor)
+{
+  const size_t id = minor / 4;
+  mutex_lock(&controller_list_lock);
+  pci_ide_dev_t* controller = list_get(controller_list, id);
+  mutex_unlock(&controller_list_lock);
+  return controller;
+}
+
+static int ata_check_irq(pci_ide_dev_t* controller, uint8_t channel)
+{
+  size_t busmaster_base = controller->
+      ide_channels[channel].busmaster;
+
+  // check if the IRQ bit is set in the busmaster
+  // status register, then clear it
+  uint8_t status = inb(busmaster_base + DMA_STAT);
+  outb(busmaster_base + DMA_STAT, 4);
+
+  if (status & DMA_STAT_IRQ)
+  {
+    // if the device generated an IRQ, wake up the
+    // task that is waiting for it.
+    controller->ide_channels[channel].irq_arrived = 1;
+    return true;
+  }
+
+  return false;
+}
+
+static int ata_irq()
+{
+  mutex_lock(&controller_list_lock);
+  size_t controllers = list_size(controller_list);
+  size_t irqs = 0;
+  for (size_t i = 0; i < controllers; i++)
+  {
+    pci_ide_dev_t* controller =
+        list_get(controller_list, i);
+    irqs += ata_check_irq(controller, 0);
+    irqs += ata_check_irq(controller, 1);
+  }
+  mutex_unlock(&controller_list_lock);
+  return (irqs > 0);
+}
+
+/**
  * @brief ata_read
  * @param minor
  * @param buf
@@ -225,9 +312,99 @@ static void msleep(size_t ms)
  * @return
  */
 static ssize_t ata_read(size_t minor, char* buf,
-                        size_t count, size_t lba)
+                        size_t count, uint64_t lba)
 {
-  return -ENOSYS;
+  pci_ide_dev_t* controller = get_controller(minor);
+  if (controller == NULL)
+    return -ENODEV;
+
+  mutex_lock(&controller->transfer_lock);
+
+  uint8_t ch_no = ATA_PRIMARY;
+  if (minor % 4 >= 2)
+    ch_no = ATA_SECONDARY;
+  uint8_t drive = minor % 2;
+  ide_channel_t* channel = &(controller
+      ->ide_channels[ch_no]);
+
+  char* current_buffer = buf;
+  uint64_t current_lba = lba;
+  size_t blocks_read = 0;
+  size_t blocks_remaining = count;
+  while (blocks_remaining > 0)
+  {
+    size_t tr_size = blocks_remaining;
+    if (tr_size > BLOCKS_PER_PRD)
+      tr_size = BLOCKS_PER_PRD;
+
+    debug(ATADISK, "ata_read(): count=%zd, lba=%zd\n",
+          tr_size, current_lba);
+
+    // prepare the physical region descriptor
+    channel->prdt->bytes
+        = tr_size * 512;
+
+    // reset the interrupt status
+    channel->irq_arrived = 0;
+
+    // set the DMA data direction to READ
+    outb(channel->busmaster + DMA_CMD, DMA_CMD_READ|DMA_CMD_STOP);
+
+    // clear FAIL and IRQ bit in DMA status register
+    uint8_t dma_stat = inb(channel->busmaster + DMA_STAT);
+    dma_stat &= ~(DMA_STAT_FAIL | DMA_STAT_IRQ);
+    outb(channel->busmaster + DMA_STAT, dma_stat);
+
+    const size_t iobase = channel->base;
+
+    outb(iobase + ATA_REG_HDDEVSEL, 0x40 | (drive << 4));
+    outb(iobase + ATA_REG_SECCOUNT0, tr_size >> 8);
+    outb(iobase + ATA_REG_LBA0, (current_lba >> 24) & 0xff);
+    outb(iobase + ATA_REG_LBA1, (current_lba >> 32) & 0xff);
+    outb(iobase + ATA_REG_LBA2, (current_lba >> 40) & 0xff);
+    outb(iobase + ATA_REG_SECCOUNT0, tr_size & 0xff);
+    outb(iobase + ATA_REG_LBA0, (current_lba >>  0) & 0xff);
+    outb(iobase + ATA_REG_LBA1, (current_lba >>  8) & 0xff);
+    outb(iobase + ATA_REG_LBA2, (current_lba >> 16) & 0xff);
+
+    /* send DMA_READ_EXT command */
+    while (inb(iobase + ATA_REG_STATUS) & ATA_SR_BSY);
+    outb(iobase + ATA_REG_COMMAND, ATA_CMD_READ_DMA_EXT);
+    while (inb(iobase + ATA_REG_STATUS) & ATA_SR_BSY);
+
+    /* set the DMA START bit. this will start the
+     * transfer to memory. */
+    outb(channel->busmaster + DMA_CMD, DMA_CMD_READ|DMA_CMD_START);
+    debug(ATADISK, "sent DMA_READ command, waiting for IRQ\n");
+
+    /* while the device transfers data to memory, this
+     * thread can go to sleep. */
+    while (!channel->irq_arrived)
+      yield();
+
+    /* the transfer completed, so stop DMA. */
+    outb(channel->busmaster + DMA_CMD, DMA_CMD_READ|DMA_CMD_STOP);
+
+    if (inb(channel->base + ATA_REG_STATUS) & ATA_SR_ERR)
+    {
+      mutex_unlock(&controller->transfer_lock);
+      debug(ATADISK, "ata_read(): failed\n");
+      return blocks_read;
+    }
+
+    /* copy data from DMA buffer to the actual buffer */
+    void* data_ptr = (char*)channel->prdt + 512;
+    memcpy(current_buffer, data_ptr, tr_size * 512);
+
+    /* update our control variables */
+    blocks_remaining -= tr_size;
+    blocks_read += tr_size;
+    current_lba += tr_size;
+    current_buffer += (tr_size * 512);
+  }
+
+  mutex_unlock(&controller->transfer_lock);
+  return blocks_read;
 }
 
 /**
@@ -239,7 +416,7 @@ static ssize_t ata_read(size_t minor, char* buf,
  * @return
  */
 static ssize_t ata_write(size_t minor, char* buf,
-                         size_t count, size_t lba)
+                         size_t count, uint64_t lba)
 {
   return -ENOSYS;
 }
@@ -347,6 +524,24 @@ static bd_driver_t ata_bd_driver = {
   }
 };
 
+static void ata_setup_dma(pci_ide_dev_t* controller, uint8_t channel)
+{
+  /* allocate a DMA buffer that doesn't cross 64K boundaries
+   * and resides in physical memory below 4GB */
+  void* phys_buffer = get_phys_pages(PRD_PAGES,
+                                   ALLOC_LOWMEM | ALLOC_NOX64K);
+  controller->ide_channels[channel].prdt =
+      vspace_get_phys_ptr(phys_buffer);
+  controller->ide_channels[channel].prdt->buffer =
+      (size_t)phys_buffer + IO_SIZE;
+  controller->ide_channels[channel].prdt->last_entry = 1;
+
+  /* store the physical address of the PRDT in the
+   * corresponding BusMaster ADDR register */
+  size_t busmaster_reg = controller->ide_channels[channel].busmaster;
+  outl(busmaster_reg + DMA_ADDR, (size_t)phys_buffer);
+}
+
 static int ata_probe(pci_dev_t* device)
 {
   /* some asserting checks */
@@ -369,9 +564,17 @@ static int ata_probe(pci_dev_t* device)
   if (bar2 == 0x0 || bar2 == 0x1) bar2 = 0x170;
   if (bar3 == 0x0 || bar3 == 0x1) bar3 = 0x376;
 
+  /* enable PCI busmastering. this is very important,
+   * because otherwise the device could not write to
+   * main memory by itself. */
+  uint32_t cmd = pci_read32(device, PCI_COMMAND);
+  cmd |= BIT(2);
+  pci_write32(device, PCI_COMMAND, cmd);
+
   /* initialize the IDE channels of the controller
    * structure describing this device. */
   pci_ide_dev_t* controller = kmalloc(sizeof(pci_ide_dev_t));
+  mutex_init(&controller->transfer_lock);
   controller->ide_channels[ATA_PRIMARY].base =        (bar0 & 0xfffffffc);
   controller->ide_channels[ATA_PRIMARY].ctrl =        (bar1 & 0xfffffffc);
   controller->ide_channels[ATA_PRIMARY].busmaster =   (bar4 & 0xfffffffc);
@@ -398,6 +601,21 @@ static int ata_probe(pci_dev_t* device)
   size_t minors = list_size(controller_list) * 4;
   list_add(controller_list, controller);
   mutex_unlock(&controller_list_lock);
+
+  /* setup PCI busmastering DMA */
+  if(controller->ide_devices[0].present ||
+     controller->ide_devices[1].present)
+    ata_setup_dma(controller, ATA_PRIMARY);
+  if(controller->ide_devices[2].present ||
+     controller->ide_devices[3].present)
+    ata_setup_dma(controller, ATA_SECONDARY);
+
+  irq_install_handler(IRQ_ATA_PRIM, ata_irq);
+  irq_install_handler(IRQ_ATA_SEC,  ata_irq);
+
+  /* enable IRQ's on both channels */
+  ide_write(controller, ATA_PRIMARY, ATA_REG_CONTROL, 0);
+  ide_write(controller, ATA_SECONDARY, ATA_REG_CONTROL, 0);
 
   /* iterate through the devices that are present and
    * print some descriptive information to the kernel

@@ -55,6 +55,7 @@ void page_init(boot_info_t* boot_info)
   if (last_end_page % PAGE_SIZE != 0)
     refcounter_pages += 1;
 
+  set_entries(0, 0, 1);
   set_entries(boot_info->kernelStartPage, boot_info->kernelStartPage
               + boot_info->kernelPageCount, 1);
   set_entries(boot_info->heapStartPage, boot_info->heapStartPage

@@ -2,6 +2,7 @@ arch/amd64/amd64.h
 arch/amd64/atomic.c
 arch/amd64/boot.h
 arch/amd64/context.S
+arch/amd64/debug.c
 arch/amd64/definitions.h
 arch/amd64/gdt64.c
 arch/amd64/irq.c
@@ -36,6 +37,7 @@ kernel/fs/iosched.c
 kernel/fs/vfs.c
 kernel/include/arch.h
 kernel/include/arch/context.h
+kernel/include/arch/debug.h
 kernel/include/arch/platform.h
 kernel/include/arch/serial.h
 kernel/include/asm.h

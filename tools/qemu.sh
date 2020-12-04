@@ -7,6 +7,6 @@ then
 fi
 
 qemu-system-x86_64 \
-	-serial file:/dev/stdout \
+	-debugcon stdio \
 	-drive format=raw,file="$hddimg" \
 	-m 512 -s

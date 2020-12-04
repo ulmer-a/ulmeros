@@ -2,7 +2,7 @@
 #include <kstring.h>
 #include <stdarg.h>
 #include <mutex.h>
-#include <arch/serial.h>
+#include <arch/debug.h>
 
 static char* debug_levels[] = {
   "VSPACE ",
@@ -22,6 +22,12 @@ static char* debug_levels[] = {
 
 static char kprintf_buffer[4096];
 static mutex_t kprintf_mtx = MUTEX_INITIALIZER;
+
+static void debug_write(char* buffer, size_t length)
+{
+  while (length--)
+    arch_print(*buffer++);
+}
 
 static void do_kprintf(int level, const char *fmt, va_list args)
 {
@@ -101,7 +107,7 @@ static void do_kprintf(int level, const char *fmt, va_list args)
   }
   *buffer_ptr = 0;
 
-  serial0_write(kprintf_buffer, strlen(kprintf_buffer));
+  debug_write(kprintf_buffer, strlen(kprintf_buffer));
   mutex_unlock(&kprintf_mtx);
 }
 

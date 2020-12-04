@@ -38,6 +38,36 @@ size_t page_alloc(int flags)
   return 0;
 }
 
+void* get_phys_pages(size_t pages, int flags)
+{
+  mutex_lock(&refcounter_lock_);
+  size_t found = 0, start;
+  for (size_t i = 0; i < total_pages_; i++)
+  {
+    if ((i * PAGE_SIZE) % (64*1024) == 0)
+    {
+      if (found == 1)
+      {
+        for (size_t j = start; j < start + 16; j++)
+          refcounter_[j]++;
+
+        mutex_unlock(&refcounter_lock_);
+        return (void*)(start * PAGE_SIZE);
+      }
+
+      found = 1;
+      start = i;
+    }
+
+    if (refcounter_[i] > 0)
+      found = 0;
+  }
+  mutex_unlock(&refcounter_lock_);
+
+  assert(false, "no region found");
+  return 0;
+}
+
 void page_release(size_t page)
 {
   debug(PAGEMGR, "release page %zd\n", page);

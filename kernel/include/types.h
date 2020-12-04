@@ -3,7 +3,7 @@
 #include <version.h>
 
 #define NULL      ((void*)0)
-#define BIT(x)    (1 << (x))
+#define BIT(x)    (1ul << (x))
 #define _init
 
 typedef unsigned long   size_t;

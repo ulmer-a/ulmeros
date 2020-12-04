@@ -12,7 +12,7 @@
 
 int task_schedulable(task_t* task)
 {
-  return true;
+  return (task->state == TASK_RUNNING);
 }
 
 static size_t get_task_id()

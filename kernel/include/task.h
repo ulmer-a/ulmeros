@@ -25,7 +25,6 @@ typedef struct
 } task_t;
 
 int task_schedulable(task_t* task);
-void task_complete_io(size_t tid);
 
 void ktask_init();
 

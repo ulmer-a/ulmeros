@@ -7,9 +7,9 @@
 typedef struct
 {
   ssize_t (*read)(size_t minor, char *buf,
-                  size_t count, size_t lba);
+                  size_t count, uint64_t lba);
   ssize_t (*write)(size_t minor, char *buf,
-                   size_t count, size_t lba);
+                   size_t count, uint64_t lba);
 } bd_fops_t;
 
 typedef struct

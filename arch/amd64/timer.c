@@ -15,9 +15,10 @@
 
 extern void timer();
 
-static void call_timer()
+static int call_timer()
 {
   timer();
+  return true;
 }
 
 void timer_reset(uint16_t freqHz)

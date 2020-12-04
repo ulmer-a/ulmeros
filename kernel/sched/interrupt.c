@@ -60,7 +60,7 @@ uint64_t timer_ticks()
   return timer_ticks_;
 }
 
-void irq_install_handler(unsigned irq, void (*handler)(void))
+void irq_install_handler(unsigned irq, int (*handler)(void))
 {
   assert(irq < 16, "invalid irq number!");
 

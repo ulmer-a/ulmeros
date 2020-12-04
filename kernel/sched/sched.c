@@ -67,9 +67,9 @@ static task_t* get_next_task()
   do
   {
     list_rotate(task_list_);
+    next_task = list_get(task_list_, 0);
   }
-  while ((next_task = list_get(task_list_, 0))
-         ->state != TASK_RUNNING);
+  while (!task_schedulable(next_task));
 
   return next_task;
 }

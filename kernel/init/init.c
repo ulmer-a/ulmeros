@@ -19,5 +19,9 @@ void sysinit_task()
    * common file system drivers and mount the root fs. */
   vfs_init();
 
+  /* mount the root filesystem */
+  size_t root_major = 1, root_minor = 0;
+
+
   debug(KMAIN, "done\n");
 }

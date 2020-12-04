@@ -2,6 +2,9 @@
 
 #include <types.h>
 
+#define ALLOC_LOWMEM    BIT(0)
+#define ALLOC_NOX64K    BIT(1)
+
 void* kmalloc(size_t size);
 void kfree(void* ptr);
 
@@ -30,6 +33,14 @@ size_t page_alloc(int flags);
  * @param page
  */
 void page_release(size_t page);
+
+/**
+ * @brief get_phys_pages get a region of physical memory
+ * @param pages page count
+ * @param flags PHYBUF_LOWMEM
+ * @return
+ */
+void* get_phys_pages(size_t pages, int flags);
 
 extern void* kheap_start_;
 extern void* kheap_break_;

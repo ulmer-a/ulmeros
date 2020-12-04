@@ -1,4 +1,4 @@
-# ulmeros
+# Ulmer OS
 
 UlmerOS is a general purpose portable unix-like educational operating system.
 

@@ -7,9 +7,6 @@
 #include <arch.h>
 #include <sched.h>
 
-extern char _bss_start;
-extern char _bss_end;
-
 extern void sysinit_task();
 static void start_sysinit_task()
 {
@@ -22,9 +19,6 @@ void kmain(boot_info_t* bootinfo)
   debug(KMAIN, "ULMER Operating System %s - built %s\n\n",
         OS_VERSION, OS_BUILD_DATE);
   debug(KMAIN, "reached kmain()\n");
-
-  /* clear BSS segment */
-  memset(&_bss_start, 0, (size_t)&_bss_end - (size_t)&_bss_start);
 
   /* allocate the free pages refcounter and perform
    * a memory scan and mark the pages used by the

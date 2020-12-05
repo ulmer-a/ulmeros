@@ -21,6 +21,10 @@ _start64:
     /* setup the initilization stack */
     movabs $0xffff800000080000, %rsp
 
+    /* a pointer to the boot info structure is
+     * located in the RDI register. save it. */
+    push %rdi
+
     /* call the architecture initialization function. this
      * will setup anything architecture-specific the kernel
      * reqires to run (e.g. the global descriptor table). */
@@ -38,4 +42,5 @@ _start64:
     /* jump to the kernel main initialization routine. kmain()
      * will start the scheduler and perform the first context
      * switch, so it never returns. */
+    pop %rdi
     jmp kmain

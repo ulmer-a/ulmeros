@@ -1,0 +1,7 @@
+arch/amd64
+boot
+kernel/include
+kernel/include/arch
+kernel/include/bus
+kernel/include/fs
+kernel/libk/include

@@ -6,6 +6,7 @@
  */
 
 #include <types.h>
+#include <kstring.h>
 
 #define PRESENT     BIT(15)             // selector is present
 #define OPSIZE_32   BIT(22)             // default operand size 32bit
@@ -61,6 +62,9 @@ static gdtd_t gdt_descriptor;
 static gdte_t gdt[GDT_ENTRIES];
 static tss_t  tss;
 
+extern char _bss_start;
+extern char _bss_end;
+
 static void setup_entry(int id, uint32_t base, uint32_t limit,
                         uint32_t flags)
 {
@@ -92,7 +96,10 @@ void gdt_init(void)
 
 void arch_init()
 {
-  //gdt_init();
+  /* clear BSS segment */
+  memset(&_bss_start, 0, (size_t)&_bss_end - (size_t)&_bss_start);
+
+  gdt_init();
 }
 
 void set_rsp0(void* rsp)

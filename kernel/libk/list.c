@@ -1,6 +1,8 @@
 #include <list.h>
 #include <memory.h>
 
+#define LIST_MAGIC 0xbadbeef
+
 struct list_item_struct_
 {
   list_item_t* next;
@@ -15,6 +17,13 @@ list_t* list_init()
   return list;
 }
 
+int list_is_valid(list_t* list)
+{
+  if (list == NULL)
+    return false;
+  return (list->magic == LIST_MAGIC);
+}
+
 void list_init_without_alloc(list_t* list)
 {
   assert(list, "list is null");
@@ -22,6 +31,7 @@ void list_init_without_alloc(list_t* list)
   list->first  = NULL;
   list->last   = NULL;
   list->items  = 0;
+  list->magic  = LIST_MAGIC;
 }
 
 void list_destroy(list_t* list)
@@ -40,7 +50,7 @@ void list_clear(list_t* list)
     list_remove(list, 0);
 }
 
-void list_add(list_t* list, void* payload)
+size_t list_add(list_t* list, void* payload)
 {
   assert(list, "list is null");
 
@@ -56,6 +66,7 @@ void list_add(list_t* list, void* payload)
   list->last = item;
 
   list->items++;
+  return list->items - 1;
 }
 
 static list_item_t* list_get_index(list_t* list, size_t index)

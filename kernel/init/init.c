@@ -5,7 +5,6 @@
 void sysinit_task()
 {
   debug(KMAIN, "Hello from the kernel initialization task!\n");
-
   /* initialize blockdevice manager */
   bd_init();
 
@@ -16,8 +15,9 @@ void sysinit_task()
   platform_init_drivers();
 
   /* initialize the virtual file system. this will load
-   * common file system drivers and mount the root fs. */
+   * all built in file system drivers. */
   vfs_init();
+
 
   /* mount the root filesystem */
   size_t root_major = 1, root_minor = 0;

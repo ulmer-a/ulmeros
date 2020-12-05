@@ -34,6 +34,7 @@ kernel/debug.c
 kernel/fs/blockdev.c
 kernel/fs/ext2fs.c
 kernel/fs/iosched.c
+kernel/fs/ramfs.c
 kernel/fs/vfs.c
 kernel/include/arch.h
 kernel/include/arch/context.h

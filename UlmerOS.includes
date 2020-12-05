@@ -1,7 +1,9 @@
 arch/amd64
+arch
 boot
 kernel/include
 kernel/include/arch
 kernel/include/bus
 kernel/include/fs
 kernel/libk/include
+kernel/fs

@@ -2,6 +2,7 @@
 #include <list.h>
 #include <mutex.h>
 #include <types.h>
+#include <fs/vfs.h>
 
 static size_t  bd_major_counter = 1;
 static list_t* bd_driver_list;

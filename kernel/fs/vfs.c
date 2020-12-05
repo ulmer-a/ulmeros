@@ -5,18 +5,32 @@
 
 /* built-in filesystems */
 extern void ext2fs_load();
+extern void ramfs_init();
 
 static list_t* fs_list;
+static dir_t root;
+static file_t root_file;
 
 void vfs_init()
 {
   debug(VFS, "setting up filesystem\n");
   fs_list = list_init();
 
+  root.file = &root_file;
+  root.files = list_init();
+  root.mounted_fs = NULL;
+  root_file.blocks = 0;
+  root_file.uid = 0;
+  root_file.gid = 0;
+  root_file.dir = &root;
+  root_file.type = F_DIR;
+  root_file.mode.u_r = 1;
+  root_file.mode.u_w = 1;
+  root_file.mode.u_x = 1;
+
   /* load known filesystem's drivers */
   ext2fs_load();
-
-  /* mount the root filesystem */
+  ramfs_init();
 }
 
 void register_fs(const fs_t* fs)

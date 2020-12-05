@@ -20,7 +20,7 @@ typedef struct
 
   int (*probe)(bd_t* disk);
   int (*mount)(bd_t* disk, dir_t* mp);
-  int (*umount)();
+  int (*unmount)();
   ssize_t (*read)(file_t* file, char* buffer,
       size_t len, size_t offset);
   ssize_t (*write)(file_t* file, char* buffer,

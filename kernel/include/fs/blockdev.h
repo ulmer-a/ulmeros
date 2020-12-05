@@ -28,6 +28,7 @@ typedef struct
 } bd_t;
 
 void bd_init();
+void parts_init();
 void iosched_init();
 
 void partscan(bd_t* disk);

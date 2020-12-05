@@ -17,6 +17,7 @@ void bd_init()
   bd_device_list = list_init();
 
   iosched_init();
+  parts_init();
 }
 
 size_t bd_register_driver(bd_driver_t *driver_info)

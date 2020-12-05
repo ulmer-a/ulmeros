@@ -30,6 +30,8 @@ typedef struct
 void bd_init();
 void iosched_init();
 
+void partscan(bd_t* disk);
+
 size_t bd_register_driver(bd_driver_t *driver_info);
 
 void bd_register(bd_t* blockdev);

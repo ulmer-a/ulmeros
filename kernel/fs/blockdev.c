@@ -75,6 +75,8 @@ void bd_register(bd_t *blockdev)
   mutex_lock(&bd_device_list_lock);
   list_add(bd_device_list, blockdev);
   mutex_unlock(&bd_device_list_lock);
+
+  partscan(blockdev);
 }
 
 ssize_t bd_read(size_t major, size_t minor,

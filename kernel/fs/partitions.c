@@ -129,7 +129,7 @@ void partscan(bd_t* disk)
 
     part_t* genpart = kmalloc(sizeof(part_t));
     genpart->disk = disk;
-    genpart->lba_size = part->lba_start;
+    genpart->lba_start = part->lba_start;
     genpart->lba_size = part->lba_size;
     genpart->type = part->type;
 

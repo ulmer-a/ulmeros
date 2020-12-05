@@ -1,6 +1,7 @@
 #include <fs/vfs.h>
 #include <arch/platform.h>
 #include <bus/pci.h>
+#include <kstring.h>
 
 void sysinit_task()
 {
@@ -20,10 +21,11 @@ void sysinit_task()
 
   /* mount the root filesystem */
   size_t root_major = 1, root_minor = 0;
-
-  char buf[1024];
-  bd_read(root_major, root_minor, buf, 2, 0);
-
+  size_t err;
+  if ((err = vfs_mount(VFS_ROOT, root_major, root_minor)) < 0)
+  {
+    debug(KMAIN, "root fs mount failed: %s\n", strerror(-err));
+  }
 
   debug(KMAIN, "done\n");
 }

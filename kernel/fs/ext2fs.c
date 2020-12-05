@@ -165,7 +165,7 @@ static ssize_t ext2_get_block(bd_t* disk, char* buffer, size_t lba, size_t count
       fops.read(disk->minor, buffer, count, lba);
   if (ret < 0)
     return ret;
-  return ret / LBA_SIZE;
+  return ret;
 }
 
 static int ext2_probe(bd_t* disk)

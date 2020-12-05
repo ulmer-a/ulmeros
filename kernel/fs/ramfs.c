@@ -12,7 +12,7 @@ static int ramfs_probe(bd_t* disk)
   /* always succeeds because the disk is on RAM */
 
   (void)disk;
-  return true;
+  return -ENOSYS;
 }
 
 static int ramfs_mount(bd_t* disk, dir_t* mp)

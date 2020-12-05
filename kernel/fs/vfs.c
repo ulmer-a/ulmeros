@@ -10,7 +10,7 @@ extern void ramfs_init();
 
 static list_t* fs_list;
 static mutex_t fs_list_lock = MUTEX_INITIALIZER;
-static dir_t root;
+dir_t vfs_root_node;
 static file_t root_file;
 
 void vfs_init()
@@ -18,17 +18,18 @@ void vfs_init()
   debug(VFS, "setting up filesystem\n");
   fs_list = list_init();
 
-  root.file = &root_file;
-  root.files = list_init();
-  root.mounted_fs = NULL;
+  vfs_root_node.file = &root_file;
+  vfs_root_node.files = list_init();
+  vfs_root_node.mounted_fs = NULL;
   root_file.blocks = 0;
   root_file.uid = 0;
   root_file.gid = 0;
-  root_file.dir = &root;
+  root_file.dir = &vfs_root_node;
   root_file.type = F_DIR;
   root_file.mode.u_r = 1;
   root_file.mode.u_w = 1;
   root_file.mode.u_x = 1;
+  root_file.parent = &vfs_root_node;
 
   /* load known filesystem's drivers */
   ext2fs_load();
@@ -55,7 +56,7 @@ int vfs_mount(dir_t* mountpoint, size_t major, size_t minor)
   for (size_t i = 0; i < list_size(fs_list); i++)
   {
     fs_t* fs_ = list_get(fs_list, i);
-    if (fs_->probe(bd))
+    if (fs_->probe(bd) == SUCCESS)
     {
       fs = fs_;
       break;

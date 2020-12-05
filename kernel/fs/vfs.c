@@ -2,12 +2,14 @@
 #include <errno.h>
 #include <fs/vfs.h>
 #include <list.h>
+#include <mutex.h>
 
 /* built-in filesystems */
 extern void ext2fs_load();
 extern void ramfs_init();
 
 static list_t* fs_list;
+static mutex_t fs_list_lock = MUTEX_INITIALIZER;
 static dir_t root;
 static file_t root_file;
 
@@ -37,7 +39,34 @@ void register_fs(const fs_t* fs)
 {
   debug(VFS, "registering filesystem %s, id=0x%x\n",
         fs->name, fs->mbr_id);
+  mutex_lock(&fs_list_lock);
   list_add(fs_list, (void*)fs);
+  mutex_unlock(&fs_list_lock);
+}
+
+int vfs_mount(dir_t* mountpoint, size_t major, size_t minor)
+{
+  bd_t* bd = bd_get(major, minor);
+  if (bd == NULL)
+    return -ENODEV;
+
+  fs_t* fs = NULL;
+  mutex_lock(&fs_list_lock);
+  for (size_t i = 0; i < list_size(fs_list); i++)
+  {
+    fs_t* fs_ = list_get(fs_list, i);
+    if (fs_->probe(bd))
+    {
+      fs = fs_;
+      break;
+    }
+  }
+  mutex_unlock(&fs_list_lock);
+
+  if (fs == NULL)
+    return -ENOTSUP;
+
+  return fs->mount(bd, mountpoint);
 }
 
 ssize_t sys_read(char* buffer, size_t len)

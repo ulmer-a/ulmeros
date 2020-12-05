@@ -34,6 +34,8 @@ size_t bd_register_driver(bd_driver_t *driver_info);
 
 void bd_register(bd_t* blockdev);
 
+bd_t* bd_get(size_t major, size_t minor);
+
 ssize_t bd_read(size_t major, size_t minor,
              char* buf, size_t count, size_t lba);
 ssize_t bd_write(size_t major, size_t minor,

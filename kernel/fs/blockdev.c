@@ -48,6 +48,24 @@ static bd_driver_t* bd_get_driver(size_t major)
   return ret;
 }
 
+bd_t* bd_get(size_t major, size_t minor)
+{
+  mutex_lock(&bd_device_list_lock);
+  bd_t* found = NULL;
+  for (size_t i = 0; i < list_size(bd_device_list); i++)
+  {
+    bd_t* bd = list_get(bd_device_list, i);
+    if (bd->driver->major == major &&
+        bd->minor == minor)
+    {
+      found = bd;
+      break;
+    }
+  }
+  mutex_unlock(&bd_device_list_lock);
+  return found;
+}
+
 void bd_register(bd_t *blockdev)
 {
   debug(BLKDEV, "register block device %s%zd (%zd, %zd)\n",

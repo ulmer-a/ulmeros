@@ -99,4 +99,6 @@ typedef struct _dentry
 
 void vfs_init();
 
+int vfs_mount(dir_t* mountpoint, size_t major, size_t minor);
+
 void register_fs(const fs_t* fs);

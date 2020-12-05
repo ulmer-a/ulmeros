@@ -18,7 +18,6 @@ void sysinit_task()
    * all built in file system drivers. */
   vfs_init();
 
-
   /* mount the root filesystem */
   size_t root_major = 1, root_minor = 0;
 

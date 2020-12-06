@@ -58,8 +58,23 @@ void* vspace_get_page_ptr(size_t phys)
   return (void*)((phys << 12) + IDENT_OFFSET);
 }
 
+static void enable_nx()
+{
+  /* this will enable support for the NX
+   * bit. TODO: check support in CPUID */
+  __asm__ volatile (
+    "mov $0xc0000080, %%rcx;"
+    "rdmsr;"
+    "or $(1 << 11), %%rax;"
+    "wrmsr;"
+    ::: "rcx", "rax"
+  );
+}
+
 vspace_t* vspace_init()
 {
+  enable_nx();
+
   vspace_t* vspace = kmalloc(sizeof(vspace_t));
   vspace->pml4_page = page_alloc(0);
 
@@ -145,9 +160,12 @@ int vspace_map(vspace_t* vspace, size_t virt_page,
       else
       {
         entry->page_ppn = phys_page;
-        if (flags & PG_USER)    entry->user_access = 1;
-        if (flags & PG_WRITE)   entry->writeable   = 1;
-        if (flags & PG_NOEXEC)  entry->noexec      = 1;
+        if (flags & PG_USER)
+          entry->user_access = 1;
+        if (flags & PG_WRITE)
+          entry->writeable   = 1;
+        if (flags & PG_NOEXEC)
+          entry->noexec      = 1;
       }
     }
 

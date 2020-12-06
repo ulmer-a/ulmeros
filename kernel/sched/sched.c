@@ -114,6 +114,7 @@ void yield()
   arch_yield();
 }
 
+
 void set_context(arch_context_t* context)
 {
   if (current_task)

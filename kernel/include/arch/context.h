@@ -10,6 +10,11 @@ typedef struct arch_context_ arch_context_t;
 
 void arch_yield();
 
+void arch_set_irq_stack(void* stack);
+
+void preempt_disable();
+void preempt_enable();
+
 /**
  * @brief ctx_create
  * @param entry

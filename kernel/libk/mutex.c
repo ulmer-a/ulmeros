@@ -37,6 +37,9 @@ void mutex_lock(mutex_t* mtx)
   if (!mtx || mtx->magic != MUTEX_MAGIC)
     assert(false, "mutex_lock(): uninitialized");
 
+  if (mtx->holding && mtx->holding == current_task)
+    assert(false, "mutex_lock(): already held by this task´");
+
   while (xchg(1, &mtx->lock))
   {
     if (current_task == NULL)
@@ -55,6 +58,8 @@ void mutex_lock(mutex_t* mtx)
     current_task->waiting_for_lock = true;
     yield();
   }
+
+  mtx->holding = current_task;
 }
 
 void mutex_unlock(mutex_t* mtx)
@@ -62,6 +67,7 @@ void mutex_unlock(mutex_t* mtx)
   if (!mtx || mtx->magic != MUTEX_MAGIC)
     assert(false, "mutex_unlock(): uninitialized");
 
+  mtx->holding = NULL;
   mtx->lock = 0;
 
   if (current_task == NULL)

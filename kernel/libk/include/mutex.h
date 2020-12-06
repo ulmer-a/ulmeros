@@ -2,6 +2,7 @@
 
 #include <types.h>
 #include <list.h>
+#include <task.h>
 
 #define MUTEX_MAGIC 0xdeadbeef
 #define MUTEX_INITIALIZER { .lock = 0, .magic = MUTEX_MAGIC }
@@ -13,6 +14,8 @@ struct _mutex_struct
 
   list_t waiting_tasks;
   size_t waiting_tasks_lock;
+
+  task_t* holding;
 };
 
 typedef struct _mutex_struct mutex_t;

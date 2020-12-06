@@ -28,6 +28,9 @@ typedef struct
 
 int task_schedulable(task_t* task);
 
+void task_iowait_if(size_t *mem, size_t value);
+void task_iowake(task_t* task);
+
 void ktask_init();
 
 void mktask();

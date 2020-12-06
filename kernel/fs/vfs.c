@@ -51,6 +51,7 @@ int vfs_mount(dir_t* mountpoint, size_t major, size_t minor)
   if (bd == NULL)
     return -ENODEV;
 
+  debug(VFS, "mounting %s%zd\n", bd->driver->file_prefix, bd->minor);
   fs_t* fs = NULL;
   mutex_lock(&fs_list_lock);
   for (size_t i = 0; i < list_size(fs_list); i++)

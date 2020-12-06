@@ -1,5 +1,6 @@
 #include <arch/context.h>
 #include <memory.h>
+#include "ports.h"
 
 #include "amd64.h"
 
@@ -39,6 +40,16 @@ struct arch_context_
 void arch_yield()
 {
   __asm__ volatile ("int $15;");
+}
+
+void preempt_disable()
+{
+  cli();
+}
+
+void preempt_enable()
+{
+  sti();
 }
 
 arch_context_t* ctx_create(void *entry, void* kstack, void *stack, int flags)

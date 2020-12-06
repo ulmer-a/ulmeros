@@ -144,8 +144,7 @@ typedef struct
 
   size_t irq_ready;
   uint8_t irq_status;
-  mutex_t irq_mutex;
-  cond_t irq_cond;
+  task_t* waiting_task;
 
   uint16_t base;
   uint16_t ctrl;
@@ -286,11 +285,9 @@ static int ata_check_irq(pci_ide_dev_t* controller, uint8_t channel)
   {
     // if the device generated an IRQ, wake up the
     // task that is waiting for it.
-    mutex_lock(&ch->irq_mutex);
     ch->irq_ready = 1;
     ch->irq_status = status;
-    cond_signal(&ch->irq_cond);
-    mutex_unlock(&ch->irq_mutex);
+    task_iowake(ch->waiting_task);
     return true;
   }
 
@@ -299,7 +296,6 @@ static int ata_check_irq(pci_ide_dev_t* controller, uint8_t channel)
 
 static int ata_irq()
 {
-  mutex_lock(&controller_list_lock);
   size_t controllers = list_size(controller_list);
   size_t irqs = 0;
   for (size_t i = 0; i < controllers; i++)
@@ -309,7 +305,6 @@ static int ata_irq()
     irqs += ata_check_irq(controller, 0);
     irqs += ata_check_irq(controller, 1);
   }
-  mutex_unlock(&controller_list_lock);
   return (irqs > 0);
 }
 
@@ -356,13 +351,14 @@ static ssize_t ata_read(size_t minor, char* buf,
 
     // reset the interrupt status
     channel->irq_ready = 0;
+    channel->waiting_task = current_task;
 
     // set the DMA data direction to READ
     outb(channel->busmaster + DMA_CMD, DMA_CMD_READ|DMA_CMD_STOP);
 
     // clear FAIL and IRQ bit in DMA status register
     uint8_t dma_stat = inb(channel->busmaster + DMA_STAT);
-    dma_stat &= ~(DMA_STAT_FAIL | DMA_STAT_IRQ);
+    dma_stat &= (DMA_STAT_FAIL | DMA_STAT_IRQ);
     outb(channel->busmaster + DMA_STAT, dma_stat);
 
     const size_t iobase = channel->base;
@@ -373,7 +369,7 @@ static ssize_t ata_read(size_t minor, char* buf,
     outb(iobase + ATA_REG_LBA1, (current_lba >> 32) & 0xff);
     outb(iobase + ATA_REG_LBA2, (current_lba >> 40) & 0xff);
     outb(iobase + ATA_REG_SECCOUNT0, tr_size & 0xff);
-    outb(iobase + ATA_REG_LBA0, (current_lba >>  0) & 0xff);
+    outb(iobase + ATA_REG_LBA0, (current_lba) & 0xff);
     outb(iobase + ATA_REG_LBA1, (current_lba >>  8) & 0xff);
     outb(iobase + ATA_REG_LBA2, (current_lba >> 16) & 0xff);
 
@@ -389,15 +385,14 @@ static ssize_t ata_read(size_t minor, char* buf,
 
     /* while the device transfers data to memory, this
      * thread can go to sleep. */
-    mutex_lock(&channel->irq_mutex);
-    while (!channel->irq_ready)
-      cond_wait(&channel->irq_cond, &channel->irq_mutex);
-    mutex_unlock(&channel->irq_mutex);
+    task_iowait_if(&channel->irq_ready, 0);
+    assert(channel->irq_ready, "irq not ready!");
 
     /* the transfer completed, so stop DMA. */
     outb(channel->busmaster + DMA_CMD, DMA_CMD_READ|DMA_CMD_STOP);
 
-    if (inb(channel->base + ATA_REG_STATUS) & ATA_SR_ERR)
+    uint8_t status = inb(channel->base + ATA_REG_STATUS);
+    if ((status & ATA_SR_ERR) || (status & ATA_SR_DF))
     {
       mutex_unlock(&controller->transfer_lock);
       debug(ATADISK, "ata_read(): failed\n");
@@ -593,11 +588,6 @@ static int ata_probe(pci_dev_t* device)
   controller->ide_channels[ATA_SECONDARY].base =      (bar2 & 0xfffffffc);
   controller->ide_channels[ATA_SECONDARY].ctrl =      (bar3 & 0xfffffffc);
   controller->ide_channels[ATA_SECONDARY].busmaster = (bar4 & 0xfffffffc) + 8;
-
-  cond_init(&controller->ide_channels[ATA_PRIMARY].irq_cond);
-  mutex_init(&controller->ide_channels[ATA_PRIMARY].irq_mutex);
-  cond_init(&controller->ide_channels[ATA_SECONDARY].irq_cond);
-  mutex_init(&controller->ide_channels[ATA_SECONDARY].irq_mutex);
 
   /* disable IRQ's on both channels */
   ide_write(controller, ATA_PRIMARY, ATA_REG_CONTROL, 2);

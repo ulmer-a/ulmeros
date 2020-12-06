@@ -13,7 +13,7 @@ typedef struct
 {
     unsigned short  target0;
     unsigned short  target_selector;
-    unsigned char   pad0;
+    unsigned char   ist;
     unsigned char   flags;
     unsigned short  target1;
     unsigned int    target2;
@@ -48,7 +48,7 @@ static void setup_pic()
   outb(0xA1, 0x00);   // unmask all interrupts PIC2
 }
 
-static void install_descriptor(unsigned id, void *handler, unsigned char flags)
+static void install_descriptor(unsigned id, void *handler, unsigned char flags, uint8_t stack)
 {
     unsigned long target_addr = (unsigned long)handler;
 
@@ -58,6 +58,7 @@ static void install_descriptor(unsigned id, void *handler, unsigned char flags)
     irqd->target2 = (target_addr >> 32);
     irqd->target_selector = 0x08;
     irqd->flags = flags;
+    irqd->ist = stack;
 }
 
 // irq handler addresses
@@ -78,57 +79,57 @@ static void setup_idt()
 {
   debug(IRQ, "setting up IDT\n");
 
-  install_descriptor(0,  &irq0,  IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(1,  &irq1,  IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(2,  &irq2,  IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(3,  &irq3,  IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(4,  &irq4,  IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(5,  &irq5,  IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(6,  &irq6,  IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(7,  &irq7,  IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(8,  &irq8,  IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(9,  &irq9,  IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(10, &irq10, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(11, &irq11, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(12, &irq12, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(13, &irq13, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(14, &irq14, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(15, &irq15, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(16, &irq16, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(17, &irq17, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(18, &irq18, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(19, &irq19, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(20, &irq20, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(21, &irq21, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(22, &irq22, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(23, &irq23, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(24, &irq24, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(25, &irq25, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(26, &irq26, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(27, &irq27, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(28, &irq28, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(29, &irq29, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(30, &irq30, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(31, &irq31, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(32, &irq32, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(33, &irq33, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(34, &irq34, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(35, &irq35, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(36, &irq36, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(37, &irq37, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(38, &irq38, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(39, &irq39, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(40, &irq40, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(41, &irq41, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(42, &irq42, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(43, &irq43, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(44, &irq44, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(45, &irq45, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(46, &irq46, IDT_PRESENT | IDT_SUPV | IDT_GATE);
-  install_descriptor(47, &irq47, IDT_PRESENT | IDT_SUPV | IDT_GATE);
+  install_descriptor(0,  &irq0,  IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(1,  &irq1,  IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(2,  &irq2,  IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(3,  &irq3,  IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(4,  &irq4,  IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(5,  &irq5,  IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(6,  &irq6,  IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(7,  &irq7,  IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(8,  &irq8,  IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(9,  &irq9,  IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(10, &irq10, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(11, &irq11, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(12, &irq12, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(13, &irq13, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(14, &irq14, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(15, &irq15, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(16, &irq16, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(17, &irq17, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(18, &irq18, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(19, &irq19, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(20, &irq20, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(21, &irq21, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(22, &irq22, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(23, &irq23, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(24, &irq24, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(25, &irq25, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(26, &irq26, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(27, &irq27, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(28, &irq28, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(29, &irq29, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(30, &irq30, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(31, &irq31, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(32, &irq32, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(33, &irq33, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(34, &irq34, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(35, &irq35, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(36, &irq36, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(37, &irq37, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(38, &irq38, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(39, &irq39, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(40, &irq40, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(41, &irq41, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(42, &irq42, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(43, &irq43, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(44, &irq44, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(45, &irq45, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(46, &irq46, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
+  install_descriptor(47, &irq47, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
 
   // setup system call software interrupt
-  // install_descriptor(0x80, irq_syscall, IDT_PRESENT | IDT_USER | IDT_GATE);
+  // install_descriptor(0x80, irq_syscall, IDT_PRESENT | IDT_USER | IDT_GATE, 0);
 
   // tell the processor where the IDT is located
   idt_selector_t idtSelector;
@@ -137,8 +138,10 @@ static void setup_idt()
   __asm__ volatile ("lidt %0;" : : "g"(idtSelector));
 }
 
-void arch_irq_init()
+void arch_irq_init(void* irq_stack)
 {
+  arch_set_irq_stack(irq_stack);
+
   setup_pic();
   setup_idt();
 
@@ -161,9 +164,7 @@ void arch_irq_handler(arch_context_t* context)
   }
   else
   {
-    sti();
     interrupt(irq - 32);
-    cli();
     if (irq >= 40)
       outb(0xa0, 0x20);
     outb(0x20, 0x20);

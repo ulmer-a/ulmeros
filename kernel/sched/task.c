@@ -7,11 +7,12 @@
 #include <memory.h>
 
 #define KERNEL_STACK_SIZE 4096
-#define KTASK_STACK_SIZE  8192
 
 
 int task_schedulable(task_t* task)
 {
+  if (task->waiting_for_lock)
+    return false;
   return (task->state == TASK_RUNNING);
 }
 
@@ -40,4 +41,26 @@ size_t create_ktask(void (*func)())
   sched_insert(task);
   debug(SCHED, "task %zd: inserted\n", task->tid);
   return task->tid;
+}
+
+
+void task_iowait_if(size_t *mem, size_t value)
+{
+  int wait = false;
+
+  preempt_disable();
+  if (*mem == value)
+  {
+    current_task->waiting_for_lock = true;
+    wait = true;
+  }
+  preempt_enable();
+
+  if (wait)
+    yield();
+}
+
+void task_iowake(task_t* task)
+{
+  task->waiting_for_lock = false;
 }

@@ -14,6 +14,9 @@ static void start_sysinit_task()
   for(;;) __asm__ volatile ("hlt");
 }
 
+#define IRQ_STACK_SIZE  8192
+static char irq_stack[IRQ_STACK_SIZE];
+
 void kmain(boot_info_t* bootinfo)
 {
   debug(KMAIN, "ULMER Operating System %s - built %s\n\n",
@@ -32,7 +35,7 @@ void kmain(boot_info_t* bootinfo)
 
   /* initialize the interrupt handlers and the
    * system timer */
-  irq_init();
+  irq_init((void*)irq_stack + IRQ_STACK_SIZE);
   timer_reset(50);
 
   /* initialize the kernel heap. this will create a

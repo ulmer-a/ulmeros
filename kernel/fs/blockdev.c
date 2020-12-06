@@ -3,6 +3,7 @@
 #include <mutex.h>
 #include <types.h>
 #include <fs/vfs.h>
+#include <errno.h>
 
 static size_t  bd_major_counter = 1;
 static list_t* bd_driver_list;
@@ -84,6 +85,8 @@ ssize_t bd_read(size_t major, size_t minor,
              char* buf, size_t count, size_t lba)
 {
   bd_driver_t* driver = bd_get_driver(major);
+  if (driver == NULL)
+    return -ENODEV;
   return driver->fops.read(minor, buf, count, lba);
 }
 
@@ -91,5 +94,7 @@ ssize_t bd_write(size_t major, size_t minor,
              char* buf, size_t count, size_t lba)
 {
   bd_driver_t* driver = bd_get_driver(major);
+  if (driver == NULL)
+    return -ENODEV;
   return driver->fops.write(minor, buf, count, lba);
 }

@@ -157,3 +157,8 @@ void set_rsp0(void* rsp)
 {
   tss.rsp0 = (size_t)rsp;
 }
+
+void arch_set_irq_stack(void* stack)
+{
+  tss.ist1 = (size_t)stack;
+}

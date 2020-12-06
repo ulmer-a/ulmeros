@@ -171,30 +171,26 @@ static ssize_t ext2_get_block(bd_t* disk, char* buffer, size_t lba, size_t count
 static int ext2_probe(bd_t* disk)
 {
   ssize_t error;
-  ext2_superblock_t *sb = kmalloc(sizeof(ext2_superblock_t));
+  ext2_superblock_t sb;
 
   debug(EXT2FS, "probe: fetching supberblock from disk\n");
-  if ((error = ext2_get_block(disk, (char*)sb,
+  if ((error = ext2_get_block(disk, (char*)&sb,
     SB_SIZE, SB_LBA)) < 0)
   {
-    kfree(sb);
     return error;
   }
   if (error < SB_SIZE)
   {
-    kfree(sb);
     return -EIO;
   }
 
   // if the signature matches, we're in
-  uint16_t signature = sb->signature;
+  uint16_t signature = sb.signature;
   if (signature == 0xef53)
   {
-    kfree(sb);
     return SUCCESS;
   }
 
-  kfree(sb);
   return -ENOTSUP;
 }
 

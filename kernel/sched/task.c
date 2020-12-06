@@ -6,7 +6,7 @@
 #include <sched.h>
 #include <memory.h>
 
-#define KERNEL_STACK_SIZE 4096
+#define KERNEL_STACK_SIZE 8192
 
 
 int task_schedulable(task_t* task)

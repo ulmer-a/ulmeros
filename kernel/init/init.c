@@ -21,7 +21,7 @@ void sysinit_task()
 
   /* mount the root filesystem */
   size_t root_major = 1, root_minor = 0;
-  size_t err;
+  int err;
   if ((err = vfs_mount(VFS_ROOT, root_major, root_minor)) < 0)
   {
     debug(KMAIN, "root fs mount failed: %s\n", strerror(-err));

@@ -35,6 +35,7 @@ static void* kbrk(ssize_t increment)
   void *orig_brk = kheap_break_;
   kheap_break_ += increment;
 
+
   if (orig_brk > kheap_break_)
   {
     size_t first_unmap = (size_t)kheap_break_ / PAGE_SIZE;
@@ -44,6 +45,17 @@ static void* kbrk(ssize_t increment)
 
     for (size_t page = first_unmap; page <= last_unmap; page++)
       vspace_unmap(VSPACE_KERNEL, page);
+  }
+  else
+  {
+    size_t first_map = (size_t)orig_brk / PAGE_SIZE;
+    if ((size_t)orig_brk % PAGE_SIZE != 0)
+      first_map += 1;
+    size_t last_map = (size_t)kheap_break_ / PAGE_SIZE;
+
+    for (size_t page = first_map; page <= last_map; page++)
+      vspace_map(VSPACE_KERNEL, page, page_alloc(0),
+                 PG_KERNEL|PG_NOEXEC|PG_WRITE);
   }
 
   return orig_brk;

@@ -32,6 +32,14 @@ void mutex_init(mutex_t* mtx)
   mtx->lock = 0;
 }
 
+int mutex_held(mutex_t* mtx)
+{
+  if (!mtx || mtx->magic != MUTEX_MAGIC)
+    assert(false, "mutex_lock(): uninitialized");
+
+  return (mtx->holding == current_task);
+}
+
 void mutex_lock(mutex_t* mtx)
 {
   if (!mtx || mtx->magic != MUTEX_MAGIC)

@@ -31,6 +31,7 @@ mutex_t* mutex_alloc();
  * @param mtx pointer to the mutex to be initialized
  */
 void mutex_init(mutex_t *mtx);
+int mutex_held(mutex_t* mtx);
 void mutex_lock(mutex_t* mtx);
 void mutex_unlock(mutex_t* mtx);
 void mutex_destroy(mutex_t* mtx);

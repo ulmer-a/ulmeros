@@ -116,7 +116,7 @@
 #define ATA_CMD_WRITE_DMA_EXT     0x35
 
 #define DMA_CMD_START     BIT(0) // BIT(0) = 1
-#define DMA_CMD_STOP      BIT(0) // BIT(0) = 0
+#define DMA_CMD_STOP      0      // BIT(0) = 0
 #define DMA_CMD_READ      BIT(3) // BIT(3) = 1
 #define DMA_CMD_WRITE     0      // BIT(3) = 0
 
@@ -363,7 +363,7 @@ static ssize_t ata_read(size_t minor, char* buf,
 
     const size_t iobase = channel->base;
 
-    outb(iobase + ATA_REG_HDDEVSEL, 0x40 | (drive << 4));
+    outb(iobase + ATA_REG_HDDEVSEL, 0xe0 | (drive << 4));
     outb(iobase + ATA_REG_SECCOUNT0, tr_size >> 8);
     outb(iobase + ATA_REG_LBA0, (current_lba >> 24) & 0xff);
     outb(iobase + ATA_REG_LBA1, (current_lba >> 32) & 0xff);
@@ -387,6 +387,7 @@ static ssize_t ata_read(size_t minor, char* buf,
      * thread can go to sleep. */
     task_iowait_if(&channel->irq_ready, 0);
     assert(channel->irq_ready, "irq not ready!");
+    debug(ATADISK, "data ready\n");
 
     /* the transfer completed, so stop DMA. */
     outb(channel->busmaster + DMA_CMD, DMA_CMD_READ|DMA_CMD_STOP);

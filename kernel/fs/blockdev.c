@@ -39,7 +39,7 @@ static bd_driver_t* bd_get_driver(size_t major)
   bd_driver_t* ret = NULL;
   for (int i = 0; i < list_size(bd_driver_list); i++)
   {
-    bd_driver_t* driver = list_get(bd_driver_list, 0);
+    bd_driver_t* driver = list_get(bd_driver_list, i);
     if (driver->major == major)
     {
       ret = driver;

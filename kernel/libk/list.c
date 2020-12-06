@@ -124,7 +124,10 @@ void* list_get(list_t* list, size_t index)
 {
   assert(list, "list is null");
 
-  return list_get_index(list, index)->payload;
+  list_item_t* item = list_get_index(list, index);
+  if (item == NULL)
+    return NULL;
+  return item->payload;
 }
 
 size_t list_size(list_t* list)

@@ -161,11 +161,7 @@ typedef struct
 
 static ssize_t ext2_get_block(bd_t* disk, char* buffer, size_t lba, size_t count)
 {
-  ssize_t ret = disk->driver->
-      fops.read(disk->minor, buffer, count, lba);
-  if (ret < 0)
-    return ret;
-  return ret;
+  return disk->driver->fops.read(disk->minor, buffer, count, lba);
 }
 
 static int ext2_probe(bd_t* disk)
@@ -175,7 +171,7 @@ static int ext2_probe(bd_t* disk)
 
   debug(EXT2FS, "probe: fetching supberblock from disk\n");
   if ((error = ext2_get_block(disk, (char*)&sb,
-    SB_SIZE, SB_LBA)) < 0)
+    SB_LBA, SB_SIZE)) < 0)
   {
     return error;
   }

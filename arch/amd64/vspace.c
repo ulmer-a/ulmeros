@@ -34,8 +34,25 @@ static GenericPagingTable* kernel_pml4_;
 
 vspace_t vspace_kernel_;
 
+static void enable_nx()
+{
+  /* this will enable support for the NX
+   * bit. TODO: check support in CPUID */
+  __asm__ volatile (
+    "mov $0xc0000080, %%rcx;"
+    "rdmsr;"
+    "or $(1 << 11), %%rax;"
+    "wrmsr;"
+    ::: "rcx", "rax"
+  );
+}
+
 void vspace_init_kernel()
 {
+  enable_nx();
+
+  assert(sizeof(GenericPagingTable) == 8, "GenericPagingTable: invalid struct");
+
   size_t cr3;
   __asm__ volatile ("mov %%cr3, %0" : "=r"(cr3));
 
@@ -58,23 +75,8 @@ void* vspace_get_page_ptr(size_t phys)
   return (void*)((phys << 12) + IDENT_OFFSET);
 }
 
-static void enable_nx()
-{
-  /* this will enable support for the NX
-   * bit. TODO: check support in CPUID */
-  __asm__ volatile (
-    "mov $0xc0000080, %%rcx;"
-    "rdmsr;"
-    "or $(1 << 11), %%rax;"
-    "wrmsr;"
-    ::: "rcx", "rax"
-  );
-}
-
 vspace_t* vspace_init()
 {
-  enable_nx();
-
   vspace_t* vspace = kmalloc(sizeof(vspace_t));
   vspace->pml4_page = page_alloc(0);
 

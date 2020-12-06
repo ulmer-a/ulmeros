@@ -59,6 +59,7 @@ int vfs_mount(dir_t* mountpoint, size_t major, size_t minor)
     fs_t* fs_ = list_get(fs_list, i);
     if (fs_->probe(bd) == SUCCESS)
     {
+      debug(VFS, "successfully probed %s\n", fs_->name);
       fs = fs_;
       break;
     }

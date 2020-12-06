@@ -138,9 +138,8 @@ static void setup_idt()
   __asm__ volatile ("lidt %0;" : : "g"(idtSelector));
 }
 
-void arch_irq_init(void* irq_stack)
+void arch_irq_init()
 {
-  arch_set_irq_stack(irq_stack);
 
   setup_pic();
   setup_idt();

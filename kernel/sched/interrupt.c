@@ -12,9 +12,9 @@ extern void schedule();
 static void* irq_handlers[16];
 static uint64_t timer_ticks_;
 
-void irq_init(void* irq_stack)
+void irq_init()
 {
-  arch_irq_init(irq_stack);
+  arch_irq_init();
   for (int i = 0; i < 16; i++)
     irq_handlers[i] = NULL;
 }

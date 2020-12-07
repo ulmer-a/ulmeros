@@ -4,14 +4,14 @@
 #include <vspace.h>
 #include <mutex.h>
 
-struct hblock
+typedef struct hblock
 {
     unsigned available;
     unsigned magic;
     struct hblock *prev;
     struct hblock *next;
     size_t size;
-} __attribute__((packed));
+} __attribute__((packed)) hblock_t;
 
 #define HEAP_MAGIC  (0xabcdefabu)
 #define HEADER_SIZE (sizeof(struct hblock))
@@ -28,6 +28,19 @@ void kheap_init()
   debug(KHEAP, "initializing kernel heap @ %p\n", kheap_start_);
 
 
+}
+
+void kheap_check_corrupt()
+{
+  for (hblock_t* entry = kheap_start_;
+       entry != NULL;
+       entry = entry->next)
+  {
+    if (entry->magic != HEAP_MAGIC)
+    {
+      assert(false, "heap corruption detected!");
+    }
+  }
 }
 
 static void* kbrk(ssize_t increment)

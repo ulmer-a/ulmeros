@@ -7,6 +7,7 @@
 #include <arch/context.h>
 #include <arch.h>
 #include <kstring.h>
+#include <memory.h>
 
 task_t* current_task;
 vspace_t* current_vspace;
@@ -124,5 +125,7 @@ void set_context(arch_context_t* context)
 
 arch_context_t* get_context()
 {
+  kheap_check_corrupt();
+  ctx_check_seg(saved_context);
   return saved_context;
 }

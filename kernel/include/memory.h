@@ -19,6 +19,8 @@ void _init page_init(boot_info_t* boot_info);
  */
 void _init kheap_init();
 
+void kheap_check_corrupt();
+
 /**
  * @brief page_alloc allocate a new physical
  * page. this function always succeeds

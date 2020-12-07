@@ -5,20 +5,33 @@
 #include <arch/debug.h>
 #include <arch/context.h>
 
+#define COL_RESET   "\x1b[0m"
+#define COL_RED     "\x1b[31m"
+
+#define COL_BLACK   "\x1b[30m"
+#define COL_RED     "\x1b[31m"
+#define COL_GREEN   "\x1b[32m"
+#define COL_YELLOW  "\x1b[33m"
+#define COL_BLUE    "\x1b[34m"
+#define COL_MAGENTA "\x1b[35m"
+#define COL_CYAN    "\x1b[36m"
+#define COL_WHITE   "\x1b[37m"
+
+
 static char* debug_levels[] = {
-  "VSPACE ",
-  "KMAIN  ",
-  "ASSERT ",
-  "PAGEMGR",
-  "KHEAP  ",
-  "IRQ    ",
-  "PAGEFLT",
-  "SCHED  ",
-  "EXT2FS ",
-  "VFS    ",
-  "ATADISK",
-  "PCIBUS ",
-  "BLKDEV "
+  COL_BLUE    "VSPACE " COL_RESET,
+  COL_WHITE   "KMAIN  " COL_RESET,
+  COL_RED     "ASSERT " COL_RESET,
+  COL_BLUE    "PAGEMGR" COL_RESET,
+  COL_BLUE    "KHEAP  " COL_RESET,
+  COL_CYAN    "IRQ    " COL_RESET,
+  COL_BLUE    "PAGEFLT" COL_RESET,
+  COL_MAGENTA "SCHED  " COL_RESET,
+  COL_GREEN   "EXT2FS " COL_RESET,
+  COL_GREEN   "VFS    " COL_RESET,
+  COL_CYAN    "ATADISK" COL_RESET,
+  COL_WHITE   "PCIBUS " COL_RESET,
+  COL_GREEN   "BLKDEV " COL_RESET
 };
 
 static char kprintf_buffer[4096];

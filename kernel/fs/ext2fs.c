@@ -256,7 +256,12 @@ static size_t ext2_get_file_block(ext2_inode_t* inode, size_t index)
 
 static ssize_t ext2_read(file_t* file, char* buffer, size_t len, size_t offset)
 {
-  mutex_lock(&file->lock);
+  int locked = false;
+  if (!mutex_held(&file->lock))
+  {
+    locked = true;
+    mutex_lock(&file->lock);
+  }
 
   // gather some information
   ext2fs_t* fs = file->driver1;
@@ -295,7 +300,9 @@ static ssize_t ext2_read(file_t* file, char* buffer, size_t len, size_t offset)
     bytes_read += bytes_to_copy;
   }
   kfree(block_buffer);
-  mutex_unlock(&file->lock);
+
+  if (locked)
+    mutex_unlock(&file->lock);
 
   if (error != SUCCESS)
     return error;
@@ -304,9 +311,8 @@ static ssize_t ext2_read(file_t* file, char* buffer, size_t len, size_t offset)
 
 static void ext2_load_files(dir_t* dir)
 {
-  // TODO: assert that lock is already acquired!
-
   file_t *dfile = dir->file;
+  assert(mutex_held(&dfile->lock), "ext2fs: file lock required");
   assert(dfile, "ext2_load_files(): dfile is NULL");
   ext2fs_t* fs = dfile->driver1;
 
@@ -395,6 +401,7 @@ static int ext2_mount(bd_t* disk, dir_t* mp)
 
   debug(EXT2FS, "mount: generating fs structs\n");
   ext2fs_t* fsdata = kmalloc(sizeof(ext2fs_t));
+  mutex_init(&fsdata->fs_lock);
   fsdata->disk = disk;
   fsdata->sb = sb;
   fsdata->block_size = 0x400 << fsdata->sb.block_size_log;

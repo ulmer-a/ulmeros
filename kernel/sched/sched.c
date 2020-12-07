@@ -126,6 +126,5 @@ void set_context(arch_context_t* context)
 arch_context_t* get_context()
 {
   kheap_check_corrupt();
-  ctx_check_seg(saved_context);
   return saved_context;
 }

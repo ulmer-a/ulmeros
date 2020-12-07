@@ -325,7 +325,7 @@ static ssize_t ata_read(size_t minor, char* buf,
     if (tr_size > BLOCKS_PER_PRD)
       tr_size = BLOCKS_PER_PRD;
 
-    debug(ATADISK, "ata_read(): count=%zd, lba=%zd\n",
+    debug(ATADISK, "ata-dma: read(): count=%zd, lba=%zd\n",
           tr_size, current_lba);
 
     // prepare the physical region descriptor
@@ -364,13 +364,13 @@ static ssize_t ata_read(size_t minor, char* buf,
     /* set the DMA START bit. this will start the
      * transfer to memory. */
     outb(channel->busmaster + DMA_CMD, DMA_CMD_READ|DMA_CMD_START);
-    debug(ATADISK, "sent DMA_READ command, waiting for IRQ\n");
+    debug(ATADISK, "ata-dma: started transfer\n");
 
     /* while the device transfers data to memory, this
      * thread can go to sleep. */
     task_iowait_if(&channel->irq_ready, 0);
     assert(channel->irq_ready, "irq not ready!");
-    debug(ATADISK, "data ready\n");
+    debug(ATADISK, "ata-dma: transfer complete\n");
 
     /* the transfer completed, so stop DMA. */
     outb(channel->busmaster + DMA_CMD, DMA_CMD_READ|DMA_CMD_STOP);
@@ -379,7 +379,7 @@ static ssize_t ata_read(size_t minor, char* buf,
     if ((status & ATA_SR_ERR) || (status & ATA_SR_DF))
     {
       mutex_unlock(&controller->transfer_lock);
-      debug(ATADISK, "ata_read(): failed\n");
+      debug(ATADISK, "ata-dma: read() failed\n");
       return blocks_read;
     }
 
@@ -507,7 +507,7 @@ static void ide_identify(pci_ide_dev_t* controller, uint8_t channel, uint8_t dri
  * will tell the block device manager what kind of
  * operations this driver supports and how to call them. */
 static bd_driver_t ata_bd_driver = {
-  .name = "pc_ata_pci",
+  .name = "ata_pci",
   .file_prefix = "hd",
   .fops = {
     .read = ata_read,
@@ -650,14 +650,13 @@ static const pci_idpair_t ata_pci_ids[] = {
 
 /* PCI driver description structure function map */
 static const pci_driver_t ata_pci_driver = {
+  .name = "ata_pci",
   .devices = ata_pci_ids,
   .probe = ata_probe
 };
 
 void ata_init()
 {
-  debug(ATADISK, "loading SATA/PATA disk driver\n");
-
   /* initialize the list of IDE controllers handled
    * by this driver. */
   controller_list = list_init();

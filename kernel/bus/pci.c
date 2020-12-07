@@ -65,6 +65,7 @@ void pci_init()
 void pci_register_driver(const pci_driver_t* drv_info)
 {
   // search device list
+  debug(PCIBUS, "register driver %s\n", drv_info->name);
   mutex_lock(&device_list_lock);
   size_t size = list_size(device_list);
   for (int i = 0; i < size; i++)

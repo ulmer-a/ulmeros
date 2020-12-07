@@ -57,7 +57,10 @@ void task_iowait_if(size_t *mem, size_t value)
   preempt_enable();
 
   if (wait)
+  {
+    debug(SCHED, "iowait()\n");
     yield();
+  }
 }
 
 void task_iowake(task_t* task)

@@ -55,6 +55,7 @@ typedef struct
 
 typedef struct
 {
+  const char* name;
   const pci_idpair_t* devices;
   int (*probe)(pci_dev_t*);
 } pci_driver_t;

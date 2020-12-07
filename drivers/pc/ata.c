@@ -271,10 +271,10 @@ static pci_ide_dev_t* get_controller(size_t minor)
   return controller;
 }
 
-static int ata_check_irq(pci_ide_dev_t* controller, uint8_t channel)
+static void ata_irq(void* driver_data)
 {
-  ide_channel_t* ch = &(controller->ide_channels[channel]);
-  size_t busmaster_base = ch->busmaster;
+  ide_channel_t* channel = driver_data;
+  size_t busmaster_base = channel->busmaster;
 
   // check if the IRQ bit is set in the busmaster
   // status register, then clear it
@@ -285,27 +285,10 @@ static int ata_check_irq(pci_ide_dev_t* controller, uint8_t channel)
   {
     // if the device generated an IRQ, wake up the
     // task that is waiting for it.
-    ch->irq_ready = 1;
-    ch->irq_status = status;
-    task_iowake(ch->waiting_task);
-    return true;
+    channel->irq_ready = 1;
+    channel->irq_status = status;
+    task_iowake(channel->waiting_task);
   }
-
-  return false;
-}
-
-static int ata_irq()
-{
-  size_t controllers = list_size(controller_list);
-  size_t irqs = 0;
-  for (size_t i = 0; i < controllers; i++)
-  {
-    pci_ide_dev_t* controller =
-        list_get(controller_list, i);
-    irqs += ata_check_irq(controller, 0);
-    irqs += ata_check_irq(controller, 1);
-  }
-  return (irqs > 0);
 }
 
 /**
@@ -613,13 +596,18 @@ static int ata_probe(pci_dev_t* device)
   /* setup PCI busmastering DMA */
   if(controller->ide_devices[0].present ||
      controller->ide_devices[1].present)
+  {
+    irq_register(IRQ_ATA_PRIM, ata_irq,
+                 &(controller->ide_channels[0]));
     ata_setup_dma(controller, ATA_PRIMARY);
+  }
   if(controller->ide_devices[2].present ||
      controller->ide_devices[3].present)
+  {
+    irq_register(IRQ_ATA_SEC, ata_irq,
+                 &(controller->ide_channels[1]));
     ata_setup_dma(controller, ATA_SECONDARY);
-
-  irq_install_handler(IRQ_ATA_PRIM, ata_irq);
-  irq_install_handler(IRQ_ATA_SEC,  ata_irq);
+  }
 
   /* enable IRQ's on both channels */
   ide_write(controller, ATA_PRIMARY, ATA_REG_CONTROL, 0);

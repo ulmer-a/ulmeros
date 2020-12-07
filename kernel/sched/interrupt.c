@@ -9,24 +9,33 @@
 extern void page_fault(size_t error);
 extern void schedule();
 
-static void* irq_handlers[16];
+typedef struct
+{
+  int present;
+  void (*handler)(void*);
+  void* driver_data;
+} handler_t;
+
+static handler_t irq_handlers[16];
 static uint64_t timer_ticks_;
 
 void irq_init()
 {
   arch_irq_init();
   for (int i = 0; i < 16; i++)
-    irq_handlers[i] = NULL;
+    irq_handlers[i].present = 0;
 }
 
 void interrupt(size_t irq)
 {
+  // further IRQ's are disabled!
+
   if (irq < 16)
   {
-    if (irq_handlers[irq])
+    handler_t* handler = irq_handlers + irq;
+    if (handler->present)
     {
-      ((void (*)())irq_handlers[irq])();
-      return;
+      handler->handler(handler->driver_data);
     }
   }
 
@@ -60,14 +69,19 @@ uint64_t timer_ticks()
   return timer_ticks_;
 }
 
-void irq_install_handler(unsigned irq, int (*handler)(void))
+int irq_register(size_t irq, void (*func)(void*), void* drv)
 {
-  assert(irq < 16, "invalid irq number!");
-
+  handler_t handler = {
+    .present = 0,
+    .handler = func,
+    .driver_data = drv
+  };
   irq_handlers[irq] = handler;
+  irq_handlers[irq].present = 1;
+  return irq;
 }
 
-void irq_uninstall_handler(unsigned irq)
+void irq_unregister(int descriptor)
 {
-  irq_install_handler(irq, NULL);
+  irq_handlers[descriptor].present = 0;
 }

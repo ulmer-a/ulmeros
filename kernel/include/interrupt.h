@@ -8,7 +8,19 @@
 void _init irq_init();
 void _init arch_irq_init();
 
-void irq_install_handler(unsigned irq, int (*handler)());
-void irq_uninstall_handler(unsigned irq);
+/**
+ * @brief irq_register register an interrupt
+ * @param irq the irq number to subscribe
+ * @param handler the interrupt handler routine
+ * @param drv custom driver data that is passed to the handler
+ * @return int the handler descriptor
+ */
+int irq_register(size_t irq, void (*handler)(void*), void* drv);
+
+/**
+ * @brief irq_unregister unregister an interrupt handler
+ * @param descriptor the descriptor returned by irq_register()
+ */
+void irq_unregister(int descriptor);
 
 uint64_t timer_ticks();

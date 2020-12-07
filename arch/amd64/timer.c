@@ -15,10 +15,9 @@
 
 extern void timer();
 
-static int call_timer()
+static void call_timer(void* __attribute__((unused)) drv)
 {
   timer();
-  return true;
 }
 
 void timer_reset(uint16_t freqHz)
@@ -29,5 +28,5 @@ void timer_reset(uint16_t freqHz)
   outb(PIT_CH0, pit & 0xff);
   outb(PIT_CH0, (pit >> 8) & 0xff);
 
-  irq_install_handler(TIMER_IRQ, call_timer);
+  irq_register(TIMER_IRQ, call_timer, NULL);
 }

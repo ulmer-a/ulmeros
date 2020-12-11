@@ -54,6 +54,21 @@ char *strncpy(char *dest, const char* src, size_t size)
   return dest_orig;
 }
 
+const char* strccpy(char *dest, const char *src, char terminator)
+{
+  char c;
+  while ((c = *(src++)))
+  {
+    if (c == terminator)
+      break;
+    *(dest++) = c;
+  }
+  if (c == 0)
+    src--;
+  *dest = 0;
+  return src;
+}
+
 char *strdup(const char *src);
 char *strcat(char *dest, const char*append);
 char *strncat(char *dest, const char*append, size_t size);

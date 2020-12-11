@@ -28,5 +28,6 @@ char* ptoa(void *value, char * str);
 char* ltoa(long value, char * str, int base);
 char* utoa(unsigned int value, char * str, int base);
 char* ultoa(unsigned long value, char * str, int base);
+const char* strccpy(char *dest, const char *src, char terminator);
 const char *strexcept(unsigned exc);
 const char *strerror(unsigned err);

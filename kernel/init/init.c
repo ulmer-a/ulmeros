@@ -43,5 +43,5 @@ void init_userspace()
 
   /* spawn the first userspace program by loading
    * the binary from the path passed as an argument. */
-  proc_create_initial("/bin/init");
+  proc_create_initial("/bin/init.bin");
 }

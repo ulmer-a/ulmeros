@@ -17,3 +17,4 @@
 #define ATADISK     10  | OUTPUT_ENABLED
 #define PCIBUS      11  | OUTPUT_ENABLED
 #define BLKDEV      12  | OUTPUT_ENABLED
+#define LOADER      13  | OUTPUT_ENABLED

@@ -33,6 +33,7 @@ void task_iowake(task_t* task);
 
 void ktask_init();
 
+
 void mktask();
 
 /**
@@ -41,3 +42,5 @@ void mktask();
  * @return
  */
 size_t create_ktask(void (*func)());
+
+size_t create_utask(void* entry, void* stack, vspace_t* vspace);

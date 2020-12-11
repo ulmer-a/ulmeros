@@ -3,6 +3,7 @@
 #include <types.h>
 
 #define PAGE_SIZE 4096
+#define PAGE_SHIFT 12
 
 struct vspace_struct_;
 typedef struct vspace_struct_ vspace_t;

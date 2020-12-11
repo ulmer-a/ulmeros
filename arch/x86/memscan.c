@@ -1,5 +1,5 @@
-#include <amd64/boot.h>
-#include <amd64/multiboot.h>
+#include <bootinfo.h>
+#include <multiboot.h>
 #include <vspace.h>
 
 extern size_t total_pages_;

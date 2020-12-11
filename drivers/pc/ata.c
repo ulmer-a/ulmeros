@@ -22,7 +22,7 @@
 #include <memory.h>
 #include <fs/blockdev.h>
 #include <list.h>
-#include <amd64/ports.h>
+#include <ports.h>
 #include <mutex.h>
 #include <errno.h>
 #include <vspace.h>

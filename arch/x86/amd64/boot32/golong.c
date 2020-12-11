@@ -1,4 +1,4 @@
-#include <amd64/boot.h>
+#include <bootinfo.h>
 #include "boot32.h"
 
 extern void jmp64(boot_info_t* bootInfo);

@@ -29,8 +29,8 @@ static uint64_t memCheck(struct mb_struct *mb)
     return physical_size;
 }
 
-extern char _binary_kernel64_bin_start;
-extern char _binary_kernel64_bin_end;
+extern char _binary_kernel_bin_start;
+extern char _binary_kernel_bin_end;
 
 void main32(struct mb_struct *mb)
 {
@@ -41,8 +41,8 @@ void main32(struct mb_struct *mb)
     ramSize = memCheck(mb);
 
     // copy kernel binary to entry address
-    uint32_t kernel_size = (uint32_t)&_binary_kernel64_bin_end - (uint32_t)&_binary_kernel64_bin_start;
-    memcpy(ENTRY64_ADDR, &_binary_kernel64_bin_start, kernel_size);
+    uint32_t kernel_size = (uint32_t)&_binary_kernel_bin_end - (uint32_t)&_binary_kernel_bin_start;
+    memcpy(ENTRY64_ADDR, &_binary_kernel_bin_start, kernel_size);
 
     binary_size = kernel_size >> 12;
     if (kernel_size % PAGE_SIZE != 0)

@@ -1,5 +1,5 @@
 #include <arch/debug.h>
-#include <amd64/ports.h>
+#include <ports.h>
 
 void arch_print(char c)
 {

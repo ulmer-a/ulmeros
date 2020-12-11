@@ -2,7 +2,7 @@
 #include <memory.h>
 #include "ports.h"
 
-#include "amd64.h"
+extern void set_rsp0(void* stack_ptr);
 
 #define CS_KERNEL   0x08
 #define DS_KERNEL   0x10

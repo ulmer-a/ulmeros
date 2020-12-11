@@ -11,5 +11,5 @@ build:
   script:
     - gcc -dumpmachine
     - mkdir build && cd build
-    - cmake ..
+    - cmake -DPC_DISKIMAGE_GEN=OFF ..
     - make -j

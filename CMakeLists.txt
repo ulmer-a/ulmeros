@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
+option(PC_DISKIMAGE_GEN "generate GRUB hdd diskimage" ON)
+
 # build the kernel image
 project(UlmerOS VERSION 0.1 LANGUAGES C ASM)
 

@@ -17,8 +17,13 @@ target_compile_options(platform-pc PUBLIC
     ${ARCH_CFLAGS}
 )
 
-add_custom_target(diskimage ALL
-    ${PROJECT_SOURCE_DIR}/tools/mkimg.sh ${PROJECT_SOURCE_DIR}
-    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-)
-add_dependencies(diskimage vmulmer userspace)
+if (PC_DISKIMAGE_GEN)
+    add_custom_target(diskimage ALL
+        ${PROJECT_SOURCE_DIR}/tools/mkimg.sh ${PROJECT_SOURCE_DIR}
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    )
+    add_dependencies(diskimage vmulmer userspace)
+else()
+    # we still want to build userspace!
+    add_dependencies(vmulmer userspace)
+endif()

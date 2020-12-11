@@ -80,13 +80,33 @@ arch_context_t* ctx_create(void *entry, void* kstack, void *stack, int flags)
 
 void ctx_dump(arch_context_t* ctx)
 {
-  debug(ASSERT, "rip=%p, rsp=%p, err=%p\n",
-        ctx->rip, ctx->rsp, ctx->error);
+  debug(ASSERT, "rip=%p, rsp=%p, rbp=%p, err=%p\n"
+      "          rdi=%p, rsi=%p, rax=%p, rbx=%p\n"
+      "           fs=%p,  gs=%p, \n",
+        ctx->rip, ctx->rsp, ctx->rbp, ctx->error,
+        ctx->rdi, ctx->rsi, ctx->rax, ctx->rbx,
+        ctx->fs,  ctx->gs);
+
+  uint64_t* rsp = (uint64_t*)ctx->rsp;
+  debug(ASSERT, "values at RSP:\n"
+                "RSP-8:  %p\n"
+                "RSP:    %p\n"
+                "RSP+8:  %p\n"
+                "RSP+16: %p\n",
+        *(rsp-1), *rsp, *(rsp+1), *(rsp+2));
 }
 
 void ctx_set_kernel_stack(void* stack_ptr)
 {
   set_rsp0(stack_ptr);
+}
+
+void ctx_check_seg(arch_context_t* ctx)
+{
+  if (ctx->fs > 0x40 || ctx->gs > 0x40)
+  {
+    assert(false, "segment registers invalid");
+  }
 }
 
 size_t ctx_irq(arch_context_t* ctx)

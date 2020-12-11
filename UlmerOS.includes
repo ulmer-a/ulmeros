@@ -7,3 +7,5 @@ kernel/include/bus
 kernel/include/fs
 kernel/libk/include
 kernel/fs
+kernel/sched
+kernel/include/sched

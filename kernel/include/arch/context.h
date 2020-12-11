@@ -31,6 +31,8 @@ arch_context_t* ctx_create(void* entry, void *kstack, void* stack, int flags);
  */
 void ctx_set_kernel_stack(void* stack_ptr);
 
+void ctx_check_seg(arch_context_t* ctx);
+
 /**
  * @brief ctx_irq get the interrupt number of the interrupt
  * @param ctx  the context

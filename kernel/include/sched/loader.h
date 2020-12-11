@@ -9,7 +9,7 @@ typedef struct proc_struct proc_t;
 
 typedef struct
 {
-  uint32_t magic[4];   // should be 0x7f ELF
+  uint32_t magic;           // should be 0x7f ELF
   uint8_t type;             // 1=32bit, 2=64bit
   uint8_t endianness;       // 1=little, 2=big
   uint8_t header_version;   // header version

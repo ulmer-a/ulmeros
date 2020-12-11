@@ -40,6 +40,7 @@ sudo mkdir -p img_rootfs/lib
 
 sudo cp "vmulmer" img_rootfs/boot/vmulmer
 sudo cp "${srcdir}/tools/grub.cfg" img_rootfs/boot/grub/grub.cfg
+sudo cp userspace/progs/*.bin img_rootfs/bin/
 
 sudo grub-install --root-directory=img_rootfs \
     --boot-directory=img_rootfs/boot \
@@ -48,6 +49,7 @@ sudo grub-install --root-directory=img_rootfs \
     --modules="normal part_msdos ext2 multiboot" /dev/loop98
     
 ls -la img_rootfs
+ls -la img_rootfs/bin
 ls -la img_rootfs/boot
 ls -la img_rootfs/boot/grub
 

@@ -21,4 +21,4 @@ add_custom_target(diskimage ALL
     ${PROJECT_SOURCE_DIR}/tools/mkimg.sh ${PROJECT_SOURCE_DIR}
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
 )
-add_dependencies(diskimage vmulmer)
+add_dependencies(diskimage vmulmer userspace)

@@ -32,6 +32,7 @@ loader_t* loader_create(proc_t* process, const char* filename, int* error)
   if (binary->header.magic == 0x464c457f)
   {
     debug(LOADER, "%s: ELF %s bit, %s endian, %s ABI, entry=%p\n",
+          filename,
           binary->header.type == 2 ? "64" : "32",
           binary->header.endianness == 2 ? "big" : "little",
           binary->header.os_abi == 0 ? "SystemV" : "unknown",

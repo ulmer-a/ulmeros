@@ -167,7 +167,11 @@ int vfs_close(fd_t* fd)
 
 ssize_t vfs_read(fd_t* fd, char* buf, size_t len)
 {
-  return -ENOSYS;
+  file_t* file = fd->file;
+  len = file->fs->read(file, buf, len, fd->seek_offset);
+  if (len > 0)
+    fd->seek_offset += len;
+  return len;
 }
 
 ssize_t vfs_write(fd_t* fd, char* buf, size_t len)

@@ -22,27 +22,43 @@ static size_t get_task_id()
   return atomic_add(&tid_counter, 1);
 }
 
-size_t create_ktask(void (*func)())
+static task_t* create_task()
 {
-  task_t* task  = kmalloc(sizeof(task_t));
-  task->state   = TASK_RUNNING;
-  task->tid     = get_task_id();
-
+  task_t* task = kmalloc(sizeof(task_t));
+  task->state = TASK_RUNNING;
+  task->tid = get_task_id();
   task->waiting_for_lock = false;
 
   task->kernel_stack = kmalloc(KERNEL_STACK_SIZE);
   task->kernel_stack_size = KERNEL_STACK_SIZE;
 
-  void* stack_ptr = task->kernel_stack + task->kernel_stack_size;
+  return task;
+}
 
-  task->vspace  = VSPACE_KERNEL;
-  task->context = ctx_create((void*)func, stack_ptr, stack_ptr, CTX_KERNEL);
+size_t create_ktask(void (*func)())
+{
+  task_t* task = create_task();
+
+  task->vspace = VSPACE_KERNEL;
+  task->context = ctx_create(func, task->kernel_stack
+                   + task->kernel_stack_size, task->kernel_stack
+                   + task->kernel_stack_size, CTX_KERNEL);
 
   sched_insert(task);
-  debug(SCHED, "task %zd: inserted\n", task->tid);
   return task->tid;
 }
 
+size_t create_utask(void* entry, void* stack, vspace_t* vspace)
+{
+  task_t* task = create_task();
+
+  task->vspace = vspace;
+  task->context = ctx_create(entry, task->kernel_stack
+                   + task->kernel_stack_size, stack, CTX_USER);
+
+  sched_insert(task);
+  return task->tid;
+}
 
 void task_iowait_if(size_t *mem, size_t value)
 {

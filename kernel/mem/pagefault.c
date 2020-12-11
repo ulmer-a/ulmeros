@@ -1,6 +1,6 @@
 #include <memory.h>
 #include <arch/context.h>
-#include <definitions.h>
+#include <archdef.h>
 #include <vspace.h>
 
 

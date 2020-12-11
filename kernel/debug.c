@@ -20,7 +20,7 @@
 
 static char* debug_levels[] = {
   COL_BLUE    "VSPACE " COL_RESET,
-  COL_WHITE   "KMAIN  " COL_RESET,
+  COL_WHITE   "KINIT  " COL_RESET,
   COL_RED     "ASSERT " COL_RESET,
   COL_BLUE    "PAGEMGR" COL_RESET,
   COL_BLUE    "KHEAP  " COL_RESET,
@@ -31,7 +31,8 @@ static char* debug_levels[] = {
   COL_GREEN   "VFS    " COL_RESET,
   COL_CYAN    "ATADISK" COL_RESET,
   COL_WHITE   "PCIBUS " COL_RESET,
-  COL_GREEN   "BLKDEV " COL_RESET
+  COL_GREEN   "BLKDEV " COL_RESET,
+  COL_GREEN   "LOADER " COL_RESET
 };
 
 static char kprintf_buffer[4096];

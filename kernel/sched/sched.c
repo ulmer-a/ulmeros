@@ -71,6 +71,7 @@ void sched_insert(task_t* task)
   sched_blocked = true;
   list_add(task_list_, task);
   sched_blocked = false;
+  debug(SCHED, "task %zd: inserted\n", task->tid);
 }
 
 static task_t* get_next_task()

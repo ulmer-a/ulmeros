@@ -1,6 +1,6 @@
 #include <memory.h>
 #include <types.h>
-#include <definitions.h>
+#include <archdef.h>
 #include <vspace.h>
 #include <mutex.h>
 

@@ -25,6 +25,7 @@ typedef struct
       size_t len, size_t offset);
   ssize_t (*write)(file_t* file, char* buffer,
       size_t len, size_t offset);
+  void (*fetch)(file_t* dirfile);
 } fs_t;
 
 typedef enum
@@ -85,6 +86,7 @@ typedef struct _file
 
   void *driver1;
   void *driver2;
+  const fs_t* fs;
 
   mutex_t lock;
 } file_t;
@@ -95,13 +97,32 @@ typedef struct _dentry
   file_t *file;
 } direntry_t;
 
-
+typedef struct fd_struct
+{
+  file_t* file;
+  size_t refs;
+  size_t seek_offset;
+} fd_t;
 
 void vfs_init();
 
 int vfs_mount(dir_t* mountpoint, size_t major, size_t minor);
 
 void register_fs(const fs_t* fs);
+
+#define SEEK_SET 0
+#define SEEK_CUR 1
+#define SEEK_END 2
+
+#define O_READ    BIT(0)
+#define O_WRITE   BIT(1)
+#define O_CREAT   BIT(2)
+
+int vfs_open(const char* pathname, int flags, fd_t** fd);
+int vfs_close(fd_t* fd);
+ssize_t vfs_read(fd_t* fd, char* buf, size_t len);
+ssize_t vfs_write(fd_t* fd, char* buf, size_t len);
+int vfs_seek(fd_t* fd, ssize_t seek, int type);
 
 extern dir_t vfs_root_node;
 #define VFS_ROOT (&vfs_root_node)

@@ -159,12 +159,26 @@ typedef struct
   mutex_t fs_lock;
 } ext2fs_t;
 
+int ext2_probe(bd_t* disk);
+void ext2_fetch(file_t* dfile);
+int ext2_mount(bd_t* disk, dir_t* mp);
+ssize_t ext2_read(file_t* file, char* buffer, size_t len, size_t offset);
+
+static const fs_t ext2fs = {
+  .name = "ext2fs",
+  .probe = ext2_probe,
+  .mount = ext2_mount,
+  .read = ext2_read,
+  .fetch = ext2_fetch,
+  .mbr_id = 0x83
+};
+
 static ssize_t ext2_get_block(bd_t* disk, char* buffer, size_t lba, size_t count)
 {
   return disk->driver->fops.read(disk->minor, buffer, count, lba);
 }
 
-static int ext2_probe(bd_t* disk)
+int ext2_probe(bd_t* disk)
 {
   ssize_t error;
   ext2_superblock_t sb;
@@ -240,6 +254,7 @@ static file_t* ext2_fetch_file(ext2fs_t* fs, size_t inode_no, int* error)
   file->inode = inode_no;
   file->blocks = inode->i_blocks;
   file->length = inode->i_size;
+  file->fs = &ext2fs;
   file->driver1 = fs;
   file->driver2 = drv_inode;
   mutex_init(&file->lock);
@@ -254,7 +269,7 @@ static size_t ext2_get_file_block(ext2_inode_t* inode, size_t index)
   return 0;
 }
 
-static ssize_t ext2_read(file_t* file, char* buffer, size_t len, size_t offset)
+ssize_t ext2_read(file_t* file, char* buffer, size_t len, size_t offset)
 {
   int locked = false;
   if (!mutex_held(&file->lock))
@@ -344,17 +359,9 @@ static void ext2_load_files(dir_t* dir)
   kfree(buffer);
 }
 
-static dir_t* ext2_fetch_dir(ext2fs_t* fs, size_t inode, int* error)
+void ext2_fetch(file_t* dfile)
 {
-  file_t* dfile = ext2_fetch_file(fs, inode, error);
-  if (dfile == NULL)
-    return NULL;
-
-  if (dfile->type != F_DIR)
-  {
-    if (error) *error = ENOTDIR;
-    return NULL;
-  }
+  assert(dfile->type == F_DIR, "dirfile is not a directory");
 
   mutex_lock(&dfile->lock);
   dir_t* dir = dfile->dir;
@@ -369,7 +376,22 @@ static dir_t* ext2_fetch_dir(ext2fs_t* fs, size_t inode, int* error)
     ext2_load_files(dir);
   }
   mutex_unlock(&dfile->lock);
-  return dir;
+}
+
+static dir_t* ext2_fetch_dir(ext2fs_t* fs, size_t inode, int* error)
+{
+  file_t* dfile = ext2_fetch_file(fs, inode, error);
+  if (dfile == NULL)
+    return NULL;
+
+  if (dfile->type != F_DIR)
+  {
+    if (error) *error = ENOTDIR;
+    return NULL;
+  }
+
+  ext2_fetch(dfile);
+  return dfile->dir;
 }
 
 static void ext2_delfs(ext2fs_t* fsdata)
@@ -381,7 +403,7 @@ static void ext2_delfs(ext2fs_t* fsdata)
   kfree(fsdata);
 }
 
-static int ext2_mount(bd_t* disk, dir_t* mp)
+int ext2_mount(bd_t* disk, dir_t* mp)
 {
   ssize_t error;
   ext2_superblock_t sb;
@@ -431,14 +453,6 @@ static int ext2_mount(bd_t* disk, dir_t* mp)
   mp->mounted_fs = fsdata->root;
   return SUCCESS;
 }
-
-static const fs_t ext2fs = {
-  .name = "ext2fs",
-  .probe = ext2_probe,
-  .mount = ext2_mount,
-  .read = ext2_read,
-  .mbr_id = 0x83
-};
 
 void ext2fs_load()
 {

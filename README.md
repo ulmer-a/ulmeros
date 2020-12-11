@@ -8,7 +8,7 @@ Building UlmerOS is rather easy. Make sure you've got your latest binutils and
 gcc installed from the repositories for the architecture you're building. You'll
 also need `cmake`.
 
-## Build instructions for amd6-pc platform
+## Build instructions for amd64-pc platform
 
 As for now, this is the only supported platform. First clone the repository into
 any directory on your machine. We're going to assume you cloned into `~/ulmeros`.
@@ -23,7 +23,9 @@ $ make
 After that you can copy the files to a hard drive, install grub and boot it. You
 can also start the OS in an emulator:
 
-`$ make qemu`
+```
+$ make qemu
+```
 
 # Overview
 

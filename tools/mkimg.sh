@@ -1,25 +1,16 @@
 #! /bin/bash
 
-if [ -z "$1" ]
-then
-	wd="."
-else
-	wd="$1"
-fi
-
-old_wd=$(pwd)
-cd $wd
+srcdir=$1
 
 # create some directories
-mkdir -p hddimg
-mkdir -p hddimg/rootfs
+mkdir -p img_rootfs
 
 # create the empty disk image (20MB)
-dd if=/dev/zero of=hddimg/disk.img bs=8192 count=2560
+dd if=/dev/zero of=disk.img bs=8192 count=2560
 
 # generate msdos partition table and
 # ext2 partition starting on sector 2048
-sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk hddimg/disk.img
+sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk disk.img
   o # clear the in memory partition table
   n # new partition
   p # primary partition
@@ -33,35 +24,33 @@ sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk hddimg/disk.img
 EOF
 
 # create loopback block devices
-sudo losetup /dev/loop98 hddimg/disk.img
-sudo losetup /dev/loop99 hddimg/disk.img -o 1048576
+sudo losetup /dev/loop98 disk.img
+sudo losetup /dev/loop99 disk.img -o 1048576
 
 # format ext2 filesystem
 sudo mkfs.ext2 /dev/loop99
-sudo mount /dev/loop99 hddimg/rootfs
+sudo mount /dev/loop99 img_rootfs
 
 # create directories and copy files to the image
-sudo mkdir -p hddimg/rootfs/boot
-sudo mkdir -p hddimg/rootfs/boot/grub
-sudo mkdir -p hddimg/rootfs/bin
-sudo mkdir -p hddimg/rootfs/dev
-sudo mkdir -p hddimg/rootfs/lib
+sudo mkdir -p img_rootfs/boot
+sudo mkdir -p img_rootfs/boot/grub
+sudo mkdir -p img_rootfs/bin
+sudo mkdir -p img_rootfs/dev
+sudo mkdir -p img_rootfs/lib
 
-sudo cp vmulmer hddimg/rootfs/boot/vmulmer
-sudo cp tools/grub.cfg hddimg/rootfs/boot/grub/grub.cfg
+sudo cp "vmulmer" img_rootfs/boot/vmulmer
+sudo cp "${srcdir}/tools/grub.cfg" img_rootfs/boot/grub/grub.cfg
 
-sudo grub-install --root-directory=hddimg/rootfs \
-    --boot-directory=hddimg/rootfs/boot \
+sudo grub-install --root-directory=img_rootfs \
+    --boot-directory=img_rootfs/boot \
     --no-floppy \
     --target=i386-pc \
     --modules="normal part_msdos ext2 multiboot" /dev/loop98
     
-ls -la hddimg/rootfs
-ls -la hddimg/rootfs/boot
-ls -la hddimg/rootfs/boot/grub
+ls -la img_rootfs
+ls -la img_rootfs/boot
+ls -la img_rootfs/boot/grub
 
-sudo umount hddimg/rootfs
+sudo umount img_rootfs
 sudo losetup -d /dev/loop99
 sudo losetup -d /dev/loop98
-
-cd $old_wd

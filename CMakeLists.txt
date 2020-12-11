@@ -39,3 +39,8 @@ add_subdirectory("drivers/${PLATFORM}")
 
 set(KERNEL_LDSCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/kernel/kernel.ld)
 target_link_options(kernel PUBLIC -T ${KERNEL_LDSCRIPT} ${ARCH_LDFLAGS_COMMON})
+
+add_custom_target(qemu
+    tools/qemu.sh ${PROJECT_BINARY_DIR}/disk.img
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)

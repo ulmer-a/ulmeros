@@ -3,7 +3,7 @@
 hddimg="$1"
 if [ -z "$hddimg" ]
 then
-	hddimg="hddimg/disk.img"
+	hddimg="disk.img"
 fi
 
 qemu-system-x86_64 \

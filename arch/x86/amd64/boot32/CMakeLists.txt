@@ -31,3 +31,9 @@ set(BOOT32_LDSCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/boot32.ld)
 target_link_options(boot32 PUBLIC -T ${BOOT32_LDSCRIPT} ${ARCH_LDFLAGS_COMMON} ${KERNEL_O})
 
 add_dependencies(boot32 kernelbin)
+
+add_custom_target(vmulmer ALL
+    cp boot32 ${PROJECT_BINARY_DIR}/vmulmer
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)
+add_dependencies(vmulmer boot32)

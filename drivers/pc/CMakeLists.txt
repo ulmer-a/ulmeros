@@ -16,3 +16,9 @@ target_include_directories(platform-pc PUBLIC
 target_compile_options(platform-pc PUBLIC
     ${ARCH_CFLAGS}
 )
+
+add_custom_target(diskimage ALL
+    ${PROJECT_SOURCE_DIR}/tools/mkimg.sh ${PROJECT_SOURCE_DIR}
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+)
+add_dependencies(diskimage vmulmer)

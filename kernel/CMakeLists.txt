@@ -6,10 +6,12 @@ file(GLOB_RECURSE KERNEL_HEADERS "*.h")
 add_library(kernel STATIC ${KERNEL_SOURCES} ${KERNEL_HEADERS})
 
 string(TIMESTAMP BUILD_DATE "%Y-%m-%d")
-configure_file(include/version.h version.h)
+configure_file(${PROJECT_SOURCE_DIR}/kernel/include/version.h.in
+    ${PROJECT_BINARY_DIR}/kernel/cmake_version.h
+)
 
 target_include_directories(kernel PUBLIC
-    "${PROJECT_BINARY_DIR}"
+    ${PROJECT_BINARY_DIR}/kernel
     "${PROJECT_SOURCE_DIR}/kernel/include"
     "${PROJECT_SOURCE_DIR}/kernel/libk/include"
     "${PROJECT_SOURCE_DIR}/arch/${ARCH}"

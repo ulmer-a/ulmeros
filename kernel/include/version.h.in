@@ -1,0 +1,8 @@
+#pragma once
+
+// This file will be processed by the build system before compilation.
+
+#define OS_NAME "Ulmer OS"
+#define OS_VERSION "v@UlmerOS_VERSION_MAJOR@.@UlmerOS_VERSION_MINOR@"
+#define OS_AUTHOR "Alexander Ulmer"
+#define OS_BUILD_DATE "@BUILD_DATE@"

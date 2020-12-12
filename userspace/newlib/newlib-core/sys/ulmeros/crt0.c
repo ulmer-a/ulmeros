@@ -1,7 +1,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 
-char **environ;
+extern char **environ;
 
 extern void exit(int status);
 extern int main (int argc, char** argv);

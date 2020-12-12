@@ -39,6 +39,7 @@ userspace/newlib/newlib-core/time
 userspace/newlib/newlib-core/unix
 userspace/newlib/newlib-core/xdr
 userspace/newlib
+<<<<<<< HEAD
 userspace/ulibc
 userspace/ulibc/libc-core
 userspace/ulibc/libc-sys/ulmeros
@@ -510,3 +511,5 @@ userspace/lib/libc-system/arch
 userspace/lib/libc-core/system
 userspace/lib/libc-system/system
 userspace/lib/libc-core/unix
+=======
+>>>>>>> make newlib compile with CMake

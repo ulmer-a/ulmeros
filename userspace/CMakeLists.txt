@@ -17,4 +17,4 @@ add_subdirectory(lib)
 add_subdirectory(progs)
 
 add_custom_target(userspace)
-add_dependencies(userspace libc-core progs)
+add_dependencies(userspace libc-core libc-system progs)

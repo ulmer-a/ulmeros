@@ -5,6 +5,9 @@ file(GLOB_RECURSE LIBC_CORE_HEADERS "*.h")
 
 add_library(libc-core ${LIBC_CORE_SOURCES} ${LIBC_CORE_HEADERS})
 
+add_dependencies(libc-core libc-system)
+target_link_libraries(libc-core libc-system)
+
 target_include_directories(libc-core PUBLIC
     ${USER_INCLUDES}
     ${CMAKE_CURRENT_SOURCE_DIR}/../libc-system/include

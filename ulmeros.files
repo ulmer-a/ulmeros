@@ -67,6 +67,7 @@ kernel/include/sched/loader.h
 kernel/include/sched/userstack.h
 kernel/include/stdarg.h
 kernel/include/syscall-ids.h
+kernel/include/syscall-no.h
 kernel/include/syscalls.h
 kernel/include/task.h
 kernel/include/types.h
@@ -129,6 +130,7 @@ userspace/lib/include/stdio.h
 userspace/lib/include/stdlib.h
 userspace/lib/include/stdnoreturn.h
 userspace/lib/include/string.h
+userspace/lib/include/sys/mman.h
 userspace/lib/include/sys/stat.h
 userspace/lib/include/sys/time.h
 userspace/lib/include/sys/times.h
@@ -332,6 +334,7 @@ userspace/lib/libc-core/time/localtime.c
 userspace/lib/libc-core/time/localtime_s.c
 userspace/lib/libc-core/time/mktime.c
 userspace/lib/libc-core/time/strftime.c
+userspace/lib/libc-core/unix/unistd.c
 userspace/lib/libc-system/CMakeLists.txt
 userspace/lib/libc-system/arch/amd64.ld
 userspace/lib/libc-system/example/Readme.txt
@@ -441,6 +444,11 @@ userspace/lib/libc-system/include/pdclib/_PDCLIB_config.h
 userspace/lib/libc-system/include/pdclib/_PDCLIB_defguard.h
 userspace/lib/libc-system/include/signal.h
 userspace/lib/libc-system/include/threads.h
+userspace/lib/libc-system/system/crt0.c
+userspace/lib/libc-system/system/file.c
+userspace/lib/libc-system/system/syscall.c
+userspace/lib/libc-system/system/syscall.h
+userspace/lib/libc-system/system/system.c
 userspace/progs/CMakeLists.txt
 userspace/progs/a.out
 userspace/progs/init.c

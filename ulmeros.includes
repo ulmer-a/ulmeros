@@ -507,3 +507,6 @@ userspace/lib/libc-system/include
 userspace/lib/libc-system/functions/signal
 userspace/lib/libc-system
 userspace/lib/libc-system/arch
+userspace/lib/libc-core/system
+userspace/lib/libc-system/system
+userspace/lib/libc-core/unix

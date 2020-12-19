@@ -1,14 +1,12 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(userspace LANGUAGES ASM C)
-
 set(ARCH amd64)
 
 set(USER_CFLAGS $<$<CONFIG:DEBUG>:-O0>  $<$<CONFIG:DEBUG>:-fvar-tracking>
     $<$<CONFIG:RELEASE>:-O2> -g -ffreestanding -nostdinc -fno-strict-aliasing
     -fno-builtin -fno-stack-protector)
 
-set(USER_LDFLAGS -nostdlib LINKER:--warn-common LINKER:-no-relax)
+set(USER_LDFLAGS -static -nostdlib LINKER:--warn-common LINKER:-no-relax)
 
 set(USER_INCLUDES
     "${CMAKE_CURRENT_SOURCE_DIR}/lib/include"

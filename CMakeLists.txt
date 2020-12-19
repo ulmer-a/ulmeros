@@ -39,6 +39,7 @@ add_subdirectory(kernel)
 add_subdirectory(${ARCH_TARGET})
 add_subdirectory("drivers/${PLATFORM}")
 add_subdirectory(userspace)
+add_dependencies(kernel userspace)
 
 set(KERNEL_LDSCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/kernel/kernel.ld)
 target_link_options(kernel PUBLIC -T ${KERNEL_LDSCRIPT} ${ARCH_LDFLAGS_COMMON})

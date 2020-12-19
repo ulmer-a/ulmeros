@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.14)
 
 file(GLOB_RECURSE SYS_HEADERS "*.h")
 file(GLOB_RECURSE SYS_SOURCES "*.c")
+file(GLOB_RECURSE SYS_ASM_SOURCES "*.S")
 
-add_library(libc-system ${SYS_SOURCES} ${SYS_HEADERS})
+add_library(libc-system ${SYS_SOURCES} ${SYS_HEADERS} ${SYS_ASM_SOURCES})
 
 target_include_directories(libc-system PUBLIC
     ${USER_INCLUDES}

@@ -13,7 +13,10 @@ extern "C" {
 #endif
 
 /* Implicity casting the parameter. */
-extern int pthread_mutex_unlock( mtx_t * );
+int pthread_mutex_unlock( mtx_t * mtx)
+{
+  return -1;
+}
 
 #ifdef __cplusplus
 }

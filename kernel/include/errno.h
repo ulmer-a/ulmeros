@@ -1,7 +1,5 @@
 #pragma once
 
-#include <sys/types.h>
-
 #define SUCCESS 0
 #define EPERM 1
 #define ENOENT 2

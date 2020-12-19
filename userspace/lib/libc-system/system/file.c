@@ -17,3 +17,8 @@ int close(int fd)
 {
   return (int)_sys_set_errno(_syscall(SYSNO_CLOSE, fd));
 }
+
+int unlink( const char * filename)
+{
+  return -1;
+}

@@ -29,6 +29,23 @@ $ make qemu
 
 # Overview
 
+## Programming on UlmerOS
+
+As of December 2020, the public domain C library (pdclibc) has been added to the project.
+That means, it is now possible to develop applications for the OS in C with a
+little bit more comfort than just on bare metal. Currently, the following features of the C standard
+library are supported:
+
+* stdio
+* stdlib
+* ctype
+* string
+* time
+* unistd (incomplete)
+
+However, due to PDClib not being a complete standard C library, this is not enough to port
+entire UNIX applications over. It will be necessary to port another C library (newlib?) in the future.
+
 ## Boot
 This is subject to change.
 

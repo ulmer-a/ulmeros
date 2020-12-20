@@ -8,6 +8,13 @@ the OS course at University of Technology in Graz, Austria (where we implemented
 multithreading, advanced memory management and page swapping almost from scratch),
 I eventually decided to do a full rewrite with the gained knowledge.
 
+Since then, many parts of the OS have greatly improved, such as the ATA hard disk driver
+that now uses DMA and the virtual memory management system with very stable copy-on-write
+support that I just need to move over to this repository.
+
+As a result of the reimplementation, I took down the old repository as it doesn't
+contain anything that anyone could learn from anymore.
+
 # Building Ulmer OS
 
 Building UlmerOS is rather easy. Make sure you've got your latest binutils and

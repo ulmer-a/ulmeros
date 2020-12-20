@@ -1,6 +1,12 @@
 # Ulmer OS
 
-UlmerOS is a general purpose portable unix-like educational operating system.
+UlmerOS is a general purpose portable unix-like educational operating system. Please
+note that this (incomplete) repository contains a rewrite of the original OS project
+started in 2017. The rewrite was necessary due to lots of synchronization issues and
+design flaws in the original code. After quite some years of experimenting and taking
+the OS course at University of Technology in Graz, Austria (where we implemented
+multithreading, advanced memory management and page swapping almost from scratch),
+I eventually decided to do a full rewrite with the gained knowledge.
 
 # Building Ulmer OS
 

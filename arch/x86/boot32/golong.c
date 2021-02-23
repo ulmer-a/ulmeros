@@ -1,15 +1,10 @@
-#include <bootinfo.h>
+
 #include "boot32.h"
 
-extern void jmp64(boot_info_t* bootInfo);
-extern void* setupPaging();
-extern void* setupGdt();
-
-uint64_t ramSize;
 
 void go_longmode()
 {
-    void* pml4Page = setupPaging();
+    /*void* pml4Page = setupPaging();
 
     // enable paging
     __asm__ volatile (
@@ -42,5 +37,5 @@ void go_longmode()
     bootInfo->mmap_length = mmap_len;
 
     // perform the jump to long mode
-    jmp64(bootInfo);
+    jmp64(bootInfo);*/
 }

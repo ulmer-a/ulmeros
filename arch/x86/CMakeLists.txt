@@ -1,21 +1,50 @@
 cmake_minimum_required(VERSION 3.10)
 
-file(GLOB X86_COMMON_SOURCES "*.c")
-file(GLOB X86_COMMON_HEADERS "*.h")
+# currently, target x86 will build a 64bit
+# kernel. i386 legacy mode is not supported
 
-add_library(x86_common STATIC ${X86_COMMON_SOURCES} ${X86_COMMON_HEADERS})
+# sources fot the boot32 boot stage
+file(GLOB X86_BOOT32_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/boot32/*.h")
+file(GLOB X86_BOOT32_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/boot32/*.c")
+file(GLOB X86_BOOT32_ASM_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/boot32/*.S")
 
-target_include_directories(x86_common PUBLIC
-    ${PROJECT_BINARY_DIR}/kernel
-    "${PROJECT_SOURCE_DIR}/arch/x86/include"
-    "${PROJECT_SOURCE_DIR}/kernel/include"
-    "${PROJECT_SOURCE_DIR}/kernel/libk/include"
+# sources for the 64bit kernel
+file(GLOB X86_COMMON_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/common/*.h")
+file(GLOB X86_COMMON_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/common/*.c")
+file(GLOB X86_64_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/amd64/*.h")
+file(GLOB X86_64_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/amd64/*.c")
+
+# ----------- x86 ARCH CODE  ---------------
+#[[
+add_library(arch STATIC
+    ${X86_COMMON_SOURCES}
+    ${X86_COMMON_HEADERS}
+    ${X86_64_HEADERS}
+    ${X86_64_SOURCES}
 )
 
-target_compile_options(x86_common PUBLIC
-    ${ARCH_CFLAGS}
+target_compile_options(arch PRIVATE
+    --target=${ARCH_PREFIX}
+)
+]]
+
+# ---------- x86 BOOT32 STAGE --------------
+add_executable(boot32
+    ${X86_BOOT32_SOURCES}
+    ${X86_BOOT32_HEADERS}
+    ${X86_BOOT32_ASM_SOURCES}
 )
 
-# process architecture flavour dependent code
-# (either i386 or amd64)
-add_subdirectory(${ARCH})
+target_link_libraries(boot32 util32)
+target_compile_options(boot32 PRIVATE
+    --target=${ARCH_PREFIX_32}
+)
+target_link_options(boot32 PRIVATE
+    -Wl,-T "${CMAKE_CURRENT_SOURCE_DIR}/boot32.ld"
+)
+
+set_target_properties(boot32
+    PROPERTIES
+    OUTPUT_NAME "vmulmer"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)

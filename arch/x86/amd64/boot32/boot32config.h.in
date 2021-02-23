@@ -1,8 +1,0 @@
-#pragma once
-
-// boot32 stage configuration. this will be processed
-// by cmake at build time.
-
-#define BOOT32_MESSAGE      "@BOOT32_WELCOME@"
-#define BOOT32_LOAD_ADDR    @BOOT32_LOAD_ADDR@
-#define BOOT32_IDMAP_SIZE   @BOOT32_IDMAP_SIZE@ 

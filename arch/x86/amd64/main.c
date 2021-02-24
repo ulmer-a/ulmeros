@@ -8,6 +8,8 @@
 
 #include <x86/bootinfo.h>
 
+extern void kmain();
+
 static void free_pages(size_t start, size_t n)
 {
   for (size_t page = start; page < start + n; page++)
@@ -42,4 +44,6 @@ void amd64_main(bootinfo_t* boot_info)
     old_heap_pages += 1;
   free_pages(boot_info->heap_addr >> PAGE_SHIFT, old_heap_pages);
   free_pages(boot_info->boot32_start_page, boot_info->boot32_page_count);*/
+
+  kmain();
 }

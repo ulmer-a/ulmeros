@@ -47,10 +47,11 @@ uint64_t create_mmap(multiboot_mmape_t* mmap, size_t length)
   return phys_ram_size;
 }
 
-void create_pagemap(uint64_t* addr)
+void create_pagemap(uint64_t* addr, uint64_t* total_pages_ptr)
 {
   const size_t total_pages = phys_ram_size >> PAGE_SHIFT;
   bitmap_init(&free_pages, total_pages, 0xff);
+  *total_pages_ptr = total_pages;
 
   debug("-- usable memory zones:\n");
   uint64_t total_memory = 0;
@@ -79,7 +80,7 @@ void create_pagemap(uint64_t* addr)
     total_memory += region->size;
   }
 
-  *addr = (uint64_t)&free_pages;
+  *addr = (uint64_t)free_pages.bitmap;
   debug("total usable memory: %lu MB\n", total_memory >> 20);
 }
 

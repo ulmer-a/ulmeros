@@ -50,7 +50,7 @@ static void id_map(size_t pml4_ppn, size_t pageCount)
   }
 }
 
-void paging_init(size_t idmapPages)
+size_t paging_init(size_t idmapPages)
 {
   alloc_page();
 
@@ -68,4 +68,6 @@ void paging_init(size_t idmapPages)
   debug("enable PAE, long mode, paging... ");
   enable_paging((void*)pml4_phys);
   debug("done\n");
+
+  return pml4_ppn;
 }

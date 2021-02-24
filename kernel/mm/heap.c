@@ -1,28 +1,38 @@
 #include <util/types.h>
+#include <util/mutex.h>
+#include <mm/memory.h>
+#include <mm/vspace.h>
+#include <arch/common.h>
+#include <debug.h>
 
-#include "boot32.h"
-
-typedef struct hblock
+typedef struct _hblock
 {
   unsigned available;
   unsigned magic;
-  struct hblock *prev;
-  struct hblock *next;
+  struct _hblock *prev;
+  struct _hblock *next;
+#ifdef DEBUG
+  const char* function;
+  unsigned int line;
+#endif
   size_t size;
 } __attribute__((packed)) hblock_t;
 
 #define HEAP_MAGIC  (0xabcdefabu)
-#define HEADER_SIZE (sizeof(struct hblock))
+#define HEADER_SIZE (sizeof(hblock_t))
 
-void* kheap_start_ = (void*)EARLY_HEAP_START;
-void* kheap_break_ = (void*)EARLY_HEAP_START;
+void* kheap_start_ = (void*)KHEAP_START;
+void* kheap_break_ = (void*)KHEAP_START;
 
-static struct hblock *heap_start = NULL;
-static struct hblock *heap_last = NULL;
+static hblock_t *heap_start = NULL;
+static hblock_t *heap_last = NULL;
+static mutex_t  kheap_mutex = MUTEX_INITIALIZER;
 
 void kheap_print()
 {
-  debug("-- heap dump:\n");
+  mutex_lock(&kheap_mutex);
+
+  debug(KHEAP, "-- heap dump:\n");
   hblock_t *entry;
   for (entry = heap_start; entry != NULL; entry = entry->next)
   {
@@ -32,11 +42,31 @@ void kheap_print()
 
     if (entry->available)
     {
-      debug("  @ %p: %zu bytes (free)\n");
+      debug(KHEAP, "  @ %p: %zu bytes (free)\n");
     }
     else
     {
-      debug("  @ %p: %zu bytes\n", entry + 1, entry->size);
+#ifdef DEBUG
+      debug(KHEAP, "  @ %p: %zu bytes (%s:%u)\n", entry + 1, entry->size,
+            entry->function, entry->line);
+#else
+      debug(KHEAP, "  @ %p: %zu bytes\n", entry + 1, entry->size);
+#endif
+    }
+  }
+
+  mutex_unlock(&kheap_mutex);
+}
+
+void kheap_check_corrupt()
+{
+  for (hblock_t* entry = kheap_start_;
+       entry != NULL;
+       entry = entry->next)
+  {
+    if (entry->magic != HEAP_MAGIC)
+    {
+      assert(false, "heap corruption detected!");
     }
   }
 }
@@ -45,10 +75,35 @@ static void* kbrk(ssize_t increment)
 {
   void *orig_brk = kheap_break_;
   kheap_break_ += increment;
+
+
+  if (orig_brk > kheap_break_)
+  {
+    size_t first_unmap = (size_t)kheap_break_ / PAGE_SIZE;
+    if ((size_t)kheap_break_ % PAGE_SIZE != 0)
+      first_unmap += 1;
+    size_t last_unmap = (size_t)orig_brk / PAGE_SIZE;
+
+    for (size_t page = first_unmap; page <= last_unmap; page++)
+      vspace_unmap(VSPACE_KERNEL, page);
+  }
+  else
+  {
+    size_t first_map = (size_t)orig_brk / PAGE_SIZE;
+    if ((size_t)orig_brk % PAGE_SIZE != 0)
+      first_map += 1;
+    size_t last_map = (size_t)kheap_break_ / PAGE_SIZE;
+
+    for (size_t page = first_map; page <= last_map; page++)
+    {
+      vspace_map(VSPACE_KERNEL, page, alloc_page(), PG_NOEXEC|PG_WRITE);
+    }
+  }
+
   return orig_brk;
 }
 
-static void crop(struct hblock *block, size_t new_size)
+static void crop(hblock_t *block, size_t new_size)
 {
   size_t excess_size = block->size - new_size;
   if (excess_size <= HEADER_SIZE) {
@@ -57,7 +112,7 @@ static void crop(struct hblock *block, size_t new_size)
   }
 
   // update current block
-  struct hblock *original_next = block->next;
+  hblock_t *original_next = block->next;
   block->size = new_size;
   block->next = (void*)block + new_size;
 
@@ -77,11 +132,19 @@ static void crop(struct hblock *block, size_t new_size)
   }
 }
 
-void *kmalloc(size_t size)
+#ifdef DEBUG
+void *_kmalloc(size_t size, unsigned line, const char* function)
+#else
+void *_kmalloc(size_t size)
+#endif
 {
-  //debug("kmalloc(): size=%zu\n", size);
+#ifdef DEBUG
+  debug("kmalloc(): size %zd from %s():%u\n", size, function, line);
+#endif
 
-  struct hblock *entry;
+  mutex_lock(&kheap_mutex);
+
+  hblock_t *entry;
   for (entry = heap_start; entry != NULL; entry = entry->next)
   {
     if (entry->magic != HEAP_MAGIC) {
@@ -93,13 +156,20 @@ void *kmalloc(size_t size)
     {
       entry->available = 0;
 
+#ifdef DEBUG
+      entry->function = function;
+      entry->line = line;
+#endif
+
       crop(entry, required_size);
+      mutex_unlock(&kheap_mutex);
       return entry + 1;
     }
   }
 
-  struct hblock *blk = kbrk(size + HEADER_SIZE);
+  hblock_t *blk = kbrk(size + HEADER_SIZE);
   if (blk == (void*)-1) {
+    mutex_unlock(&kheap_mutex);
     return NULL;
   }
 
@@ -109,6 +179,11 @@ void *kmalloc(size_t size)
   blk->prev = heap_last;
   blk->size = HEADER_SIZE + size;
 
+#ifdef DEBUG
+  blk->function = function;
+  blk->line = line;
+#endif
+
   if (heap_last != NULL)
     heap_last->next = blk;
   heap_last = blk;
@@ -116,10 +191,11 @@ void *kmalloc(size_t size)
   if (heap_start == NULL)
     heap_start = blk;
 
+  mutex_unlock(&kheap_mutex);
   return blk + 1;
 }
 
-static void merge_blocks(struct hblock *first, struct hblock *second)
+static void merge_blocks(hblock_t *first, hblock_t *second)
 {
   if (first->magic != HEAP_MAGIC || second->magic != HEAP_MAGIC) {
     assert(false, "kheap: heap corruption detected");
@@ -138,7 +214,7 @@ static void merge_blocks(struct hblock *first, struct hblock *second)
 
 void kfree(void *ptr)
 {
-  debug("kfree(): %p\n", ptr);
+  debug(KHEAP, "kfree(): %p\n", ptr);
   if (ptr == NULL) {
     return;
   }
@@ -148,7 +224,9 @@ void kfree(void *ptr)
     assert(false, "kheap: heap corruption detected");
   }
 
-  struct hblock *tofree = (struct hblock *)ptr - 1;
+  mutex_lock(&kheap_mutex);
+
+  hblock_t *tofree = (hblock_t *)ptr - 1;
   if (tofree->magic != HEAP_MAGIC || tofree->available) {
     assert(false, "kheap: heap corruption detected");
   }
@@ -179,4 +257,6 @@ void kfree(void *ptr)
     // decrease heap break
     kbrk(-decrement);
   }
+
+  mutex_unlock(&kheap_mutex);
 }

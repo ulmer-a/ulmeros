@@ -33,9 +33,10 @@ enable_paging:
     btsl $5, %eax
     mov %eax, %cr4
 
-    // enable long mode
+    // enable long mode & NX
     mov $0xc0000080, %ecx
     rdmsr
+    btsl $11, %eax
     btsl $8, %eax
     wrmsr
 

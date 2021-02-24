@@ -9,14 +9,15 @@
 #define PAGE_SIZE 4096
 #define PAGE_SHIFT 12
 
-#include "../include/bootinfo.h"
+#include "../include/x86/bootinfo.h"
 
 extern void halt_core();
 extern void gdt_init();
 extern void* gdt_long_init();
-extern void paging_init(size_t idmapPages);
+extern void print_heap();
+extern size_t paging_init(size_t idmapPages);
 extern uint64_t create_mmap(multiboot_mmape_t *mmap, size_t length);
-extern void create_pagemap(uint64_t *addr);
+extern void create_pagemap(uint64_t *addr, uint64_t *total_pages_ptr);
 
 extern size_t alloc_page();
 

@@ -13,27 +13,60 @@ file(GLOB X86_COMMON_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/common/*.h")
 file(GLOB X86_COMMON_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/common/*.c")
 file(GLOB X86_64_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/amd64/*.h")
 file(GLOB X86_64_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/amd64/*.c")
+file(GLOB X86_64_ASM_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/amd64/*.S")
 
 # ----------- x86 ARCH CODE  ---------------
-#[[
-add_library(arch STATIC
+add_executable(arch
     ${X86_COMMON_SOURCES}
     ${X86_COMMON_HEADERS}
     ${X86_64_HEADERS}
     ${X86_64_SOURCES}
+    ${X86_64_ASM_SOURCES}
+)
+
+target_link_libraries(arch util kernel)
+
+target_link_options(arch PRIVATE
+    -Wl,-T "${CMAKE_CURRENT_SOURCE_DIR}/kernel.ld"
 )
 
 target_compile_options(arch PRIVATE
-    --target=${ARCH_PREFIX}
+    --target=${ARCH_PREFIX} -fPIC
 )
-]]
+
+target_include_directories(arch PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+set_target_properties(arch
+    PROPERTIES
+    OUTPUT_NAME "kernel64.elf"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+target_include_directories(arch PRIVATE
+    ${UTIL_INCLUDE}
+    ${KERNEL_INCLUDE}
+)
+
 
 # ---------- x86 BOOT32 STAGE --------------
+
+add_custom_target(kernelbin
+    objcopy -O binary ${CMAKE_BINARY_DIR}/kernel64.elf kernel.bin
+    COMMAND objcopy -I binary -O elf32-i386 -B i386 kernel.bin kernel64.o
+    DEPENDS arch
+    BYPRODUCTS ${CMAKE_BINARY_DIR}/kernel64.o
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
 add_executable(boot32
     ${X86_BOOT32_SOURCES}
     ${X86_BOOT32_HEADERS}
     ${X86_BOOT32_ASM_SOURCES}
+    ${CMAKE_BINARY_DIR}/kernel64.o
 )
+add_dependencies(boot32 kernelbin)
 
 target_link_libraries(boot32 util32)
 target_compile_options(boot32 PRIVATE
@@ -48,3 +81,5 @@ set_target_properties(boot32
     OUTPUT_NAME "vmulmer"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
+
+

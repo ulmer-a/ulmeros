@@ -1,4 +1,4 @@
-#include <interrupt.h>
+/*#include <interrupt.h>
 #include <types.h>
 #include "ports.h"
 #include <arch/context.h>
@@ -169,3 +169,4 @@ void arch_irq_handler(arch_context_t* context)
     outb(0x20, 0x20);
   }
 }
+*/

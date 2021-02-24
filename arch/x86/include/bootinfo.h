@@ -1,18 +1,13 @@
 #pragma once
 
-typedef unsigned long long target_word_t;
+#include <util/types.h>
 
-struct boot_info_
+typedef struct
 {
-  target_word_t ramPages;
-  target_word_t heapStartPage;
-  target_word_t heapPageCount;
-  target_word_t gdtPage;
-  target_word_t kernelStartPage;
-  target_word_t kernelPageCount;
-  target_word_t pml4Page;
-  target_word_t mmap;
-  target_word_t mmap_length;
-};
-
-typedef struct boot_info_ boot_info_t;
+  uint64_t free_pages_ptr;
+  uint64_t gdt_addr;
+  uint64_t boot32_start_page;
+  uint64_t boot32_page_count;
+  uint64_t heap_addr;
+  uint64_t heap_size;
+} bootinfo_t;

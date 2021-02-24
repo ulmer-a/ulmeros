@@ -65,5 +65,7 @@ void paging_init(size_t idmapPages)
   *((uint64_t*)pml4_phys + 256) = *((uint64_t*)pml4_phys);
 
   /* finally, enable PAE, long mode and paging. */
+  debug("enable PAE, long mode, paging... ");
   enable_paging((void*)pml4_phys);
+  debug("done\n");
 }

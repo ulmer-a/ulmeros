@@ -12,7 +12,6 @@ set(CMAKE_C_COMPILER "clang")
 set(CMAKE_ASM_COMPILER "clang")
 
 
-
 # Default build type
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
     set(CMAKE_BUILD_TYPE "Debug")
@@ -34,8 +33,9 @@ add_compile_options(
 )
 
 add_link_options(
-    -nostdlib -Wl,-nmagic -Wl,-gc-sections
+    -nostdlib -Wl,-nmagic -Wl,-gc-sections -Wl,--build-id=none
 )
 
 add_subdirectory(libutil)
+add_subdirectory(kernel)
 add_subdirectory(arch/${ARCH})

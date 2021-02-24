@@ -1,7 +1,5 @@
 #include <debug.h>
-#include <types.h>
-#include "ports.h"
-#include <interrupt.h>
+#include <x86/ports.h>
 
 #define OSCILLATOR    1193182 // constant
 
@@ -13,20 +11,13 @@
 
 #define TIMER_IRQ   0
 
-extern void timer();
-
-static void call_timer(void* __attribute__((unused)) drv)
-{
-  timer();
-}
-
 void timer_reset(uint16_t freqHz)
 {
-  debug(KMAIN, "setting timer freq (%zdHz)\n", freqHz);
+  //debug("setting timer freq (%zdHz)\n", freqHz);
   uint16_t pit = OSCILLATOR / freqHz;
   outb(PIT_CMD, PIT_CMD_CH0 | PIT_ACCESS | PIT_RATEGEN);
   outb(PIT_CH0, pit & 0xff);
   outb(PIT_CH0, (pit >> 8) & 0xff);
 
-  irq_register(TIMER_IRQ, call_timer, NULL);
+  //irq_register(TIMER_IRQ, call_timer, NULL);
 }

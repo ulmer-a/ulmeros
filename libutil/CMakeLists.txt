@@ -6,11 +6,13 @@ file(GLOB UTIL_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/include/util/*.h")
 file(GLOB UTIL_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.c")
 
 add_library(util STATIC ${UTIL_HEADERS} ${UTIL_SOURCES})
-target_include_directories(util PUBLIC ${UTIL_INCLUDE})
-target_compile_definitions(util PRIVATE BOOT32)
+target_include_directories(util PUBLIC
+    ${UTIL_INCLUDE}
+    ${PROJECT_SOURCE_DIR}/kernel/include
+)
 
 target_compile_options(util PUBLIC
-    --target=${ARCH_PREFIX}
+    --target=${ARCH_PREFIX} -fPIC
 )
 
 # build the same target for use with

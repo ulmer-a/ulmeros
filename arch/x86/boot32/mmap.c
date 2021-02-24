@@ -47,7 +47,7 @@ uint64_t create_mmap(multiboot_mmape_t* mmap, size_t length)
   return phys_ram_size;
 }
 
-void create_pagemap()
+void create_pagemap(uint64_t* addr)
 {
   const size_t total_pages = phys_ram_size >> PAGE_SHIFT;
   bitmap_init(&free_pages, total_pages, 0xff);
@@ -79,6 +79,7 @@ void create_pagemap()
     total_memory += region->size;
   }
 
+  *addr = (uint64_t)&free_pages;
   debug("total usable memory: %lu MB\n", total_memory >> 20);
 }
 

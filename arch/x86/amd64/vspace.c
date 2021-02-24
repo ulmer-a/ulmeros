@@ -1,8 +1,9 @@
-#include <vspace.h>
-#include <types.h>
-#include <memory.h>
+/*#include <util/types.h>
+#include <util/mutex.h>
+#include <mm/vspace.h>
+#include <mm/memory.h>
 #include <arch/context.h>
-#include <mutex.h>
+#include <debug.h>
 
 #define IDENT_OFFSET 0xffff800000000000ul
 
@@ -36,8 +37,8 @@ vspace_t vspace_kernel_;
 
 static void enable_nx()
 {
-  /* this will enable support for the NX
-   * bit. TODO: check support in CPUID */
+   this will enable support for the NX
+   * bit. TODO: check support in CPUID
   __asm__ volatile (
     "mov $0xc0000080, %%rcx;"
     "rdmsr;"
@@ -255,3 +256,4 @@ size_t ctx_pf_error()
   return ctx_error(saved_context);
 }
 
+*/

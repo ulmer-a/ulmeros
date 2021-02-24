@@ -1,7 +1,7 @@
-#include <arch/debug.h>
-#include <ports.h>
+#include <x86/ports.h>
 
-void arch_print(char c)
+void printdbg(const char* str)
 {
-  outb(0xe9, c);
+  while (*str)
+    outb(0xe9, *str++);
 }

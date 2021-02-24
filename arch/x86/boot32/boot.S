@@ -34,7 +34,7 @@ halt_core:
     cli
     hlt
 
-.global jmp64
-jmp64:
+.global jmp_longmode
+jmp_longmode:
     mov 0x4(%esp), %edi
     ljmp $0x8, $0x1000000

@@ -8,19 +8,50 @@ static void clear_bss()
   memset(&_bss_start, 0, bss_length);
 }
 
+extern char _boot_start;
+extern char _boot_end;
+
+extern void* kheap_start_;
+extern void* kheap_break_;
+
+extern char* _binary_kernel_bin_start;
+extern char* _binary_kernel_bin_size;
+
 void boot32_main(multiboot_t* mb)
 {
   clear_bss();
 
+  /* setup a global descriptor table to avoid
+   * that GRUB's GDT is overwritten. */
   gdt_init();
 
+  /* perform a memory scan and setup a free page
+   * bitmap, this will make alloc_page() work. */
+  uint64_t bitmap_addr;
   uint64_t highest_addr = create_mmap(mb->mmap, mb->mmap_length);
+  create_pagemap(&bitmap_addr);
 
-  create_pagemap();
-
+  /* setup identity mapping and long mode paging */
   paging_init(highest_addr >> PAGE_SHIFT);
 
-  debug("virtual memory enabled\n");
+  /* setup a long mode GDT */
+  void* gdt_addr = gdt_long_init();
 
-  // jump to 64 bit space
+  bootinfo_t* boot_info = kmalloc(sizeof(bootinfo_t));
+  boot_info->free_pages_ptr = bitmap_addr;
+  boot_info->gdt_addr = (uint64_t)gdt_addr;
+  boot_info->boot32_start_page = (uint64_t)&_boot_start >> PAGE_SHIFT;
+  boot_info->boot32_page_count =
+      (((uint64_t)&_boot_end - (uint64_t)&_boot_start) >> PAGE_SHIFT) + 1;
+  boot_info->heap_addr = (uint64_t)kheap_start_;
+  boot_info->heap_size = (uint64_t)kheap_break_ - (uint64_t)kheap_start_;
+
+  const size_t kernel_size = (size_t)&_binary_kernel_bin_size;
+  debug("loading kernel64 binary (%uk)... ", kernel_size >> 10);
+  memcpy((void*)KERNEL_LOAD_ADDR,
+         &_binary_kernel_bin_start, kernel_size);
+  debug("done\n");
+
+  debug("entering 64bit long mode\n");
+  jmp_longmode(boot_info);
 }

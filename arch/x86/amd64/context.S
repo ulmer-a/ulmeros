@@ -25,7 +25,7 @@ save_context:
     call set_context
 
     mov %rsp, %rdi
-    call arch_irq_handler
+    call x86_irq_handler
 
 .global switch_task
 switch_task:

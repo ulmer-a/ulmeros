@@ -1,6 +1,4 @@
-#include <sched.h>
-#include <types.h>
-#include <arch.h>
+#include <util/types.h>
 
 size_t xchg(size_t val, size_t* mem)
 {

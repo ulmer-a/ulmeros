@@ -1,4 +1,5 @@
 .idea/
+ulmeros.*
 
 *.o
 *.bin

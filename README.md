@@ -1,6 +1,19 @@
 # Ulmer OS
 
-UlmerOS is a general purpose portable unix-like educational operating system.
+UlmerOS is a general purpose portable unix-like educational operating system. Please
+note that this (incomplete) repository contains a rewrite of the original OS project
+started in 2017. The rewrite was necessary due to lots of synchronization issues and
+design flaws in the original code. After quite some years of experimenting and taking
+the OS course at University of Technology in Graz, Austria (where we implemented
+multithreading, advanced memory management and page swapping almost from scratch),
+I eventually decided to do a full rewrite with the gained knowledge.
+
+Since then, many parts of the OS have greatly improved, such as the ATA hard disk driver
+that now uses DMA and the virtual memory management system with very stable copy-on-write
+support that I just need to move over to this repository.
+
+As a result of the reimplementation, I took down the old repository as it doesn't
+contain anything that anyone could learn from anymore.
 
 # Building Ulmer OS
 
@@ -28,6 +41,23 @@ $ make qemu
 ```
 
 # Overview
+
+## Programming on UlmerOS
+
+As of December 2020, the public domain C library (pdclibc) has been added to the project.
+That means, it is now possible to develop applications for the OS in C with a
+little bit more comfort than just on bare metal. Currently, the following features of the C standard
+library are supported:
+
+* stdio
+* stdlib
+* ctype
+* string
+* time
+* unistd (incomplete)
+
+However, due to PDClib not being a complete standard C library, this is not enough to port
+entire UNIX applications over. It will be necessary to port another C library (newlib?) in the future.
 
 ## Boot
 This is subject to change.

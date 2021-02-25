@@ -8,7 +8,7 @@
 
 #include <x86/bootinfo.h>
 
-extern void kmain();
+extern void kmain(const char* cmdline);
 
 void amd64_main(bootinfo_t* boot_info)
 {
@@ -26,6 +26,10 @@ void amd64_main(bootinfo_t* boot_info)
    * at this point. */
   vspace_setup(boot_info->pml4_ppn);
 
+  /* reload the kernel command line */
+  const char* cmdline = (const char*)boot_info->cmdline_ptr;
+  cmdline = strcpy(kmalloc(strlen(cmdline) + 1), cmdline);
+
   /* copy the page bitmap into the new heap */
   const size_t bitmap_size = BITMAP_BYTE_SIZE(boot_info->total_pages);
   void* new_bitmap = kmalloc(bitmap_size);
@@ -34,5 +38,5 @@ void amd64_main(bootinfo_t* boot_info)
 
   reload_gdt();
 
-  kmain();
+  kmain(cmdline);
 }

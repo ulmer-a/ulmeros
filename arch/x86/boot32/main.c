@@ -33,6 +33,22 @@ void boot32_main(multiboot_t* mb)
   uint64_t highest_addr = create_mmap(mb->mmap, mb->mmap_length);
   create_pagemap(&bitmap_addr, &total_pages);
 
+  /* get the kernel command line from GRUB */
+  uint64_t cmdline_ptr;
+  if (mb->flags & BIT(2))
+  {
+    size_t length = strlen((const char*)mb->cmdline);
+    char* cmdline = kmalloc(length + 1);
+    strcpy(cmdline, (const char*)mb->cmdline);
+    cmdline_ptr = (uint64_t)cmdline + IDENT_OFFSET;
+    debug("kernel cmdline: \"%s\"\n", cmdline);
+  }
+  else
+  {
+    cmdline_ptr = 0;
+  }
+
+
   const uint64_t boot_start_page = (uint64_t)&_boot_start >> PAGE_SHIFT;
   const uint64_t boot_page_count =
       (((uint64_t)&_boot_end - (uint64_t)&_boot_start) >> PAGE_SHIFT) + 1;
@@ -85,6 +101,7 @@ void boot32_main(multiboot_t* mb)
   boot_info->heap_addr = (uint64_t)kheap_start_ + IDENT_OFFSET;
   boot_info->heap_size = (uint64_t)kheap_break_ - (uint64_t)kheap_start_;
   boot_info->pml4_ppn = pml4;
+  boot_info->cmdline_ptr = cmdline_ptr;
 
   debug("entering 64bit long mode\n");
   jmp_longmode(boot_info + IDENT_OFFSET);

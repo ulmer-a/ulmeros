@@ -20,4 +20,5 @@ typedef struct
   uint32_t heap_size;
   uint32_t kernel_size;
   uint64_t pml4_ppn;
+  uint64_t cmdline_ptr;
 } bootinfo_t;

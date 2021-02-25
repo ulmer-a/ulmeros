@@ -60,7 +60,19 @@ However, due to PDClib not being a complete standard C library, this is not enou
 entire UNIX applications over. It will be necessary to port another C library (newlib?) in the future.
 
 ## Boot
-This is subject to change.
+
+### Booting on x86-PC
+
+Booting on x86\_64 architecture is realized with an additional 32bit boot stage that
+is loaded by GRUB using the _Multiboot_ specification. The `boot32` stage does some
+basic initialization like setting up a GDT and scanning the multiboot memory map to
+setup a free-page bitmap that is passed on to the 64-bit kernel after setting up a mapping
+of the entire RAM at address `0xffff800000000000` (which is also duplicated at `0x0`). The
+64-bit kernel is loaded and control is transferred to it via a far jump to the kernel
+load address at `0x01000000`. A small assembly routine will then perform a jump to
+the final kernel address at `0xffff800001000000`. From there on, the x86 architecture init
+code will reload the GDT and cleanup any artefacts left by the boot32 stage. After the
+kernel is running stable and the processor is initialized, control is finally handed to `kmain()`.
 
 ## Virtual memory
 The `vspace_t` type represents a virtual address space in UlmerOS. The generic

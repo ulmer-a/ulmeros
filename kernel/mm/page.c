@@ -16,6 +16,7 @@ void setup_page_bitmap(void* bitmap_addr, size_t size)
 size_t alloc_page()
 {
   size_t ppn = bitmap_find_free(&free_pages);
+  assert(ppn != (size_t)-1, "alloc_page() out of memory");
   bitmap_set(&free_pages, ppn);
   memset(ppn_to_virt(ppn), 0, PAGE_SIZE);
   return ppn;

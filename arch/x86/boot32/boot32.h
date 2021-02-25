@@ -1,6 +1,8 @@
 #pragma once
 
+
 #include <util/types.h>
+#include <util/bitmap.h>
 #include "multiboot.h"
 
 #define EARLY_HEAP_START  0x02000000
@@ -11,6 +13,9 @@
 
 #include "../include/x86/bootinfo.h"
 
+extern void* kheap_start_;
+extern void* kheap_break_;
+
 extern void halt_core();
 extern void gdt_init();
 extern void* gdt_long_init();
@@ -20,6 +25,7 @@ extern uint64_t create_mmap(multiboot_mmape_t *mmap, size_t length);
 extern void create_pagemap(uint64_t *addr, uint64_t *total_pages_ptr);
 
 extern size_t alloc_page();
+extern bitmap_t free_pages;
 
 extern void gdt_write(void* addr);
 extern void tss_write();

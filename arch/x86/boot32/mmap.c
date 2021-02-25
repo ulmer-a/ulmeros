@@ -17,7 +17,7 @@ typedef struct
 } region_t;
 
 static uint64_t phys_ram_size = 0;
-static bitmap_t free_pages;
+bitmap_t free_pages;
 
 uint64_t create_mmap(multiboot_mmape_t* mmap, size_t length)
 {
@@ -69,9 +69,7 @@ void create_pagemap(uint64_t* addr, uint64_t* total_pages_ptr)
       start_page += 1;
 
     const uint64_t end_addr = region->addr + region->size;
-    size_t end_page = end_addr >> PAGE_SHIFT;
-    if (end_addr % PAGE_SIZE == 0)
-      end_page -= 1;
+    size_t end_page = (end_addr >> PAGE_SHIFT) - 1;
 
     debug("mmap: %q: size=%lu KB\n", region->addr, region->size >> 10);
     for (size_t page = start_page; page <= end_page; page++)

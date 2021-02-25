@@ -1,4 +1,6 @@
-#include "boot32.h"
+#include <util/types.h>
+#include <mm/memory.h>
+#include <debug.h>
 
 #define PRESENT     BIT(15)             // selector is present
 #define OPSIZE_32   BIT(22)             // default operand size 32bit
@@ -48,7 +50,7 @@ static void setup_entry(struct gdt_page_struct* gdt, int id,
   *((uint32_t*)&(gdt->gdt[id].base_middle)) |= flags;
 }
 
-void* gdt_long_init(void)
+void reload_gdt()
 {
   struct gdt_page_struct* gdt = kmalloc(sizeof(struct gdt_page_struct));
 
@@ -62,8 +64,14 @@ void* gdt_long_init(void)
   setup_entry(gdt, 3, 0, 0xf0000, PRESENT | GRAN_4K | LONGMODE | ACC_EXC_RD | CODESEG | DPL_USER);  // ucode
   setup_entry(gdt, 4, 0, 0xf0000, PRESENT | GRAN_4K | LONGMODE | ACC_EXC_RD | DATASEG | DPL_USER);  // udata
 
-  debug("setting up long mode GDT... ");
+  debug(INIT, "reloading GDT... ");
   __asm__ volatile("lgdt %0" : : "g"(gdt->descriptor));
-  debug("done\n");
-  return gdt->gdt;
+  debug(INIT, "done\n");
+
+  /* verify the GDT by loading a segment selector*/
+  __asm__ volatile(
+    "mov $0x10, %ax;"
+    "mov %ax, %ds;"
+    "mov %ax, %ss;"
+  );
 }

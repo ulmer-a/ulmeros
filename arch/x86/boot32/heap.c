@@ -45,6 +45,15 @@ static void* kbrk(ssize_t increment)
 {
   void *orig_brk = kheap_break_;
   kheap_break_ += increment;
+
+  if (free_pages.bitmap)
+  {
+    size_t orig_brk_page = (uint64_t)orig_brk >> PAGE_SHIFT;
+    size_t new_brk_page = ((uint64_t)kheap_break_ >> PAGE_SHIFT) + 1;
+    for (size_t page = orig_brk_page; page <= new_brk_page; page++)
+      bitmap_set(&free_pages, page);
+  }
+
   return orig_brk;
 }
 

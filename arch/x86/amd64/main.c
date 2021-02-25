@@ -10,12 +10,6 @@
 
 extern void kmain();
 
-static void free_pages(size_t start, size_t n)
-{
-  for (size_t page = start; page < start + n; page++)
-    free_page(page);
-}
-
 void amd64_main(bootinfo_t* boot_info)
 {
   debug(INIT, "welcome to 64bit long mode!\n");
@@ -38,12 +32,7 @@ void amd64_main(bootinfo_t* boot_info)
   memcpy(new_bitmap, (void*)boot_info->free_pages_ptr, bitmap_size);
   setup_page_bitmap(new_bitmap, boot_info->total_pages);
 
-  /* release boot32 resources */
-  /*size_t old_heap_pages = boot_info->heap_size >> PAGE_SHIFT;
-  if (boot_info->heap_size % PAGE_SIZE != 0)
-    old_heap_pages += 1;
-  free_pages(boot_info->heap_addr >> PAGE_SHIFT, old_heap_pages);
-  free_pages(boot_info->boot32_start_page, boot_info->boot32_page_count);*/
+  reload_gdt();
 
   kmain();
 }

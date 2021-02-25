@@ -23,10 +23,13 @@ extern void debug(int level, const char* fmt, ...);
 extern void panic();
 
 #ifdef DEBUG
-#define assert(x, msg) if (!(x)) { \
-  debug(ASSERT, "assert failed in " __func__ ":" \
-    __LINE__ " (" __FILE__ ")\nerror: %s\n", msg); \
-  panic(); }
+#define assert(x, msg) if (!(x)) {                          \
+  debug(ASSERT, "\n\n"                                      \
+                "assert failed in %s() line %u (%s)\n"      \
+                "error: %s\n",                              \
+    __func__, __LINE__, __FILE__, msg);                     \
+  panic();                                                  \
+  }
 #else
 #define assert(x, msg)
 #endif

@@ -1,7 +1,7 @@
-/*#include <interrupt.h>
-#include <types.h>
-#include "ports.h"
+#include <util/types.h>
 #include <arch/context.h>
+#include <x86/ports.h>
+#include <debug.h>
 
 #define IDT_PRESENT     BIT(7)
 #define IDT_USER        (BIT(5)|BIT(6))
@@ -50,15 +50,15 @@ static void setup_pic()
 
 static void install_descriptor(unsigned id, void *handler, unsigned char flags, uint8_t stack)
 {
-    unsigned long target_addr = (unsigned long)handler;
+  unsigned long target_addr = (unsigned long)handler;
 
-    irq_descriptor_t *irqd = g_idt + id;
-    irqd->target0 = target_addr & 0xffff;
-    irqd->target1 = (target_addr >> 16) & 0xffff;
-    irqd->target2 = (target_addr >> 32);
-    irqd->target_selector = 0x08;
-    irqd->flags = flags;
-    irqd->ist = stack;
+  irq_descriptor_t *irqd = g_idt + id;
+  irqd->target0 = target_addr & 0xffff;
+  irqd->target1 = (target_addr >> 16) & 0xffff;
+  irqd->target2 = (target_addr >> 32);
+  irqd->target_selector = 0x08;
+  irqd->flags = flags;
+  irqd->ist = stack;
 }
 
 // irq handler addresses
@@ -138,35 +138,12 @@ static void setup_idt()
   __asm__ volatile ("lidt %0;" : : "g"(idtSelector));
 }
 
-void arch_irq_init()
+void x86_irq_init()
 {
-
   setup_pic();
   setup_idt();
 
   debug(IRQ, "enabling interrupts\n");
-  sti();
+
+  preempt_enable();
 }
-
-
-extern void interrupt(size_t irq);
-extern void exception(size_t exc);
-
-void arch_irq_handler(arch_context_t* context)
-{
-  size_t irq = ctx_irq(context);
-  if (irq < 32)
-  {
-    sti();
-    exception(irq);
-    cli();
-  }
-  else
-  {
-    interrupt(irq - 32);
-    if (irq >= 40)
-      outb(0xa0, 0x20);
-    outb(0x20, 0x20);
-  }
-}
-*/

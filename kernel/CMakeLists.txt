@@ -6,7 +6,7 @@ file(GLOB_RECURSE KERNEL_HEADERS "*.h")
 add_library(kernel ${KERNEL_SOURCES} ${KERNEL_HEADERS})
 
 target_compile_options(kernel PRIVATE
-    --target=${ARCH_PREFIX} -fPIC
+    --target=${ARCH_PREFIX} -fPIC -mno-red-zone
 )
 
 target_include_directories(kernel PRIVATE

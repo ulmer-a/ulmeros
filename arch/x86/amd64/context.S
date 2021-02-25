@@ -19,19 +19,8 @@ save_context:
     push %r14
     push %r15
 
-    // set the pointer to the context in
-    // the thread structure
-    mov %rsp, %rdi
-    call set_context
-
     mov %rsp, %rdi
     call x86_irq_handler
-
-.global switch_task
-switch_task:
-    // get the next thread's context
-    // and pop it into the registers
-    call get_context
     mov %rax, %rsp
 
     pop %r15

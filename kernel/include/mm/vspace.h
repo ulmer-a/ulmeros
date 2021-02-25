@@ -31,6 +31,9 @@ void vspace_init(vspace_t* vspace);
  * address space. */
 vspace_t* vspace_create();
 
+/* switch to the specified virtual address space. */
+void vspace_apply(vspace_t* vspace);
+
 /* map a single page into the specified virtual
  * address space. additional flags can be specified
  * to control read/write, user/supervisor and exec/noexec

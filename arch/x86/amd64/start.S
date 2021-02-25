@@ -44,3 +44,13 @@ _start64:
 halt_core:
     cli
     hlt
+
+.global preempt_disable
+preempt_disable:
+    cli
+    ret
+
+.global preempt_enable
+preempt_enable:
+    sti
+    ret

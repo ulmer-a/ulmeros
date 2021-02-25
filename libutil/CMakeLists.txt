@@ -12,7 +12,7 @@ target_include_directories(util PUBLIC
 )
 
 target_compile_options(util PUBLIC
-    --target=${ARCH_PREFIX} -fPIC
+    --target=${ARCH_PREFIX} -fPIC -mno-red-zone
 )
 
 # build the same target for use with

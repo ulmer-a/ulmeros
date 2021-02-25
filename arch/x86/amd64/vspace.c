@@ -196,3 +196,9 @@ void vspace_unmap(vspace_t *vspace, size_t virt)
     free_page(vaddr.page_ppn);
   }
 }
+
+void vspace_apply(vspace_t *vspace)
+{
+  void* phys_addr = (void*)(vspace->pml4_ppn << PAGE_SHIFT);
+  __asm __volatile__ ("mov %0, %%cr3;" : : "r"(phys_addr));
+}

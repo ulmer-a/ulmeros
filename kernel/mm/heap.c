@@ -139,7 +139,7 @@ void *_kmalloc(size_t size)
 #endif
 {
 #ifdef DEBUG
-  debug("kmalloc(): size %zd from %s():%u\n", size, function, line);
+  debug(KHEAP, "kmalloc(): size %zd from %s():%u\n", size, function, line);
 #endif
 
   mutex_lock(&kheap_mutex);

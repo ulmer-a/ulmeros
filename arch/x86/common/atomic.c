@@ -19,7 +19,7 @@ size_t atomic_add(size_t* mem, ssize_t increment)
   return increment;
 }
 
-void arch_idle()
+void idle()
 {
   __asm__ volatile ("hlt");
 }

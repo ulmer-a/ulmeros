@@ -3,7 +3,6 @@
 #include <util/bitmap.h>
 #include <util/string.h>
 #include <debug.h>
-#include <init.h>
 
 static bitmap_t free_pages;
 

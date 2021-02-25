@@ -31,7 +31,7 @@ target_link_options(arch PRIVATE
 )
 
 target_compile_options(arch PRIVATE
-    --target=${ARCH_PREFIX} -fPIC
+    --target=${ARCH_PREFIX} -fPIC -mno-red-zone
 )
 
 target_include_directories(arch PRIVATE

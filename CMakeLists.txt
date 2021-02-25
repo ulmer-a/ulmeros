@@ -24,6 +24,7 @@ if(NOT DEFINED ARCH)
     set(ARCH_PREFIX_32 "i386-elf")
 endif(NOT DEFINED ARCH)
 
+add_compile_definitions($<$<CONFIG:DEBUG>:DEBUG>)
 
 add_compile_options(
     $<$<CONFIG:DEBUG>:-O0>

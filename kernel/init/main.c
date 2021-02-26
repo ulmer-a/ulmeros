@@ -3,23 +3,13 @@
 #include <sched/sched.h>
 #include <sched/task.h>
 #include <sched/proc.h>
-#include <sched/tasklist.h>
 #include <arch/common.h>
-
-static void idle_task_func()
-{
-  for (;;)
-  {
-    debug(INIT, "welcome from the idle thread\n");
-    idle();
-  }
-}
 
 static void init_task_func()
 {
-  debug(INIT, "Welcome from the init kernel task\n");
+  debug(INIT, "welcome from the startup kernel task\n");
 
-  // 1. Delete old stack
+  // TODO: cleanup the initialization stack
 
   /* obtain the name of the init program to
    * run as PID 1, which is passed on the kernel
@@ -45,14 +35,14 @@ void kmain(const char *cmdline)
   debug(INIT, "reached kmain()\n");
   cmdline_parse(cmdline);
 
-  /* initialize the scheduler's data structures. */
+  /* initialize the scheduler's data structures as well
+   * as the task list used to keep track of all running
+   * tasks. terminated tasks are periodically removed
+   * from the list by the tl cleanup kernel task. */
   sched_init();
 
-  tl_setup();
-
-  task_t* idle_task = create_kernel_task(idle_task_func);
-  sched_insert(idle_task);
-
+  /* crate the init kernel task, which performs further
+   * initialization of the kernel. */
   task_t* init_task = create_kernel_task(init_task_func);
   sched_insert(init_task);
 

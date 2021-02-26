@@ -1,4 +1,5 @@
 #include <sched/sched.h>
+#include <sched/tasklist.h>
 #include <arch/context.h>
 #include <sched/task.h>
 #include <util/list.h>
@@ -10,6 +11,14 @@ static list_t sched_tasks;
 static int sched_enabled = false;
 task_t* current_task = NULL;
 
+static void idle_task_func()
+{
+  for (;;)
+  {
+    idle();
+  }
+}
+
 void sched_init()
 {
   debug(SCHED, "setting up scheduler\n");
@@ -18,6 +27,17 @@ void sched_init()
   list_init(&sched_tasks);
 
   sched_enabled = false;
+
+  /* setup the task list, which acts as a task garbage
+   * collector. this must happen before any tasks are
+   * created. */
+  tl_setup();
+
+  /* install the idle task. this task will halt the
+   * cpu until an interrupt or exception fires over
+   * and over again. */
+  task_t* idle_task = create_kernel_task(idle_task_func);
+  sched_insert(idle_task);
 }
 
 static task_t* get_next_task()

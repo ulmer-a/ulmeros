@@ -16,5 +16,3 @@ void context_set_ret(context_t* ctx, size_t ret);
 
 context_t *context_init(void* kstack_ptr, void* entry_addr, void* stack_ptr,
                         int user, size_t arg0, size_t arg1);
-
-extern context_t* current_context;

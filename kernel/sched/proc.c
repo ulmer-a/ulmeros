@@ -34,5 +34,5 @@ void proc_start(const char *filename)
    * the scheduler. */
   task_t* main_thread = create_user_task(proc->vspace, entry_addr, stack_ptr);
   list_add(&proc->task_list, main_thread);
-  sched_insert(main_thread);
+  //sched_insert(main_thread);
 }

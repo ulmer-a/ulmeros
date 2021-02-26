@@ -49,11 +49,21 @@ context_t* schedule(context_t* ctx)
 
   if (current_task != next_task)
   {
+    if (current_task)
+    {
+      current_task->context = ctx;
+
+      if (current_task->state == TASK_KILLED)
+      {
+        /* if the task was killed, remove it from the
+         * scheduler to cleanup the scheduler task list */
+        list_it_remove(&sched_tasks, list_find(&sched_tasks, current_task));
+      }
+    }
+
     /* update the context (registers and state)
      * that will be loaded when performing a
      * context switch. */
-    if (current_task)
-      current_task->context = ctx;
     ctx = next_task->context;
 
     /* if different, switch the virtual address

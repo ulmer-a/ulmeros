@@ -6,7 +6,8 @@
 typedef enum
 {
   TASK_RUNNING,
-  TASK_SLEEPING
+  TASK_SLEEPING,
+  TASK_KILLED
 } task_state_t;
 
 typedef struct _task_struct
@@ -25,5 +26,8 @@ extern task_t* current_task;
 
 task_t* create_kernel_task(void (*func)(void));
 task_t* create_user_task(vspace_t* vspace, void* entry, void* stack_ptr);
+
+/* kill the current_task */
+void task_kill();
 
 int task_schedulable(task_t* task);

@@ -24,6 +24,9 @@ void* phys_to_virt(void* phys_addr);
  * corresponding page frame number. */
 void* ppn_to_virt(size_t ppn);
 
+/* resolve a virtual address to a physical one */
+size_t virt_to_ppn(vspace_t *vspace, void* virt_addr);
+
 /* initialize a new virtual address space. */
 void vspace_init(vspace_t* vspace);
 

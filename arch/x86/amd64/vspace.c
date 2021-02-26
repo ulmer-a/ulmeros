@@ -224,3 +224,17 @@ void vspace_apply(vspace_t *vspace)
   void* phys_addr = (void*)(vspace->pml4_ppn << PAGE_SHIFT);
   __asm __volatile__ ("mov %0, %%cr3;" : : "r"(phys_addr));
 }
+
+void* virt_to_phys(vspace_t* vspace, void *virt_addr)
+{
+  size_t ppn = virt_to_ppn(vspace, virt_addr);
+  return (void*)(ppn << PAGE_SHIFT);
+}
+
+size_t virt_to_ppn(vspace_t* vspace, void *virt_addr)
+{
+  vaddr_t vaddr;
+  size_t virt = (size_t)virt_addr >> PAGE_SHIFT;
+  resolve_mapping(vspace, virt, &vaddr);
+  return vaddr.page_ppn;
+}

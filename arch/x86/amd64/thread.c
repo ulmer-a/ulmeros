@@ -37,3 +37,13 @@ context_t* context_init(void* kstack_ptr, void* entry_addr, void* stack_ptr,
   ctx->rflags = BIT(9);
   return ctx;
 }
+
+void context_set_pc(context_t* ctx, size_t pc)
+{
+  ctx->rip = pc;
+}
+
+void context_set_ret(context_t* ctx, size_t ret)
+{
+  ctx->rax = ret;
+}

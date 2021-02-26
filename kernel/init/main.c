@@ -3,6 +3,7 @@
 #include <sched/sched.h>
 #include <sched/task.h>
 #include <sched/proc.h>
+#include <sched/tasklist.h>
 #include <arch/common.h>
 
 static void idle_task_func()
@@ -46,6 +47,8 @@ void kmain(const char *cmdline)
 
   /* initialize the scheduler's data structures. */
   sched_init();
+
+  tl_setup();
 
   task_t* idle_task = create_kernel_task(idle_task_func);
   sched_insert(idle_task);

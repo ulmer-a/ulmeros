@@ -18,6 +18,8 @@
 #define PCIBUS      11  | OUTPUT_ENABLED
 #define BLKDEV      12  | OUTPUT_ENABLED
 #define LOADER      13  | OUTPUT_ENABLED
+#define TASK        14  | OUTPUT_ENABLED
+#define TASKLIST    15  | OUTPUT_ENABLED
 
 extern void debug(int level, const char* fmt, ...);
 extern void panic();

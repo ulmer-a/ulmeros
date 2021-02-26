@@ -1,5 +1,6 @@
 #include <mm/vspace.h>
 #include <mm/memory.h>
+#include <util/string.h>
 #include <debug.h>
 
 #define IDENT_OFFSET 0xffff800000000000ul
@@ -56,6 +57,27 @@ void vspace_setup(size_t pml4_ppn)
   assert(sizeof(gpte_t) == 8, "gpte_t is not of size 64bit");
   debug(INIT, "PML4 uses page frame %zu\n", pml4_ppn);
   _vspace_kernel.pml4_ppn = pml4_ppn;
+}
+
+static void vspace_update_kernel_mapping(vspace_t* vspace)
+{
+  assert(vspace != VSPACE_KERNEL,
+         "update_kernel_mapping(): VSPACE_KERNEL given");
+
+  /* to refresh the kernel mappings in a given address
+   * space by copying the upper half of the PML4 of the
+   * kernel into the target address space. */
+  memcpy(ppn_to_virt(vspace->pml4_ppn) + PAGE_SIZE/2,
+         ppn_to_virt(_vspace_kernel.pml4_ppn) + PAGE_SIZE/2,
+         PAGE_SIZE/2);
+}
+
+vspace_t* vspace_create()
+{
+  vspace_t* vspace = kmalloc(sizeof(vspace_t));
+  vspace->pml4_ppn = alloc_page();
+  vspace_update_kernel_mapping(vspace);
+  return vspace;
 }
 
 void* phys_to_virt(void* phys_addr)

@@ -99,18 +99,7 @@ void list_remove(list_t* list, size_t index)
   assert(list, "list is null");
 
   list_item_t* item = list_get_index(list, index);
-
-  if (item->prev)
-    item->prev->next = item->next;
-  if (item->next)
-    item->next->prev = item->prev;
-  if (list->first == item)
-    list->first = item->next;
-  if (list->last == item)
-    list->last = item->prev;
-  list->items--;
-
-  kfree(item);
+  list_it_remove(list, item);
 }
 
 void* list_get(list_t* list, size_t index)
@@ -159,4 +148,37 @@ list_item_t *list_it_next(list_item_t *it)
 list_item_t *list_it_front(list_t *list)
 {
   return list->first;
+}
+
+void list_it_remove(list_t* list, list_item_t *item)
+{
+  assert(list, "list is null");
+  assert(item, "list iterator is null");
+
+  if (item->prev)
+    item->prev->next = item->next;
+  if (item->next)
+    item->next->prev = item->prev;
+  if (list->first == item)
+    list->first = item->next;
+  if (list->last == item)
+    list->last = item->prev;
+  list->items--;
+
+  kfree(item);
+}
+
+list_item_t *list_find(list_t *list, void *item)
+{
+  assert(list, "list is null");
+
+  for (list_item_t* it = list->first;
+       it != NULL;
+       it = it->next)
+  {
+    if (it->payload == item)
+      return it;
+  }
+
+  return NULL;
 }

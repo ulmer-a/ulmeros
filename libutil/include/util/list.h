@@ -18,6 +18,7 @@ list_item_t* list_it_front(list_t* list);
 list_item_t* list_it_back(list_t* list);
 list_item_t* list_it_next(list_item_t* it);
 list_item_t* list_it_prev(list_item_t* it);
+void list_it_remove(list_t *list, list_item_t* it);
 void* list_it_get(list_item_t* it);
 
 #define LIST_IT_END NULL
@@ -27,6 +28,8 @@ void list_init(list_t* list);
 int list_is_valid(list_t* list);
 
 void list_destroy(list_t* list);
+
+list_item_t* list_find(list_t* list, void* item);
 
 size_t list_add(list_t* list, void* payload);
 

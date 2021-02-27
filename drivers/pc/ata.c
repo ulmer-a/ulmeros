@@ -126,12 +126,12 @@ static list_t controller_list;
 static mutex_t controller_list_lock;
 static size_t ata_major;
 
-static ssize_t ata_read(size_t minor, char* buffer, size_t count, size_t lba)
+static ssize_t ata_read(void* drv, char* buffer, size_t count, size_t lba)
 {
   return -ENOSYS;
 }
 
-static ssize_t ata_write(size_t major, char* buffer, size_t count, size_t lba)
+static ssize_t ata_write(void* drv, char* buffer, size_t count, size_t lba)
 {
   return -ENOSYS;
 }

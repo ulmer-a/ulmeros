@@ -6,7 +6,13 @@
 #include <arch/common.h>
 #include <arch/platform.h>
 #include <fs/vfs.h>
+#include <fs/ramdisk.h>
 #include <fs/blockdev.h>
+
+static void* s_initrd;
+static size_t s_initrd_size;
+
+extern void initrd_init(void* initrd, size_t initrd_size);
 
 static void init_task_func()
 {
@@ -16,6 +22,10 @@ static void init_task_func()
 
   /* initialize the block device manager */
   blockdev_init();
+
+  /* initialize ramdisk block device */
+  ramdisk_init();
+  ramdisk_install(s_initrd, s_initrd_size);
 
   /* initialize the platform's device drivers. */
   platform_init_drivers();
@@ -47,7 +57,8 @@ void kmain(const char *cmdline, void *initrd, size_t initrd_size)
 
   debug(INIT, "reached kmain()\n");
   cmdline_parse(cmdline);
-  (void)initrd; (void)initrd_size;
+  s_initrd = initrd;
+  s_initrd_size = initrd_size;
 
   /* initialize the scheduler's data structures as well
    * as the task list used to keep track of all running

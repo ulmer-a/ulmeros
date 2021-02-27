@@ -20,6 +20,7 @@ message(STATUS "ulmeros: building ${CMAKE_BUILD_TYPE} configuration")
 
 if(NOT DEFINED ARCH)
     set(ARCH "x86")
+    set(PLATFORM "pc")
     set(ARCH_PREFIX "x86_64-elf")
     set(ARCH_PREFIX_32 "i386-elf")
 endif(NOT DEFINED ARCH)
@@ -39,4 +40,5 @@ add_link_options(
 
 add_subdirectory(libutil)
 add_subdirectory(kernel)
+add_subdirectory(drivers/${PLATFORM})
 add_subdirectory(arch/${ARCH})

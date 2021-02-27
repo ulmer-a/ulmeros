@@ -24,7 +24,7 @@ add_executable(arch
     ${X86_64_ASM_SOURCES}
 )
 
-target_link_libraries(arch util kernel)
+target_link_libraries(arch util kernel platform)
 
 target_link_options(arch PRIVATE
     -Wl,-T "${CMAKE_CURRENT_SOURCE_DIR}/kernel.ld"

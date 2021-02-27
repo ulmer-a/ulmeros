@@ -1,4 +1,4 @@
-#include <ports.h>
+#include <x86/ports.h>
 #include <bus/pci.h>
 
 #define CONFIG_ADDRESS  0xcf8

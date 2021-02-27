@@ -4,12 +4,17 @@
 #include <sched/task.h>
 #include <sched/proc.h>
 #include <arch/common.h>
+#include <fs/vfs.h>
 
 static void init_task_func()
 {
   debug(INIT, "welcome from the startup kernel task\n");
 
   delete_init_stack();
+
+  /* initialize the virtual file system in order
+   * to mount the initial ramdisk. */
+  vfs_init(cmdline_get("rootfs"));
 
   /* obtain the name of the init program to
    * run as PID 1, which is passed on the kernel
@@ -34,6 +39,7 @@ void kmain(const char *cmdline, void *initrd, size_t initrd_size)
 
   debug(INIT, "reached kmain()\n");
   cmdline_parse(cmdline);
+  (void)initrd; (void)initrd_size;
 
   /* initialize the scheduler's data structures as well
    * as the task list used to keep track of all running

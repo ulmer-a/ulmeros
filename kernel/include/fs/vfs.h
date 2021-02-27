@@ -1,32 +1,10 @@
 #pragma once
 
-#include <types.h>
-#include <fs/blockdev.h>
-#include <list.h>
-#include <mutex.h>
+#include <util/types.h>
+#include <util/list.h>
+#include <util/mutex.h>
 
 #define BLOCK_SIZE 512
-
-struct _file;
-typedef struct _file file_t;
-
-struct _dir;
-typedef struct _dir dir_t;
-
-typedef struct
-{
-  const char *name;
-  uint8_t mbr_id;
-
-  int (*probe)(bd_t* disk);
-  int (*mount)(bd_t* disk, dir_t* mp);
-  int (*unmount)();
-  ssize_t (*read)(file_t* file, char* buffer,
-      size_t len, size_t offset);
-  ssize_t (*write)(file_t* file, char* buffer,
-      size_t len, size_t offset);
-  void (*fetch)(file_t* dirfile);
-} fs_t;
 
 typedef enum
 {
@@ -39,6 +17,19 @@ typedef enum
   F_SOCKET    = 0xc000,
   F_UNKNOWN   = 0x0000
 } ftype_t;
+
+#define MODE_O_X      BIT(0)
+#define MODE_O_W      BIT(1)
+#define MODE_O_R      BIT(2)
+#define MODE_G_X      BIT(3)
+#define MODE_G_W      BIT(4)
+#define MODE_G_R      BIT(5)
+#define MODE_U_X      BIT(6)
+#define MODE_U_W      BIT(7)
+#define MODE_U_R      BIT(8)
+#define MODE_STICKY   BIT(9);
+#define MODE_SETGID   BIT(10);
+#define MODE_SETUID   BIT(11);
 
 typedef struct
 {
@@ -57,72 +48,67 @@ typedef struct
   uint16_t _unused  : 4;
 } fmode_t;
 
-typedef struct _dir
-{
-  file_t* file;
-  dir_t* mounted_fs;
-  list_t* files;
-} dir_t;
+struct _fs_struct;
+typedef struct _fs_struct fs_t;
 
-typedef struct _file
-{
-  ftype_t type;   // unix file type
-  fmode_t mode;   // mode, permissions, ...
+struct _file_struct;
+typedef struct _file_struct file_t;
 
-  size_t uid;
-  size_t gid;
+struct _dir_struct;
+typedef struct _dir_struct dir_t;
 
-  size_t t_last_modified;
-  size_t t_last_accessed;
-  size_t t_created;
-
-  size_t length;  // file size
-  size_t blocks;  // size in blocks
-
-  size_t inode;   // inode number
-
-  dir_t* parent;  // parent directory
-  dir_t* dir;     // valid if type=DIR
-
-  void *driver1;
-  void *driver2;
-  const fs_t* fs;
-
-  mutex_t lock;
-} file_t;
+struct _fd_struct;
+typedef struct _fd_struct fd_t;
 
 typedef struct _dentry
 {
   char name[256];
+  size_t inode;
   file_t *file;
 } direntry_t;
 
-typedef struct fd_struct
+struct _fd_struct
 {
-  file_t* file;
-  size_t refs;
-  size_t seek_offset;
-} fd_t;
+  file_t* file;   // pointer to file object
+  uint64_t fpos;  // seek position
+};
 
-void vfs_init();
+struct _dir_struct
+{
+  file_t* file;   // file object of the directory
+  list_t* files;  // list of direntries
+  dir_t* parent;  // parent directory (null if mount point)
+  dir_t* mounted; // root directory if dir is mountpoint
+  fs_t* fstype;   // file system type structure
+  void* driver;   // pointer to fs instance
+};
 
-int vfs_mount(dir_t* mountpoint, size_t major, size_t minor);
+typedef union
+{
+  dir_t* directory;         // pointer to dir_t, if type = directory
+  file_t* symlink;          // pointer to file_t, if type = symlink
+} sp_file_u;
 
-void register_fs(const fs_t* fs);
+struct _file_struct
+{
+  fmode_t mode;             // file mode
+  ftype_t type;             // file type
+  size_t uid;               // user id
+  size_t gid;               // group id
+  uint64_t t_last_modified; // last modification time
+  uint64_t t_last_accessed; // last access time
+  uint64_t t_created;       // creation time
+  uint64_t length;          // file size
+  sp_file_u special;        // special file features
+};
 
-#define SEEK_SET 0
-#define SEEK_CUR 1
-#define SEEK_END 2
+struct _fs_struct
+{
+  const char* name;
+  uint8_t mbr_id;
+};
 
-#define O_READ    BIT(0)
-#define O_WRITE   BIT(1)
-#define O_CREAT   BIT(2)
+extern dir_t _vfs_root;
+#define VFS_ROOT (&_vfs_root)
 
-int vfs_open(const char* pathname, int flags, fd_t** fd);
-int vfs_close(fd_t* fd);
-ssize_t vfs_read(fd_t* fd, char* buf, size_t len);
-ssize_t vfs_write(fd_t* fd, char* buf, size_t len);
-int vfs_seek(fd_t* fd, ssize_t seek, int type);
-
-extern dir_t vfs_root_node;
-#define VFS_ROOT (&vfs_root_node)
+void vfs_init(const char *rootfs);

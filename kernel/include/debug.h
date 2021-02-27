@@ -20,6 +20,7 @@
 #define LOADER      13  | OUTPUT_ENABLED
 #define TASK        14  | OUTPUT_ENABLED
 #define TASKLIST    15  | OUTPUT_ENABLED
+#define RAMFS       16  | OUTPUT_ENABLED
 
 extern void debug(int level, const char* fmt, ...);
 extern void panic();

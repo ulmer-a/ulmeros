@@ -1,8 +1,8 @@
 #include <arch/platform.h>
 
-extern void ata_init();
+extern void pc_ata_init();
 
 void platform_init_drivers()
 {
-  ata_init();
+  pc_ata_init();
 }

@@ -1,3 +1,8 @@
+/*
+ * UlmerOS x86_64 Virtual memory implementation
+ * Copyright (C) 2021 Alexander Ulmer
+ */
+
 #include <mm/vspace.h>
 #include <mm/memory.h>
 #include <util/string.h>

@@ -50,9 +50,11 @@ static void setup_entry(struct gdt_page_struct* gdt, int id,
   *((uint32_t*)&(gdt->gdt[id].base_middle)) |= flags;
 }
 
+static struct gdt_page_struct gdt_info_struct;
+
 void reload_gdt()
 {
-  struct gdt_page_struct* gdt = kmalloc(sizeof(struct gdt_page_struct));
+  struct gdt_page_struct* gdt = &gdt_info_struct;
 
   gdt->descriptor.size = sizeof(struct gdte_struct) * GDT_ENTRIES;
   gdt->descriptor.addr = gdt->gdt;

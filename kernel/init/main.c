@@ -9,7 +9,7 @@ static void init_task_func()
 {
   debug(INIT, "welcome from the startup kernel task\n");
 
-  // TODO: cleanup the initialization stack
+  delete_init_stack();
 
   /* obtain the name of the init program to
    * run as PID 1, which is passed on the kernel
@@ -19,7 +19,7 @@ static void init_task_func()
   proc_start(init_program);
 }
 
-void kmain(const char *cmdline)
+void kmain(const char *cmdline, void *initrd, size_t initrd_size)
 {
   /*
    * this is the generic kernel initialization

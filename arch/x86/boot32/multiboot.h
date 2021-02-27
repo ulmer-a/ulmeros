@@ -31,7 +31,7 @@ typedef struct
 {
   uint32_t mod_start;
   uint32_t mod_end;
-  unsigned char string[4];
+  uint32_t string;
   unsigned char pad0[4];
 } __attribute__((packed)) multiboot_mods_t;
 

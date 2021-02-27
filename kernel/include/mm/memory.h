@@ -2,6 +2,8 @@
 
 #include <util/types.h>
 
+#define __init__
+
 void kheap_check_corrupt();
 void kheap_print();
 

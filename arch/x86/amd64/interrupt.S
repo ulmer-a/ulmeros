@@ -1,3 +1,16 @@
+/* UlmerOS x86_64 interrupt entry point
+ * Copyright (C) 2021 Alexander UlmerOS
+ *
+ * Upon any interrupt, the processor will call the
+ * 'save_context' label and all registers will be
+ * pushed onto the kernel stack of the current thread.
+ * the x86_irq_handler() function will be called with
+ * a pointer to the context_t structure of the saved
+ * context. the function must return such a pointer to
+ * restore the given context and jump back to the
+ * corresponding thread.
+ */
+
 .section .text
 
 save_context:

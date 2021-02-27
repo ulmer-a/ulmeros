@@ -1,12 +1,16 @@
 #pragma once
 
-
 #include <util/types.h>
 #include <util/bitmap.h>
+#include <util/string.h>
 #include "multiboot.h"
 
 #define EARLY_HEAP_START  0x02000000
 #define KERNEL_LOAD_ADDR  0x01000000
+#define IDENT_OFFSET      0xffff800000000000ull
+
+#define BOOT32_STACK_LOC    0x01000000
+#define BOOT32_STACK_PAGES  8
 
 #define PAGE_SIZE 4096
 #define PAGE_SHIFT 12
@@ -15,6 +19,15 @@
 
 extern void* kheap_start_;
 extern void* kheap_break_;
+
+/* extract information from the multiboot structure
+ * passed by GRUB and set the corresponding fields
+ * in the boot_info structure. */
+void get_multiboot_info(multiboot_t* mb);
+
+/* mark used all used pages for
+ * boot32 code and data. */
+void alloc_boot32_pages();
 
 extern void halt_core();
 extern void gdt_init();
@@ -45,4 +58,6 @@ void kfree(void* ptr);
 
 extern char _bss_start;
 extern char _bss_end;
+
+extern bootinfo_t boot_info;
 

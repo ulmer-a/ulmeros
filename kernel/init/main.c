@@ -4,13 +4,21 @@
 #include <sched/task.h>
 #include <sched/proc.h>
 #include <arch/common.h>
+#include <arch/platform.h>
 #include <fs/vfs.h>
+#include <fs/blockdev.h>
 
 static void init_task_func()
 {
   debug(INIT, "welcome from the startup kernel task\n");
 
   delete_init_stack();
+
+  /* initialize the block device manager */
+  blockdev_init();
+
+  /* initialize the platform's device drivers. */
+  platform_init_drivers();
 
   /* initialize the virtual file system in order
    * to mount the initial ramdisk. */

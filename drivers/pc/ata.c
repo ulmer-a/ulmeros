@@ -21,6 +21,8 @@
 #include <mm/memory.h>
 #include <x86/ports.h>
 #include <bus/pci.h>
+#include <fs/blockdev.h>
+#include <errno.h>
 
 
 // Status
@@ -119,3 +121,62 @@
 
 #define PRD_PAGES         ((1024*64)/4096)    // 64K / PAGE_SIZE
 #define BLOCKS_PER_PRD    (((1024*64)/512)-1)
+
+static list_t controller_list;
+static mutex_t controller_list_lock;
+static size_t ata_major;
+
+static ssize_t ata_read(size_t minor, char* buffer, size_t count, size_t lba)
+{
+  return -ENOSYS;
+}
+
+static ssize_t ata_write(size_t major, char* buffer, size_t count, size_t lba)
+{
+  return -ENOSYS;
+}
+
+/* block device driver description structure. this
+ * will tell the block device manager what kind of
+ * operations this driver supports and how to call them. */
+static bd_driver_t ata_bd_driver = {
+  .name = "ata_pci",
+  .file_prefix = "hdd",
+  .bd_ops = {
+    .readblk = ata_read,
+    .writeblk = ata_write
+  }
+};
+
+/* PCI driver description structure. this will tell
+ * the kernel which devices this driver can handle. */
+static const pci_idpair_t ata_pci_ids[] = {
+  { 0x8086, 0x7111 }, // Intel 82371AB/EB/MB PIIX4 IDE Controller (not tested)
+  { 0x8086, 0x7010 }, // Intel 82371SB PIIX3 IDE Controller [Natoma/Triton II]
+  { 0, 0 }
+};
+
+/* PCI driver description structure function map */
+/*static const pci_driver_t ata_pci_driver = {
+  .name = "ata_pci",
+  .devices = ata_pci_ids,
+  .probe = ata_probe
+};*/
+
+void pc_ata_init()
+{
+  /* initialize the list of IDE controllers handled
+   * by this driver. */
+  list_init(&controller_list);
+  mutex_init(&controller_list_lock);
+
+  /* obtain a global major-number by registering as
+   * a block device driver. */
+  ata_major = bd_register_driver(&ata_bd_driver);
+
+  /* register as a PCI device driver. this will result
+   * in a call to ata_probe() in the case that a device
+   * that can be handled by this driver is present. this
+   * should be the last thing to be done in ata_init(). */
+  //pci_register_driver(&ata_pci_driver);
+}

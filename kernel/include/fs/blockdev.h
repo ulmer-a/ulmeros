@@ -4,8 +4,10 @@
 
 typedef struct
 {
-  ssize_t (*readblk)(void* drv_struct, char* buffer, size_t count, size_t lba);
-  ssize_t (*writeblk)(void* drv_struct, char* buffer, size_t count, size_t lba);
+  ssize_t (*readblk)(void* drv_struct, size_t minor,
+                     char* buffer, size_t count, uint64_t lba);
+  ssize_t (*writeblk)(void* drv_struct, size_t minor,
+                      char* buffer, size_t count, uint64_t lba);
 } bd_ops_t;
 
 typedef struct

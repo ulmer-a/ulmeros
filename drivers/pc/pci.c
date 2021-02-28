@@ -7,9 +7,9 @@
 uint32_t pci_read32(pci_dev_t *dev, uint8_t offset)
 {
   uint32_t address;
-  uint32_t bus = dev->bus_no;
-  uint32_t slot = dev->slot_no;
-  uint32_t fnc = dev->function_no;
+  uint32_t bus = dev->bus;
+  uint32_t slot = dev->slot;
+  uint32_t fnc = dev->func;
 
   address = (bus << 16)
           | (slot << 11)
@@ -24,9 +24,9 @@ uint32_t pci_read32(pci_dev_t *dev, uint8_t offset)
 void pci_write32(pci_dev_t *dev, uint8_t offset, uint32_t value)
 {
   uint32_t address;
-  uint32_t bus = dev->bus_no;
-  uint32_t slot = dev->slot_no;
-  uint32_t fnc = dev->function_no;
+  uint32_t bus = dev->bus;
+  uint32_t slot = dev->slot;
+  uint32_t fnc = dev->func;
 
   address = (bus << 16)
           | (slot << 11)

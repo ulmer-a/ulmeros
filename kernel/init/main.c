@@ -3,32 +3,45 @@
 #include <sched/sched.h>
 #include <sched/task.h>
 #include <sched/proc.h>
+#include <sched/interrupt.h>
 #include <arch/common.h>
 #include <arch/platform.h>
 #include <fs/vfs.h>
 #include <fs/ramdisk.h>
 #include <fs/blockdev.h>
+#include <bus/pci.h>
 
 static void* s_initrd;
 static size_t s_initrd_size;
 
 extern void initrd_init(void* initrd, size_t initrd_size);
 
+static void init_drivers()
+{
+  /* initialize ramdisk block device */
+  ramdisk_init();
+  if (s_initrd != NULL)
+    ramdisk_install(s_initrd, s_initrd_size);
+
+  /* initialize PCI and perform a PCI bus scan */
+  pci_init();
+
+  /* initialize the platform's device drivers. */
+  platform_init_drivers();
+}
+
 static void init_task_func()
 {
   debug(INIT, "welcome from the startup kernel task\n");
 
   delete_init_stack();
+  irq_kernel_init();
 
   /* initialize the block device manager */
   blockdev_init();
 
-  /* initialize ramdisk block device */
-  ramdisk_init();
-  ramdisk_install(s_initrd, s_initrd_size);
-
-  /* initialize the platform's device drivers. */
-  platform_init_drivers();
+  /* initialize device drivers */
+  init_drivers();
 
   /* initialize the virtual file system in order
    * to mount the initial ramdisk. */

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <arch/context.h>
 #include <mm/vspace.h>
@@ -20,6 +20,8 @@ typedef struct _task_struct
 
   void* kstack_ptr;
   void* kstack_base;
+
+  int irq_wait;
 } task_t;
 
 extern task_t* current_task;
@@ -30,4 +32,7 @@ task_t* create_user_task(vspace_t* vspace, void* entry, void* stack_ptr);
 /* kill the current_task */
 void task_kill();
 
+
+void irq_signal(task_t* task);
+void irq_wait_until(size_t* cond, size_t value);
 int task_schedulable(task_t* task);

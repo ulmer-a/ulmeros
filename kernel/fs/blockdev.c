@@ -47,12 +47,13 @@ static void bdname(char* buffer, const char* prefix, size_t minor)
 {
   strcpy(buffer, prefix);
   char ibuffer[32];
-  strcpy(buffer, ultoa(minor, ibuffer, 10));
+  strcat(buffer, ultoa(minor, ibuffer, 10));
 }
 
 void bd_register(bd_t *blkdev)
 {
   assert(blkdev->capacity, "blkdev must have non-zero capacity");
+  assert(blkdev->driver, "driver field must be initialized");
 
   bdname(blkdev->name, blkdev->driver->file_prefix, blkdev->minor);
   mutex_lock(&bd_list_lock);

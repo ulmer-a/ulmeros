@@ -39,74 +39,47 @@ typedef struct
   uint16_t device;
 } pci_idpair_t;
 
-typedef struct
-{
-  uint8_t bus_no;
-  uint8_t slot_no;
-  uint8_t function_no;
+struct _pci_driver_struct;
+typedef struct _pci_driver_struct pci_driver_t;
+struct _pci_dev_struct;
+typedef struct _pci_dev_struct pci_dev_t;
 
-  pci_idpair_t id;
-
-  uint8_t revision;
-  uint8_t prog_if;
-  uint8_t subclass;
-  uint8_t class;
-} pci_dev_t;
-
-typedef struct
+struct _pci_driver_struct
 {
   const char* name;
   const pci_idpair_t* devices;
-  int (*probe)(pci_dev_t*);
-} pci_driver_t;
+  void* (*probe)(pci_dev_t*);
+};
 
-/**
- * @brief pci_init
- */
+struct _pci_dev_struct
+{
+  uint8_t bus;
+  uint8_t slot;
+  uint8_t func;
+  pci_idpair_t id;
+  const pci_driver_t* driver;
+  void* driver_data;
+};
+
+/* initialize PCI and perform a bus
+ * enumeration scan */
 void pci_init();
 
-/**
- * @brief pci_register_driver
- * @param drv_info
- */
-void pci_register_driver(const pci_driver_t* drv_info);
+/* register a driver that can handle
+ * certain PCI devices. */
+void pci_register_driver(const pci_driver_t *drv_info);
 
-/**
- * @brief pci_get_bar
- * @param device
- * @param bar
- * @return
- */
-uint32_t pci_get_bar(pci_dev_t* device, uint8_t bar);
-
-/**
- * @brief pci_read32
- * @param dev
- * @param offset
- * @return
- */
+/* PCI configuration space read/write access, this
+ * is implement by platform specific code. */
 uint32_t pci_read32(pci_dev_t* dev, uint8_t offset);
+void pci_write32(pci_dev_t* dev, uint8_t offset, uint32_t value);
 
-/**
- * @brief pci_read16
- * @param dev
- * @param offset
- * @return
- */
+/* convenience wrappers for configuration space access
+ * other than 32bit wide */
+uint8_t pci_read8(pci_dev_t* dev, uint8_t offset);
 uint16_t pci_read16(pci_dev_t* dev, uint8_t offset);
 
-/**
- * @brief pci_read8
- * @param dev
- * @param offset
- * @return
- */
-uint8_t pci_read8(pci_dev_t* dev, uint8_t offset);
+uint32_t pci_get_bar(pci_dev_t* device, uint8_t bar);
 
-/**
- * @brief pci_write32
- * @param dev
- * @param offset
- * @param value
- */
-void pci_write32(pci_dev_t* dev, uint8_t offset, uint32_t value);
+void pci_enable_busmaster(pci_dev_t* device);
+

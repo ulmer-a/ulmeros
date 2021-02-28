@@ -22,7 +22,8 @@ typedef struct
 static size_t initrd_major;
 static size_t minor_counter = 0;
 
-static ssize_t initrd_read(void* drv, char* buffer, size_t count, size_t lba)
+static ssize_t initrd_read(void* drv, size_t minor,
+                           char* buffer, size_t count, uint64_t lba)
 {
   rd_t* rd = drv;
 
@@ -33,7 +34,8 @@ static ssize_t initrd_read(void* drv, char* buffer, size_t count, size_t lba)
   return count * BLOCK_SIZE;
 }
 
-static ssize_t initrd_write(void* drv, char* buffer, size_t count, size_t lba)
+static ssize_t initrd_write(void* drv, size_t minor,
+                            char* buffer, size_t count, uint64_t lba)
 {
   rd_t* rd = drv;
   mutex_lock(&rd->rd_lock);

@@ -32,7 +32,7 @@ void *memset(void *block, uint8_t c, size_t size)
 char *strcpy(char *dest, const char* src)
 {
   const size_t len = strlen(src);
-  return (char*)memcpy(dest, src, len);
+  return (char*)memcpy(dest, src, len + 1);
 }
 
 size_t strnlen(const char *src, size_t n)
@@ -70,7 +70,16 @@ const char* strccpy(char *dest, const char *src, char terminator)
 }
 
 char *strdup(const char *src);
-char *strcat(char *dest, const char*append);
+
+char *strcat(char *dest, const char* append)
+{
+  char* orig_dest = dest;
+  while (*dest)
+    dest++;
+  strcpy(dest, append);
+  return orig_dest;
+}
+
 char *strncat(char *dest, const char*append, size_t size);
 size_t strlcat(char *dest, const char*append, size_t size);
 

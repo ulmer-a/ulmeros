@@ -4,7 +4,7 @@
 #include <util/list.h>
 #include <debug.h>
 
-static list_t* irq_handlers;
+static list_t* irq_handlers = NULL;
 
 int irq_ongoing = false;
 
@@ -16,9 +16,10 @@ typedef struct
 
 void irq_kernel_init()
 {
-  irq_handlers = kmalloc(sizeof(list_t) * IRQ_COUNT);
+  list_t* l_irq_handlers = kmalloc(sizeof(list_t) * IRQ_COUNT);
   for (int i = 0; i < IRQ_COUNT; i++)
-    list_init(&irq_handlers[i]);
+    list_init(&l_irq_handlers[i]);
+  irq_handlers = l_irq_handlers;
 }
 
 void irq_subscribe(size_t irq, const char* driver,
@@ -44,10 +45,10 @@ void irq_handler(size_t id)
   /* the interrupt handler runs in interrupt-context,
    * which means that no locks can be acquired and anyone
    * task could hold any lock. */
-  return;
+  if (irq_handlers == NULL)
+    return;
 
-  list_t* irq_handlers = &irq_handlers[id];
-  for (list_item_t* it = list_it_front(irq_handlers);
+  for (list_item_t* it = list_it_front(&irq_handlers[id]);
        it != LIST_IT_END;
        it = list_it_next(it))
   {

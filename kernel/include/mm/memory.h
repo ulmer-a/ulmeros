@@ -18,4 +18,5 @@ void* _kmalloc(size_t size);
 void kfree(void* ptr);
 
 size_t alloc_page();
+void* alloc_dma_region();
 void free_page(size_t page);

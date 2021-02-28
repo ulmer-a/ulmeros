@@ -19,3 +19,4 @@ int bitmap_get(bitmap_t *bmp, size_t index);
 void bitmap_set(bitmap_t* bmp, size_t index);
 void bitmap_clr(bitmap_t* bmp, size_t index);
 size_t bitmap_find_free(bitmap_t* bmp);
+size_t bitmap_find_n_free(bitmap_t* bmp, size_t n);

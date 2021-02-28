@@ -21,6 +21,27 @@ size_t alloc_page()
   return ppn;
 }
 
+void* alloc_dma_region()
+{
+  size_t dma_pages = 16;            // 16P = 64k
+  size_t max_page = 1048576 - 1;    // 1MP = 4GB
+  size_t ppn_start = bitmap_find_n_free(&free_pages, dma_pages);
+
+  /* validate */
+  if (ppn_start == (size_t)-1 || ppn_start + dma_pages > max_page)
+  {
+    assert(false, "No DMA region could be allocated!");
+    return NULL;
+  }
+
+  /* mark used*/
+  size_t page = ppn_start;
+  while (dma_pages--)
+    bitmap_set(&free_pages, page++);
+
+  return (void*)(ppn_start << PAGE_SHIFT);
+}
+
 void free_page(size_t page)
 {
   assert(page < free_pages.size, "page out of bounds");

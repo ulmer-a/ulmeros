@@ -65,3 +65,36 @@ size_t bitmap_find_free(bitmap_t *bmp)
   }
   return (size_t)-1;
 }
+
+size_t bitmap_find_n_free(bitmap_t *bmp, size_t n)
+{
+  // TODO: optimize
+
+  size_t free_bits = 0;
+  size_t bit = (size_t)-1;
+  for (size_t i = 0; i < BITMAP_BYTE_SIZE(bmp->size); i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      if ((bmp->bitmap[i] & BIT(j)) == 0)
+      {
+        if (free_bits++ == 0)
+        {
+          if ((i * 8 + j) % n != 0)
+            free_bits = 0;
+          else
+            bit = i * 8 + j;
+        }
+
+        if (free_bits >= n)
+          return bit;
+      }
+      else
+      {
+        free_bits = 0;
+        bit = (size_t)-1;
+      }
+    }
+  }
+  return (size_t)-1;
+}

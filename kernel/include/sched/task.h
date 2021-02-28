@@ -3,6 +3,8 @@
 #include <arch/context.h>
 #include <mm/vspace.h>
 
+#define KSTACK_SIZE   8192
+
 typedef enum
 {
   TASK_RUNNING,

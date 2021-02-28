@@ -67,10 +67,19 @@ typedef struct _dentry
   file_t *file;
 } direntry_t;
 
+typedef struct
+{
+  ssize_t (*read)(void* fsdata, void* buffer, size_t len, uint64_t off);
+  ssize_t (*write)(void* fsdata, void* buffer, size_t len, uint64_t off);
+} f_ops;
+
 struct _fd_struct
 {
   file_t* file;   // pointer to file object
   uint64_t fpos;  // seek position
+
+  f_ops f_ops;    // file operations
+  void* fs_data;  // driver/filesystem data (bd_t, inode)
 };
 
 struct _dir_struct
@@ -113,9 +122,20 @@ struct _fs_struct
 {
   const char* name;
   uint8_t mbr_id;
+  void* (*probe)(fd_t* fd);
 };
 
 extern dir_t _vfs_root;
 #define VFS_ROOT (&_vfs_root)
 
 void vfs_init(const char *rootfs);
+
+void fs_register(fs_t *fs);
+
+#define SEEK_SET	1
+#define SEEK_CUR	2
+#define SEEK_END	3
+
+ssize_t vfs_read(fd_t* fd, void* buffer, uint64_t length);
+uint64_t vfs_seek(fd_t* fd, uint64_t offset, int whence);
+fd_t* vfs_dup(fd_t* fd);

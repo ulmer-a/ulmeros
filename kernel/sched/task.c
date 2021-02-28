@@ -22,8 +22,8 @@ static void ktask_runtime(void (*func)())
 task_t* create_kernel_task(void (*func)())
 {
   task_t* task = kmalloc(sizeof(task_t));
-  task->kstack_base = ppn_to_virt(alloc_page());
-  task->kstack_ptr = task->kstack_base + PAGE_SIZE;
+  task->kstack_base = kmalloc(KSTACK_SIZE);
+  task->kstack_ptr = task->kstack_base + KSTACK_SIZE;
   task->context = context_init(
     task->kstack_ptr,   // the kernel stack for this task
     ktask_runtime,      // the entry point (kernel task runtime)
@@ -43,8 +43,8 @@ task_t* create_kernel_task(void (*func)())
 task_t* create_user_task(vspace_t* vspace, void* entry, void* stack_ptr)
 {
   task_t* task = kmalloc(sizeof(task_t));
-  task->kstack_base = ppn_to_virt(alloc_page());
-  task->kstack_ptr = task->kstack_base + PAGE_SIZE;
+  task->kstack_base = kmalloc(KSTACK_SIZE);
+  task->kstack_ptr = task->kstack_base + KSTACK_SIZE;
   task->context = context_init(
     task->kstack_ptr,   // the kernel stack for this task
     entry,              // the entry point (ELF entry)

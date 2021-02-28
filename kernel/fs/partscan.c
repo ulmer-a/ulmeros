@@ -37,8 +37,8 @@ ssize_t ps_read(void* drv_struct, size_t minor,
 {
   (void)minor;
   part_t* part = ((part_t*)drv_struct);
-  return part->blkdev->driver->bd_ops.readblk(
-      part->blkdev->data, part->blkdev->minor, buffer, count, lba);
+  return part->blkdev->driver->bd_ops.readblk(part->blkdev->data,
+           part->blkdev->minor, buffer, count, lba + part->blk_offset);
 }
 
 ssize_t ps_write(void* drv_struct, size_t minor,
@@ -46,8 +46,8 @@ ssize_t ps_write(void* drv_struct, size_t minor,
 {
   (void)minor;
   part_t* part = ((part_t*)drv_struct);
-  return part->blkdev->driver->bd_ops.readblk(
-      part->blkdev->data, part->blkdev->minor, buffer, count, lba);
+  return part->blkdev->driver->bd_ops.readblk(part->blkdev->data,
+           part->blkdev->minor, buffer, count, lba + part->blk_offset);
 }
 
 const char* ps_get_prefix(void* drv_struct)

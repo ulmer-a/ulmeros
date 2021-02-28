@@ -33,7 +33,7 @@ void blockdev_init();
 
 int bd_get_by_name(const char* name, size_t* major, size_t* minor);
 
-int bd_open(fd_t** fd, size_t major, size_t minor);
+int bd_open(fd_t** fd_, size_t major, size_t minor);
 
 size_t bd_register_driver(bd_driver_t* bd_driver);
 

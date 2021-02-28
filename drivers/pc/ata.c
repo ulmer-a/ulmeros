@@ -271,6 +271,7 @@ static void ata_irq(void* driver_data)
     channel->irq_status = status;
     irq_signal(channel->signal_task);
   }
+
 }
 
 /**
@@ -323,7 +324,7 @@ static ssize_t ata_read(void* drv, size_t minor,
 
     // clear FAIL and IRQ bit in DMA status register
     uint8_t dma_stat = inb(channel->busmaster + DMA_STAT);
-    dma_stat &= (DMA_STAT_FAIL | DMA_STAT_IRQ);
+    dma_stat &= ~(DMA_STAT_FAIL | DMA_STAT_IRQ);
     outb(channel->busmaster + DMA_STAT, dma_stat);
 
     const size_t iobase = channel->base;

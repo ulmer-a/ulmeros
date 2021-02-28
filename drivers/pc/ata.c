@@ -17,7 +17,6 @@
 #include <util/types.h>
 #include <util/list.h>
 #include <util/mutex.h>
-#include <util/cv.h>
 #include <util/string.h>
 #include <bus/pci.h>
 #include <mm/memory.h>
@@ -126,6 +125,7 @@
 
 #define PRD_PAGES   ((1024*64)/4096)  // 64K / PAGE_SIZE
 #define BLOCKS_PER_PRD    (((1024*64)/512)-1)
+#define BLOCK_SIZE 512
 
 typedef struct
 {
@@ -501,13 +501,12 @@ static void ata_setup_dma(pci_ide_dev_t* controller, uint8_t channel)
 {
   /* allocate a DMA buffer that doesn't cross 64K boundaries
    * and resides in physical memory below 4GB */
-  void* phys_buffer = NULL; /*get_phys_pages(PRD_PAGES,
-                                   ALLOC_LOWMEM | ALLOC_NOX64K);
+  void* phys_buffer = alloc_dma_region();
   controller->ide_channels[channel].prdt =
       (phys_buffer);
   controller->ide_channels[channel].prdt->buffer =
-      (size_t)phys_buffer + IO_SIZE;
-  controller->ide_channels[channel].prdt->last_entry = 1;*/
+      (size_t)phys_buffer + BLOCK_SIZE;
+  controller->ide_channels[channel].prdt->last_entry = 1;
 
   /* store the physical address of the PRDT in the
    * corresponding BusMaster ADDR register */

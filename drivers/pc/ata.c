@@ -485,15 +485,22 @@ static void ide_identify(pci_ide_dev_t* controller, uint8_t channel, uint8_t dri
   ide_device[drv_id].model[40] = 0;
 }
 
+static const char* ata_get_prefix(void* drv)
+{
+  (void)drv;
+  return NULL;
+}
+
 /* block device driver description structure. this
  * will tell the block device manager what kind of
  * operations this driver supports and how to call them. */
 static bd_driver_t ata_bd_driver = {
   .name = "ata_pci",
-  .file_prefix = "hdd",
+  .prefix = "hdd",
   .bd_ops = {
     .readblk = ata_read,
-    .writeblk = ata_write
+    .writeblk = ata_write,
+    .get_prefix = ata_get_prefix
   }
 };
 
@@ -588,7 +595,7 @@ static void* ata_probe(pci_dev_t* device)
   /* iterate through the devices that are present and
    * print some descriptive information to the kernel
    * output. */
-  for (int i = 0; i < 3; i++)
+  for (size_t i = 0; i < 3; i++)
   {
     ide_dev_t* dev = &controller->ide_devices[i];
     if (!dev->present)
@@ -607,6 +614,7 @@ static void* ata_probe(pci_dev_t* device)
     disk->driver = &ata_bd_driver;
     disk->minor = controller->minor_base + i;
     disk->capacity = dev->sectors;
+    sprintf(disk->name, "hdd%zu", i);
     bd_register(disk);
   }
 

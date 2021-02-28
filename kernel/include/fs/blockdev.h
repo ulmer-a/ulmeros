@@ -1,6 +1,7 @@
 #pragma once
 
 #include <util/types.h>
+#include <fs/vfs.h>
 
 typedef struct
 {
@@ -8,12 +9,13 @@ typedef struct
                      char* buffer, size_t count, uint64_t lba);
   ssize_t (*writeblk)(void* drv_struct, size_t minor,
                       char* buffer, size_t count, uint64_t lba);
+  const char* (*get_prefix)(void* drv_struct);
 } bd_ops_t;
 
 typedef struct
 {
   const char* name;
-  const char* file_prefix;
+  const char* prefix;
   bd_ops_t bd_ops;
   size_t major;
 } bd_driver_t;
@@ -29,6 +31,14 @@ typedef struct
 
 void blockdev_init();
 
+int bd_get_by_name(const char* name, size_t* major, size_t* minor);
+
+int bd_open(fd_t** fd, size_t major, size_t minor);
+
 size_t bd_register_driver(bd_driver_t* bd_driver);
 
 void bd_register(bd_t* blkdev);
+
+void partscan_init();
+
+void partscan(bd_t* blkdev);

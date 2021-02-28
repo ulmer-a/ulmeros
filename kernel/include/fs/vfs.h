@@ -83,10 +83,17 @@ struct _dir_struct
   void* driver;   // pointer to fs instance
 };
 
+typedef struct
+{
+  size_t major;
+  size_t minor;
+} sp_dev_t;
+
 typedef union
 {
   dir_t* directory;         // pointer to dir_t, if type = directory
   file_t* symlink;          // pointer to file_t, if type = symlink
+  sp_dev_t device;          // major/minor pair, if type = char/blkdev
 } sp_file_u;
 
 struct _file_struct

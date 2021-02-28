@@ -48,12 +48,19 @@ static ssize_t initrd_write(void* drv, size_t minor,
   return count * BLOCK_SIZE;
 }
 
+static const char* initrd_get_prefix(void* drv)
+{
+  (void)drv;
+  return NULL;
+}
+
 static bd_driver_t initrd_driver = {
   .name = "ramdisk",
-  .file_prefix = "rd",
+  .prefix = "rd",
   .bd_ops = {
     .readblk = initrd_read,
-    .writeblk = initrd_write
+    .writeblk = initrd_write,
+    .get_prefix = initrd_get_prefix
   }
 };
 

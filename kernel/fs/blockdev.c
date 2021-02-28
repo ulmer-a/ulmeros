@@ -4,6 +4,7 @@
 #include <util/list.h>
 #include <util/string.h>
 #include <arch/common.h>
+#include <errno.h>
 #include <debug.h>
 
 static void* ramfs;
@@ -24,8 +25,7 @@ void blockdev_init()
   mutex_init(&driver_list_lock);
   mutex_init(&bd_list_lock);
 
-  /* create a RAMFS for the device filesystem */
-  ramfs = ramfs_create();
+  partscan_init();
 }
 
 size_t bd_register_driver(bd_driver_t *bd_driver)
@@ -55,11 +55,36 @@ void bd_register(bd_t *blkdev)
   assert(blkdev->capacity, "blkdev must have non-zero capacity");
   assert(blkdev->driver, "driver field must be initialized");
 
-  bdname(blkdev->name, blkdev->driver->file_prefix, blkdev->minor);
   mutex_lock(&bd_list_lock);
   list_add(&bd_list, blkdev);
   mutex_unlock(&bd_list_lock);
 
   debug(BLKDEV, "registered block device (%zd, %zd): %s\n",
         blkdev->driver->major, blkdev->minor, blkdev->name);
+
+  partscan(blkdev);
+}
+
+int bd_get_by_name(const char *name, size_t *major, size_t *minor)
+{
+  mutex_lock(&bd_list_lock);
+  for (list_item_t* it = list_it_front(&bd_list);
+       it != LIST_IT_END;
+       it = list_it_next(it))
+  {
+    bd_t* bd = list_it_get(it);
+    if (strcmp(name, bd->name) == 0)
+    {
+      *major = bd->driver->major;
+      *minor = bd->minor;
+      return true;
+    }
+  }
+  mutex_unlock(&bd_list_lock);
+  return false;
+}
+
+int bd_open(fd_t **fd, size_t major, size_t minor)
+{
+  return -ENOSYS;
 }

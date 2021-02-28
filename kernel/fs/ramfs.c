@@ -35,3 +35,12 @@ void* ramfs_create()
   debug(RAMFS, "creating new ramfs filesystem #%zu\n", ramfs->id);
   return ramfs;
 }
+
+static const fs_t ramfs_info = {
+  .name = "ramfs",
+};
+
+const fs_t* ramfs_get_info()
+{
+  return &ramfs_info;
+}

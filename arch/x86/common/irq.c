@@ -15,7 +15,7 @@ extern context_t* schedule(context_t* ctx);
 #define EXC_PAGE_FAULT          14
 #define EXC_YIELD               31
 
-void x86_exception(size_t exc, size_t error)
+int x86_exception(size_t exc, size_t error)
 {
   debug(IRQ, "Processor exception #%zu (%s)\n", exc, strexcept(exc));
   debug(IRQ, "Error code: 0x%zx\n", error);
@@ -32,16 +32,36 @@ void x86_exception(size_t exc, size_t error)
       error & BIT(2) ? 1 : 0,
       error & BIT(4) ? 1 : 0
     );
-    break;
+    return false;
   }
 
   default:
-    assert(false, "Unhandled exception");
-    return;
+    debug(IRQ, "Unhandled exception\n");
+    return false;
   }
+
+  return false;
 }
 
 extern void irq_handler(size_t id);
+
+typedef struct
+{
+  size_t baseptr;
+  size_t ret_addr;
+} stack_frame_t;
+
+static void backtrace(size_t baseptr)
+{
+  int i = 5;
+  debug(IRQ, "-- Backtrace:\n");
+  while (i--)
+  {
+    stack_frame_t* sf = (stack_frame_t*)baseptr;
+    debug(IRQ, "  %p\n", sf->ret_addr);
+    baseptr = sf->baseptr;
+  }
+}
 
 context_t* x86_irq_handler(context_t* ctx)
 {
@@ -55,7 +75,15 @@ context_t* x86_irq_handler(context_t* ctx)
     else
     {
       preempt_enable();
-      x86_exception(ctx->irq, ctx->error);
+      if (!x86_exception(ctx->irq, ctx->error))
+      {
+        debug(IRQ, "rip=%p, rsp=%p, rdi=%p, rsi=%p\n"
+                   "rax=%p, rbx=%p, rcx=%p, rdx=%p\n",
+              ctx->rip, ctx->rsp, ctx->rdi, ctx->rsi,
+              ctx->rax, ctx->rbx, ctx->rcx, ctx->rdx);
+        backtrace(ctx->rbp);
+        assert(false, "Unhandled exception\n");
+      }
       preempt_disable();
     }
   }

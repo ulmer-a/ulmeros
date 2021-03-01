@@ -28,7 +28,7 @@ task_t* create_kernel_task(void (*func)())
     task->kstack_ptr,   // the kernel stack for this task
     ktask_runtime,      // the entry point (kernel task runtime)
     task->kstack_ptr,   // the stack pointer for this task
-    false,              // not a user task
+    CTX_KERNEL,         // not a user task
     (size_t)func, 0     // function to be called by the runtime
   );
   task->state = TASK_RUNNING;
@@ -50,7 +50,7 @@ task_t* create_user_task(vspace_t* vspace, void* entry, void* stack_ptr)
     task->kstack_ptr,   // the kernel stack for this task
     entry,              // the entry point (ELF entry)
     stack_ptr,          // the stack pointer for this task
-    true,               // is a user task
+    CTX_USERMODE,       // is a user task
     0, 0                // no initial parameters
   );
   task->state = TASK_RUNNING;

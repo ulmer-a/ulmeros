@@ -3,14 +3,15 @@
 #include <x86/context.h>
 #include <x86/ports.h>
 
-
 #define CS_KERNEL   0x08
 #define DS_KERNEL   0x10
 #define CS_USER     0x18
 #define DS_USER     0x20
+#define CS_USER32   0x28
+#define DS_USER32   0x30
 
 context_t* context_init(void* kstack_ptr, void* entry_addr, void* stack_ptr,
-                        int user, size_t arg0, size_t arg1)
+                        int flags, size_t arg0, size_t arg1)
 {
   context_t* ctx = (context_t*)kstack_ptr - 1;
   ctx->rsp = (size_t)stack_ptr;
@@ -19,12 +20,22 @@ context_t* context_init(void* kstack_ptr, void* entry_addr, void* stack_ptr,
   ctx->rdi = arg0;
   ctx->rsi = arg1;
 
-  if (user)
+  if (flags & CTX_USERMODE)
   {
-    ctx->cs = CS_USER;
-    ctx->ss = DS_USER;
-    ctx->fs = DS_USER;
-    ctx->gs = DS_USER;
+    if (flags & CTX_USER32)
+    {
+      ctx->cs = CS_USER32;
+      ctx->ss = DS_USER32;
+      ctx->fs = DS_USER32;
+      ctx->gs = DS_USER32;
+    }
+    else
+    {
+      ctx->cs = CS_USER;
+      ctx->ss = DS_USER;
+      ctx->fs = DS_USER;
+      ctx->gs = DS_USER;
+    }
   }
   else
   {

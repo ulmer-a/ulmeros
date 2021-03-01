@@ -18,6 +18,7 @@ typedef struct
   mutex_t task_list_lock;
 
   list_t stack_list;
+  mutex_t stack_list_lock;
 
   /* the process' virtual address space */
   vspace_t* vspace;

@@ -3,6 +3,7 @@
 #include <arch/context.h>
 #include <mm/vspace.h>
 #include <sched/proc.h>
+#include <sched/userstack.h>
 
 #define KSTACK_SIZE   8192
 
@@ -26,13 +27,15 @@ typedef struct _task_struct
 
   int irq_wait;
 
+  size_t user_stack;
+
   proc_t* process;
 } task_t;
 
 extern task_t* current_task;
 
 task_t* create_kernel_task(void (*func)(void));
-task_t* create_user_task(vspace_t* vspace, void* entry, void* stack_ptr);
+task_t* create_user_task(vspace_t* vspace, void* entry, userstack_t* stack);
 
 /* kill the current_task */
 void task_kill();

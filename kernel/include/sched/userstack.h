@@ -21,7 +21,12 @@ typedef struct
    * the end (where the initial stack pointer
    * will be placed. */
   size_t start_page;
-  size_t end_page;
+  size_t page_count;
+  void* stack_ptr;
+
+  /* specifies whether the stack is allocated
+   * or can be used by a new thread. */
+  int allocated;
 } userstack_t;
 
-userstack_t* create_stack(proc_t *process, size_t tid);
+userstack_t* create_stack(proc_t *process);

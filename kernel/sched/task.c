@@ -41,7 +41,7 @@ task_t* create_kernel_task(void (*func)())
   return task;
 }
 
-task_t* create_user_task(vspace_t* vspace, void* entry, void* stack_ptr)
+task_t* create_user_task(vspace_t* vspace, void* entry, userstack_t* stack)
 {
   task_t* task = kmalloc(sizeof(task_t));
   task->kstack_base = kmalloc(KSTACK_SIZE);
@@ -49,7 +49,7 @@ task_t* create_user_task(vspace_t* vspace, void* entry, void* stack_ptr)
   task->context = context_init(
     task->kstack_ptr,   // the kernel stack for this task
     entry,              // the entry point (ELF entry)
-    stack_ptr,          // the stack pointer for this task
+    stack->stack_ptr,   // the stack pointer for this task
     CTX_USERMODE,       // is a user task
     0, 0                // no initial parameters
   );
@@ -58,6 +58,7 @@ task_t* create_user_task(vspace_t* vspace, void* entry, void* stack_ptr)
   task->vspace = vspace;
   task->irq_wait = false;
   task->process = NULL;
+  task->user_stack = stack->index;
   tl_insert(task);
   debug(TASK, "created new user task with TID #%zu\n", task->tid);
   return task;

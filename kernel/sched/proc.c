@@ -3,6 +3,7 @@
 #include <sched/proc.h>
 #include <sched/sched.h>
 #include <sched/loader.h>
+#include <sched/userstack.h>
 #include <mm/memory.h>
 #include <mm/vspace.h>
 #include <fs/vfs.h>
@@ -38,6 +39,8 @@ void proc_start(const char *filename)
 
   list_init(&proc->task_list);
   mutex_init(&proc->task_list_lock);
+  list_init(&proc->stack_list);
+  mutex_init(&proc->stack_list_lock);
 
   /* allocate new virtual address space
    * for the process. */
@@ -45,11 +48,11 @@ void proc_start(const char *filename)
 
   /* create a new stack for the main thread. */
   // TODO
-  void* stack_ptr = 0;
+  userstack_t* stack = create_stack(proc);
 
   /* create the main thread and insert it into
    * the scheduler. */
-  task_t* main_thread = create_user_task(proc->vspace, ldr->entry_addr, stack_ptr);
+  task_t* main_thread = create_user_task(proc->vspace, ldr->entry_addr, stack);
   list_add(&proc->task_list, main_thread);
-  //sched_insert(main_thread);
+  sched_insert(main_thread);
 }

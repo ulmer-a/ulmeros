@@ -91,6 +91,11 @@ context_t* schedule(context_t* ctx)
     if (!current_task || current_task->vspace != next_task->vspace)
       vspace_apply(next_task->vspace);
 
+    /* set the stack pointer that will be used
+     * when returning to kernel mode after an
+     * interrupt or system call */
+    set_kernel_sp((size_t)next_task->kstack_ptr);
+
     current_task = next_task;
   }
 

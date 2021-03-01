@@ -27,5 +27,8 @@ extern void preempt_disable();
  * (for example the 0xE9 port on QEMU) */
 extern void printdbg(const char *str);
 
+/* set the stack pointer that will be used
+ * when returning from user mode. */
+void set_kernel_sp(uint64_t sp);
 
 size_t atomic_add(size_t* mem, ssize_t increment);

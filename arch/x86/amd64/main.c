@@ -30,7 +30,7 @@ void setup_page_bitmap(void* bitmap_addr, size_t size);
 
 /* initialize a new 64bit GDT with TSS on the
  * kernel heap. */
-extern void reload_gdt();
+extern void setup_gdt();
 
 /* setup the kernel's virtual address space */
 extern void vspace_setup(size_t pml4_ppn);
@@ -87,7 +87,7 @@ void amd64_main(bootinfo_t* boot_info)
   debug(INIT, "kernel is at %p (size=%uk)\n",
         boot_info->kernel_addr, boot_info->kernel_size >> 10);
 
-  reload_gdt();
+  setup_gdt();
 
   /* since alloc_page() is needed for the heap to work,
    * it has to be setup first. this will use the free

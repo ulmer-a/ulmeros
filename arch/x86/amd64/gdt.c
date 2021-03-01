@@ -17,8 +17,6 @@
  */
 
 #include <util/types.h>
-#include <mm/memory.h>
-#include <debug.h>
 
 /* GDT entry count:
  *  1 Null descriptor

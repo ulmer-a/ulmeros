@@ -93,7 +93,11 @@ static ssize_t bd_read(void* drv, void* buffer, size_t size, uint64_t off)
     return -ENOTSUP;
   size_t lba = off / BLOCK_SIZE;
   size_t count = size / BLOCK_SIZE;
-  return bd->driver->bd_ops.readblk(bd->data, bd->minor, buffer, count, lba);
+  ssize_t blks = bd->driver->bd_ops.readblk(
+        bd->data, bd->minor, buffer, count, lba);
+  if (blks < 0)
+    return blks;
+  return blks * BLOCK_SIZE;
 }
 
 static ssize_t bd_write(void* drv, void* buffer, size_t size, uint64_t off)
@@ -103,7 +107,11 @@ static ssize_t bd_write(void* drv, void* buffer, size_t size, uint64_t off)
     return -ENOTSUP;
   size_t lba = off / BLOCK_SIZE;
   size_t count = size / BLOCK_SIZE;
-  return bd->driver->bd_ops.writeblk(bd->data, bd->minor, buffer, count, lba);
+  ssize_t blks = bd->driver->bd_ops.writeblk(
+        bd->data, bd->minor, buffer, count, lba);
+  if (blks < 0)
+    return blks;
+  return blks * BLOCK_SIZE;
 }
 
 int bd_open(fd_t **fd_, size_t major, size_t minor)

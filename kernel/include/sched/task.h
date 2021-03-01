@@ -2,6 +2,7 @@
 
 #include <arch/context.h>
 #include <mm/vspace.h>
+#include <sched/proc.h>
 
 #define KSTACK_SIZE   8192
 
@@ -24,6 +25,8 @@ typedef struct _task_struct
   void* kstack_base;
 
   int irq_wait;
+
+  proc_t* process;
 } task_t;
 
 extern task_t* current_task;

@@ -1,6 +1,10 @@
 #include <util/mutex.h>
 #include <util/system.h>
 
+#ifndef BOOT32
+extern task_t* current_task;
+#endif
+
 static void yield() {}
 static size_t xchg(size_t val, size_t* mem)
 {
@@ -35,12 +39,20 @@ void mutex_lock(mutex_t* mtx)
   {
     yield();
   }
+
+#ifndef BOOT32
+  mtx->held_by = current_task;
+#endif
 }
 
 void mutex_unlock(mutex_t* mtx)
 {
   if (!mtx || mtx->magic != MUTEX_MAGIC)
     assert(false, "mutex_unlock(): uninitialized");
+
+#ifndef BOOT32
+  mtx->held_by = NULL;
+#endif
 
   mtx->lock = 0;
 }
@@ -51,4 +63,11 @@ int mutex_locked(mutex_t* mtx)
     assert(false, "mutex_locked(): uninitialized");
 
   return mtx->lock;
+}
+
+int mutex_held_by(mutex_t *mtx, task_t *task)
+{
+  if (!mtx || mtx->magic != MUTEX_MAGIC)
+    assert(false, "mutex_hel_by(): uninitialized");
+  return (mtx->held_by == task);
 }

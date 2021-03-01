@@ -35,6 +35,7 @@ task_t* create_kernel_task(void (*func)())
   task->tid = atomic_add(&tid_counter, 1);
   task->vspace = VSPACE_KERNEL;
   task->irq_wait = false;
+  task->process = NULL;
   tl_insert(task);
   debug(TASK, "created new kernel task with TID #%zu\n", task->tid);
   return task;
@@ -56,6 +57,7 @@ task_t* create_user_task(vspace_t* vspace, void* entry, void* stack_ptr)
   task->tid = atomic_add(&tid_counter, 1);
   task->vspace = vspace;
   task->irq_wait = false;
+  task->process = NULL;
   tl_insert(task);
   debug(TASK, "created new user task with TID #%zu\n", task->tid);
   return task;

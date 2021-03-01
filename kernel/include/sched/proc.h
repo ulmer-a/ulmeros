@@ -4,6 +4,8 @@
 #include <util/mutex.h>
 #include <util/list.h>
 #include <mm/vspace.h>
+#include <fs/vfs.h>
+#include <sched/loader.h>
 
 typedef struct
 {
@@ -20,9 +22,17 @@ typedef struct
   /* the process' virtual address space */
   vspace_t* vspace;
 
+  dir_t* working_dir;
+
+  loader_t* loader;
 } proc_t;
 
 /* start a new process by loading the ELF binary
  * specified with 'filename' and creating a new
  * task and process. */
 void proc_start(const char* filename);
+
+int proc_new_fd(proc_t* process, fd_t* fd);
+fd_t* proc_get_fd(proc_t* process, int fd);
+int proc_dup(proc_t* process, fd_t* fd);
+int proc_dup2(proc_t* process, fd_t* fd);

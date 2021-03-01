@@ -351,8 +351,8 @@ static ssize_t ata_read(void* drv, size_t minor,
 
     /* while the device transfers data to memory, this
      * thread can go to sleep. */
-    irq_wait_until(&channel->data_ready, true);
-    assert(channel->data_ready, "irq not ready!");
+    //irq_wait_until(&channel->data_ready, true);
+    //assert(channel->data_ready, "irq not ready!");
     debug(ATADISK, "ata-dma: transfer complete\n");
 
     /* the transfer completed, so stop DMA. */

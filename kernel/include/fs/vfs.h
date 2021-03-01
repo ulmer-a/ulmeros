@@ -71,21 +71,23 @@ typedef struct
 {
   ssize_t (*read)(void* fsdata, void* buffer, size_t len, uint64_t off);
   ssize_t (*write)(void* fsdata, void* buffer, size_t len, uint64_t off);
-} f_ops;
+} f_ops_t;
 
 struct _fd_struct
 {
   file_t* file;   // pointer to file object
   uint64_t fpos;  // seek position
 
-  f_ops f_ops;    // file operations
+  f_ops_t f_ops;    // file operations
   void* fs_data;  // driver/filesystem data (bd_t, inode)
+
+  mutex_t fdmod;  // modification lock
 };
 
 struct _dir_struct
 {
   file_t* file;   // file object of the directory
-  list_t* files;  // list of direntries
+  list_t files;  // list of direntries
   dir_t* parent;  // parent directory (null if mount point)
   dir_t* mounted; // root directory if dir is mountpoint
   fs_t* fstype;   // file system type structure
@@ -94,8 +96,8 @@ struct _dir_struct
 
 typedef struct
 {
-  size_t major;
-  size_t minor;
+  uint32_t major;
+  uint32_t minor;
 } sp_dev_t;
 
 typedef union
@@ -109,12 +111,16 @@ struct _file_struct
 {
   fmode_t mode;             // file mode
   ftype_t type;             // file type
-  size_t uid;               // user id
-  size_t gid;               // group id
+  uint32_t uid;               // user id
+  uint32_t gid;               // group id
   uint64_t t_last_modified; // last modification time
   uint64_t t_last_accessed; // last access time
   uint64_t t_created;       // creation time
   uint64_t length;          // file size
+  size_t inode;
+  void* driver1;
+  void* driver2;
+  dir_t* parent;
   sp_file_u special;        // special file features
 };
 
@@ -123,10 +129,13 @@ struct _fs_struct
   const char* name;
   uint8_t mbr_id;
   void* (*probe)(fd_t* fd);
+  dir_t* (*mount)(void* fs);
+  void (*fetch)(dir_t* parent, direntry_t* direntry);
+  f_ops_t f_ops;
 };
 
-extern dir_t _vfs_root;
-#define VFS_ROOT (&_vfs_root)
+extern dir_t* _vfs_root;
+#define VFS_ROOT (_vfs_root)
 
 void vfs_init(const char *rootfs);
 
@@ -136,6 +145,7 @@ void fs_register(fs_t *fs);
 #define SEEK_CUR	2
 #define SEEK_END	3
 
+int vfs_open(const char* filename, int flags, int mode, fd_t **fd);
 ssize_t vfs_read(fd_t* fd, void* buffer, uint64_t length);
 uint64_t vfs_seek(fd_t* fd, uint64_t offset, int whence);
 fd_t* vfs_dup(fd_t* fd);

@@ -105,7 +105,7 @@ context_t* x86_irq_handler(context_t* ctx)
     }
 
     /* notify IRQ controller that IRQ was handled. */
-    if (irq_id >= 40)
+    if (irq_id >= 8)
       outb(0xa0, 0x20);
     outb(0x20, 0x20);
   }

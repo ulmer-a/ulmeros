@@ -19,11 +19,16 @@ static void ktask_runtime(void (*func)())
   task_kill();
 }
 
+static void* stack_align(void* stack_ptr)
+{
+  return (void*)((size_t)stack_ptr & ~7ul);
+}
+
 task_t* create_kernel_task(void (*func)())
 {
   task_t* task = kmalloc(sizeof(task_t));
   task->kstack_base = kmalloc(KSTACK_SIZE);
-  task->kstack_ptr = task->kstack_base + KSTACK_SIZE;
+  task->kstack_ptr = stack_align(task->kstack_base + KSTACK_SIZE);
   task->context = context_init(
     task->kstack_ptr,   // the kernel stack for this task
     ktask_runtime,      // the entry point (kernel task runtime)
@@ -45,7 +50,7 @@ task_t* create_user_task(vspace_t* vspace, void* entry, userstack_t* stack)
 {
   task_t* task = kmalloc(sizeof(task_t));
   task->kstack_base = kmalloc(KSTACK_SIZE);
-  task->kstack_ptr = task->kstack_base + KSTACK_SIZE;
+  task->kstack_ptr = stack_align(task->kstack_base + KSTACK_SIZE);
   task->context = context_init(
     task->kstack_ptr,   // the kernel stack for this task
     entry,              // the entry point (ELF entry)

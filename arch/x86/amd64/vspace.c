@@ -172,7 +172,7 @@ void vspace_map(vspace_t *vspace, size_t virt, size_t phys, int flags)
   vaddr_t vaddr;
   resolve_mapping(vspace, virt, &vaddr);
 
-  if (!vaddr.pdpt_ppn)
+  if (!vaddr.pml4e->present)
   {
     vaddr.pml4e->present = 1;
     vaddr.pml4e->write = 1;
@@ -181,7 +181,7 @@ void vspace_map(vspace_t *vspace, size_t virt, size_t phys, int flags)
     resolve_mapping(vspace, virt, &vaddr);
   }
 
-  if (!vaddr.pdir_ppn)
+  if (!vaddr.pdpte->present)
   {
     vaddr.pdpte->present = 1;
     vaddr.pdpte->write = 1;
@@ -190,7 +190,7 @@ void vspace_map(vspace_t *vspace, size_t virt, size_t phys, int flags)
     resolve_mapping(vspace, virt, &vaddr);
   }
 
-  if (!vaddr.ptbl_ppn)
+  if (!vaddr.pdire->present)
   {
     vaddr.pdire->present = 1;
     vaddr.pdire->write = 1;
@@ -199,7 +199,7 @@ void vspace_map(vspace_t *vspace, size_t virt, size_t phys, int flags)
     resolve_mapping(vspace, virt, &vaddr);
   }
 
-  if (!vaddr.page_ppn)
+  if (!vaddr.ptble->present)
   {
     vaddr.ptble->present = 1;
     vaddr.ptble->no_exec = (flags & PG_NOEXEC) ? 1 : 0;
@@ -222,6 +222,8 @@ void vspace_unmap(vspace_t *vspace, size_t virt)
     *(uint64_t*)vaddr.ptble = 0;
     free_page(vaddr.page_ppn);
   }
+  debug(VSPACE, "unmapped PPN %zu @ %p\n", vaddr.page_ppn, virt << PAGE_SHIFT);
+  tlb_invalidate(virt);
 }
 
 void vspace_apply(vspace_t *vspace)

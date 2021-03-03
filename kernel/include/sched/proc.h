@@ -7,10 +7,19 @@
 #include <fs/vfs.h>
 #include <sched/loader.h>
 
+typedef enum
+{
+  PROC_RUNNING,
+  PROC_KILLED
+} proc_state_t;
+
 typedef struct
 {
   /* PID = process id */
   size_t pid;
+
+  /* process state */
+  proc_state_t state;
 
   /* a list of tasks (threads) associated
    * with this process. lock with task_list_lock */

@@ -10,6 +10,7 @@
 #include <arch/common.h>
 #include <bits.h>
 #include <debug.h>
+#include <syscalls.h>
 
 static size_t pid_counter = 1;
 
@@ -36,6 +37,7 @@ void proc_start(const char *filename)
   proc_t* proc = kmalloc(sizeof(proc_t));
   proc->pid = atomic_add(&pid_counter, 1);
   proc->loader = ldr;
+  proc->state = PROC_RUNNING;
 
   list_init(&proc->task_list);
   mutex_init(&proc->task_list_lock);
@@ -51,10 +53,33 @@ void proc_start(const char *filename)
 
   /* create the main thread and insert it into
    * the scheduler. */
-
   task_t* main_thread = create_user_task(proc->vspace, ldr->entry_addr, stack);
   main_thread->process = proc;
   list_add(&proc->task_list, main_thread);
 
   sched_insert(main_thread);
+}
+
+fd_t *proc_get_fd(proc_t *process, int fd)
+{
+  assert(false, "fixme: implement");
+  return NULL;
+}
+
+int proc_new_fd(proc_t *process, fd_t *fd)
+{
+  assert(false, "fixme: implement");
+  return -1;
+}
+
+void sys_exit(int status)
+{
+  assert(current_task->process, "user task has no associated process");
+  debug(PROCESS, "exit(%d) called by PID %zu\n", status, current_task->process);
+
+  /* by setting the current process state to killed,
+   * all other threads will be killed during the next
+   * few time slices. */
+  current_task->process->state = PROC_KILLED;
+  task_kill();
 }

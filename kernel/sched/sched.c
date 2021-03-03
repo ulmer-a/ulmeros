@@ -103,6 +103,31 @@ context_t* schedule(context_t* ctx)
   return ctx;
 }
 
+int task_schedulable(task_t *task)
+{
+  /* this function is called by the schedule()
+   * and therefore is running in an interrupt
+   * context with further interrupts disabled.
+   * don't use any locks and don't block */
+
+  /* if the associated process was killed, also kill
+   * this task. */
+  if (task->process && task->process->state == PROC_KILLED)
+    task->state = TASK_KILLED;
+
+  if (task->state == TASK_KILLED)
+  {
+    /* if the task was killed, remove it from the
+     * scheduler to cleanup the scheduler task list */
+    list_it_remove(&sched_tasks, list_find(&sched_tasks, current_task));
+  }
+
+  if (task->irq_wait)
+    return false;
+
+  return (task->state == TASK_RUNNING);
+}
+
 void sched_enable()
 {
   sched_enabled = true;

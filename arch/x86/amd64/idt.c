@@ -75,6 +75,8 @@ extern char irq36; extern char irq37; extern char irq38; extern char irq39;
 extern char irq40; extern char irq41; extern char irq42; extern char irq43;
 extern char irq44; extern char irq45; extern char irq46; extern char irq47;
 
+extern char irq_syscall;
+
 static void setup_idt()
 {
   debug(IRQ, "setting up IDT\n");
@@ -128,8 +130,8 @@ static void setup_idt()
   install_descriptor(46, &irq46, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
   install_descriptor(47, &irq47, IDT_PRESENT | IDT_SUPV | IDT_GATE, 0);
 
-  // setup system call software interrupt
-  // install_descriptor(0x80, irq_syscall, IDT_PRESENT | IDT_USER | IDT_GATE, 0);
+  /* setup a call gate for the system call handler (int $0x80) */
+  install_descriptor(0x80, &irq_syscall, IDT_PRESENT | IDT_USER | IDT_GATE, 0);
 
   // tell the processor where the IDT is located
   idt_selector_t idtSelector;

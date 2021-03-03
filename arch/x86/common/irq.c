@@ -4,6 +4,8 @@
 #include <x86/context.h>
 #include <x86/ports.h>
 #include <debug.h>
+#include <syscalls.h>
+#include <errno.h>
 
 
 extern int page_fault(size_t address, int present,
@@ -17,8 +19,8 @@ extern context_t* schedule(context_t* ctx);
 
 int x86_exception(size_t exc, size_t error)
 {
-  debug(IRQ, "Processor exception #%zu (%s)\n", exc, strexcept(exc));
-  debug(IRQ, "Error code: 0x%zx\n", error);
+  debug(IRQ, "Processor exception #%zu (%s), error=0x%zx\n",
+             exc, strexcept(exc), error);
 
   switch (exc)
   {
@@ -64,7 +66,26 @@ static void backtrace(size_t baseptr)
 
 context_t* x86_irq_handler(context_t* ctx)
 {
-  if (ctx->irq < 32)
+  if (ctx->irq == 0x80)
+  {
+    const size_t sys_count = syscall_count();
+    if (ctx->error >= sys_count)
+    {
+      /* if the system call id is invalid,
+       * report ENOSYS error and return  */
+      ctx->rax = -ENOSYS;
+      return ctx;
+    }
+
+    /* call the corresponding syscall routine */
+    size_t (*sys_func)(size_t a1, size_t a2, size_t a3,
+        size_t a4, size_t a5, size_t a6) = syscall_table[ctx->rax];
+    ctx->rax = sys_func(
+      ctx->r8,  ctx->r9,  ctx->r10,
+      ctx->r11, ctx->r12, ctx->r13
+    );
+  }
+  else if (ctx->irq < 32)
   {
     if (ctx->irq == EXC_YIELD)
     {
@@ -75,13 +96,12 @@ context_t* x86_irq_handler(context_t* ctx)
     {
       preempt_enable();
 
-      debug(IRQ, "rip=%p, rsp=%p, rdi=%p, rsi=%p\n"
-                 "rax=%p, rbx=%p, rcx=%p, rdx=%p\n",
-            ctx->rip, ctx->rsp, ctx->rdi, ctx->rsi,
-            ctx->rax, ctx->rbx, ctx->rcx, ctx->rdx);
-
       if (!x86_exception(ctx->irq, ctx->error))
       {
+        debug(IRQ, "rip=%p, rsp=%p, rdi=%p, rsi=%p\n"
+                   "rax=%p, rbx=%p, rcx=%p, rdx=%p\n",
+              ctx->rip, ctx->rsp, ctx->rdi, ctx->rsi,
+              ctx->rax, ctx->rbx, ctx->rcx, ctx->rdx);
         backtrace(ctx->rbp);
         assert(false, "Unhandled exception\n");
       }

@@ -7,7 +7,7 @@
 #include <util/types.h>
 
 /* processes and flow control */
-void      sys_exit();
+void      sys_exit(int status);
 ssize_t   sys_fork();
 int       sys_exec(char *path, char** argv);
 int       sys_wait(size_t pid, int* exit_code);
@@ -21,3 +21,6 @@ int       sys_close(int fd);
 
 /* interprocess communication */
 int       sys_pipe(int* read_end, int* write_end);
+
+extern size_t syscall_count();
+extern void* syscall_table[];

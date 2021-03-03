@@ -72,3 +72,9 @@ irq\@:
 .rept 48
 m_irq_handler
 .endr
+
+.global irq_syscall
+irq_syscall:
+    pushq %rax
+    pushq $0x80
+    jmp save_context

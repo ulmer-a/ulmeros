@@ -76,19 +76,6 @@ void task_kill()
   yield();
 }
 
-int task_schedulable(task_t *task)
-{
-  /* this function is called by the schedule()
-   * and therefore is running in an interrupt
-   * context with further interrupts disabled.
-   * don't use any locks and don't block */
-
-  if (task->irq_wait)
-    return false;
-
-  return (task->state == TASK_RUNNING);
-}
-
 void irq_signal(task_t *task)
 {
   task->irq_wait = false;

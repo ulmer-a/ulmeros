@@ -6,7 +6,7 @@
 #include <debug.h>
 
 
-extern void page_fault(size_t address, int present,
+extern int page_fault(size_t address, int present,
                        int write, int user, int exec);
 
 extern context_t* schedule(context_t* ctx);
@@ -26,13 +26,12 @@ int x86_exception(size_t exc, size_t error)
   case EXC_PAGE_FAULT: {
     size_t addr = 0;
     __asm__ volatile ("mov %%cr2, %0;" : "=r"(addr));
-    page_fault(addr,
+    return page_fault(addr,
       error & BIT(0) ? 1 : 0,
       error & BIT(1) ? 1 : 0,
       error & BIT(2) ? 1 : 0,
       error & BIT(4) ? 1 : 0
     );
-    return false;
   }
 
   default:

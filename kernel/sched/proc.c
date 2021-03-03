@@ -52,7 +52,10 @@ void proc_start(const char *filename)
 
   /* create the main thread and insert it into
    * the scheduler. */
+
   task_t* main_thread = create_user_task(proc->vspace, ldr->entry_addr, stack);
+  main_thread->process = proc;
   list_add(&proc->task_list, main_thread);
+
   sched_insert(main_thread);
 }

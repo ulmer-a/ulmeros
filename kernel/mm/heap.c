@@ -192,6 +192,7 @@ void *_kmalloc(size_t size)
     heap_start = blk;
 
   mutex_unlock(&kheap_mutex);
+
   return blk + 1;
 }
 

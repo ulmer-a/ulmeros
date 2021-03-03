@@ -26,6 +26,11 @@ static void cleanup_task_func()
 {
   while (task_count > 0)
   {
+#ifdef DEBUG
+    /* occasionally, check for heap corruption */
+    //kheap_check_corrupt();
+#endif
+
     /* iterate through the list of tasks, remove
      * and delete any one with state TASK_KILLED */
     mutex_lock(&task_list_lock);

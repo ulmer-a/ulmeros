@@ -3,6 +3,7 @@
 #include <arch/context.h>
 #include <sched/task.h>
 #include <util/list.h>
+#include <mm/memory.h>
 #include <mm/vspace.h>
 
 #include <debug.h>
@@ -110,6 +111,8 @@ void sched_enable()
 
 void sched_insert(task_t *task)
 {
+  kheap_check_corrupt();
+
   preempt_disable();
   list_add(&sched_tasks, task);
   preempt_enable();

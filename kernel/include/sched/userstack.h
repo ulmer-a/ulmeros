@@ -30,3 +30,5 @@ typedef struct
 } userstack_t;
 
 userstack_t* create_stack(proc_t *process);
+
+int stack_load(proc_t* proc, size_t virt_page);

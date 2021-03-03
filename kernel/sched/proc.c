@@ -39,15 +39,14 @@ void proc_start(const char *filename)
 
   list_init(&proc->task_list);
   mutex_init(&proc->task_list_lock);
-  list_init(&proc->stack_list);
-  mutex_init(&proc->stack_list_lock);
 
   /* allocate new virtual address space
    * for the process. */
   proc->vspace = vspace_create();
 
   /* create a new stack for the main thread. */
-  // TODO
+  list_init(&proc->stack_list);
+  mutex_init(&proc->stack_list_lock);
   userstack_t* stack = create_stack(proc);
 
   /* create the main thread and insert it into

@@ -93,7 +93,7 @@ static void load_gdt()
 {
   /* tell the CPU the location of the GDT by writing it's
    * size and location to the hidden GDT register */
-  s_gdt_descriptor.size = sizeof(uint32_t) * GDT_ENTRIES;
+  s_gdt_descriptor.size = sizeof(uint64_t) * GDT_ENTRIES;
   s_gdt_descriptor.addr = s_gdt;
   __asm__ volatile("lgdt %0" : : "g"(s_gdt_descriptor));
 }

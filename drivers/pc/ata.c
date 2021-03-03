@@ -510,8 +510,7 @@ static void ata_setup_dma(pci_ide_dev_t* controller, uint8_t channel)
   /* allocate a DMA buffer that doesn't cross 64K boundaries
    * and resides in physical memory below 4GB */
   void* phys_buffer = alloc_dma_region();
-  controller->ide_channels[channel].prdt =
-      (phys_buffer);
+  controller->ide_channels[channel].prdt = phys_to_virt(phys_buffer);
   controller->ide_channels[channel].prdt->buffer =
       (size_t)phys_buffer + BLOCK_SIZE;
   controller->ide_channels[channel].prdt->last_entry = 1;

@@ -200,9 +200,11 @@ int vfs_open(const char *filename, int flags, int mode, fd_t** fd)
   dir_t* working_dir = VFS_ROOT;
   proc_t* process = NULL;
   if (current_task && current_task->process)
+  {
     process = current_task->process;
-  if (process->working_dir)
-    working_dir = process->working_dir;
+    if (process->working_dir)
+      working_dir = process->working_dir;
+  }
 
   int error;
   file_t* target;

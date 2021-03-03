@@ -74,12 +74,14 @@ context_t* x86_irq_handler(context_t* ctx)
     else
     {
       preempt_enable();
+
+      debug(IRQ, "rip=%p, rsp=%p, rdi=%p, rsi=%p\n"
+                 "rax=%p, rbx=%p, rcx=%p, rdx=%p\n",
+            ctx->rip, ctx->rsp, ctx->rdi, ctx->rsi,
+            ctx->rax, ctx->rbx, ctx->rcx, ctx->rdx);
+
       if (!x86_exception(ctx->irq, ctx->error))
       {
-        debug(IRQ, "rip=%p, rsp=%p, rdi=%p, rsi=%p\n"
-                   "rax=%p, rbx=%p, rcx=%p, rdx=%p\n",
-              ctx->rip, ctx->rsp, ctx->rdi, ctx->rsi,
-              ctx->rax, ctx->rbx, ctx->rcx, ctx->rdx);
         backtrace(ctx->rbp);
         assert(false, "Unhandled exception\n");
       }

@@ -4,7 +4,8 @@
 
 #define __init__
 
-void kheap_check_corrupt();
+void _kheap_check_corrupt(const char* func, unsigned line);
+#define kheap_check_corrupt() _kheap_check_corrupt(__func__, __LINE__);
 void kheap_print();
 
 #ifdef DEBUG

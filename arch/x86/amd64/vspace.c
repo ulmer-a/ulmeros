@@ -62,6 +62,10 @@ void vspace_setup(size_t pml4_ppn)
   assert(sizeof(gpte_t) == 8, "gpte_t is not of size 64bit");
   debug(INIT, "PML4 uses page frame %zu\n", pml4_ppn);
   _vspace_kernel.pml4_ppn = pml4_ppn;
+
+  /* clear the lower identity mapping, so we can
+   * detect nullpointer dereferences and similar errors. */
+  memset(ppn_to_virt(_vspace_kernel.pml4_ppn), 0, PAGE_SIZE/2);
 }
 
 static void vspace_update_kernel_mapping(vspace_t* vspace)

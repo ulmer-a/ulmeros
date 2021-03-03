@@ -58,7 +58,7 @@ void kheap_print()
   mutex_unlock(&kheap_mutex);
 }
 
-void kheap_check_corrupt()
+void _kheap_check_corrupt(const char* func, unsigned line)
 {
   for (hblock_t* entry = kheap_start_;
        entry != NULL;
@@ -66,7 +66,8 @@ void kheap_check_corrupt()
   {
     if (entry->magic != HEAP_MAGIC)
     {
-      assert(false, "heap corruption detected!");
+      debug(ASSERT, "heap corruption detected in %s():%u\n", func, line);
+      assert(false, "heap corruption detected");
     }
   }
 }

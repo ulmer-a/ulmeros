@@ -149,7 +149,7 @@ static int loader_map_page(loader_t* ldr,
       read_size = phte->p_vaddr + phte->p_memsz - f_addr;
 
     /* seek to the correct file location */
-    const size_t read_offset = phte->p_offset + f_addr;
+    const size_t read_offset = phte->p_offset + f_addr - phte->p_vaddr;
     vfs_seek(ldr->file, read_offset, SEEK_SET);
 
     /* load the memory contents from the ELF binary file */
@@ -161,10 +161,15 @@ static int loader_map_page(loader_t* ldr,
     }
   }
 
-  int flags = 0;
+  /* set read/write/execute permissions for the page */
+  int flags = PG_USER;
+  if ((phte->flags & BIT(0)) == 0)  flags |= PG_NOEXEC;
+  if (phte->flags & BIT(1))         flags |= PG_WRITE;
+
+  /* map the page */
   vspace_map(vspace, virt_page, ppn, flags);
   debug(LOADER, "loading PPN %zu with code/data @ %p\n",
-        virt_page << PAGE_SHIFT);
+        ppn, virt_page << PAGE_SHIFT);
   return SUCCESS;
 }
 

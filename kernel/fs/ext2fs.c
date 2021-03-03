@@ -269,7 +269,7 @@ static ssize_t ext2_read(void* drvdata,
   ext2fs_t* fs = file->driver1;
   ext2_inode_t* inode = file->driver2;
 
-  // truncate bytes to read if necessary
+  /* truncate length if necessary */
   if (offset + len > file->length)
     len = file->length - offset;
 
@@ -294,11 +294,17 @@ static ssize_t ext2_read(void* drvdata,
       break;
     }
 
-    ssize_t bytes_to_copy = fs->block_size;
-    if (len < fs->block_size)
-        bytes_to_copy = len % fs->block_size;
-    memcpy(buffer, block_buffer, bytes_to_copy);
-    bytes_read += bytes_to_copy;
+    size_t bb_offset = 0;
+    if (bytes_read == 0)
+      bb_offset = offset % fs->block_size;
+
+    size_t cpy_size = fs->block_size - bb_offset;
+    if (bytes_read + cpy_size > len)
+      cpy_size -= bytes_read + cpy_size - len;
+
+    /* copy data into the user buffer */
+    memcpy(buffer + bytes_read, block_buffer + bb_offset, cpy_size);
+    bytes_read += cpy_size;
   }
   kfree(block_buffer);
 

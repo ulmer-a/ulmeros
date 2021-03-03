@@ -26,6 +26,7 @@ static void cleanup_task_func()
 {
   while (task_count > 0)
   {
+    break;
 #ifdef DEBUG
     /* occasionally, check for heap corruption */
     //kheap_check_corrupt();
@@ -55,7 +56,7 @@ static void cleanup_task_func()
     yield();
   }
 
-  debug(TASKLIST, "no more tasks alive!");
+  debug(TASKLIST, "no more tasks alive!\n");
 
   // TODO: shutdown the system
 }

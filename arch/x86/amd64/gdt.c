@@ -98,12 +98,6 @@ static void load_gdt()
   __asm__ volatile("lgdt %0" : : "g"(s_gdt_descriptor));
 }
 
-static void load_tss(uint16_t tss_index)
-{
-  uint16_t selector = (tss_index << 3) & 0x03;
-  __asm__ volatile ("ltr %0;" :: "r"(selector));
-}
-
 static void setup_tss(tssd_t* td)
 {
   uint64_t addr = (uint64_t)&s_tss;
@@ -122,6 +116,11 @@ static void setup_tss(tssd_t* td)
   td->type    = 0x09; // available TSS
 
   s_tss.iopb_offset = sizeof(tss_t);
+
+  __asm__ volatile(
+    "mov $0x3b, %ax;"
+    "ltr %ax;"
+  );
 }
 
 void setup_gdt()
@@ -145,7 +144,6 @@ void setup_gdt()
 
   /* setup and load a task state segment */
   setup_tss((tssd_t*)&s_gdt[TSS_INDEX]);
-  load_tss(TSS_INDEX);
 }
 
 void set_kernel_sp(uint64_t sp)

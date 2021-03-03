@@ -4,7 +4,7 @@
 
 #define OUTPUT_ENABLED  BIT(31)
 
-#define VSPACE      0   | OUTPUT_ENABLED
+#define VSPACE      0   //| OUTPUT_ENABLED
 #define INIT        1   | OUTPUT_ENABLED
 #define ASSERT      2   | OUTPUT_ENABLED
 #define PAGEMGR     3   //| OUTPUT_ENABLED
@@ -23,7 +23,7 @@
 #define RAMFS       16  | OUTPUT_ENABLED
 #define PROCESS     17  | OUTPUT_ENABLED
 
-extern void debug(int level, const char* fmt, ...);
+extern void debug(unsigned level, const char* fmt, ...);
 extern void panic();
 
 #ifdef DEBUG

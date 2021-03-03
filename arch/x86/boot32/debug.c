@@ -3,17 +3,6 @@
 
 #include "boot32.h"
 
-#define COL_RESET   "\x1b[0m"
-#define COL_RED     "\x1b[31m"
-#define COL_BLACK   "\x1b[30m"
-#define COL_RED     "\x1b[31m"
-#define COL_GREEN   "\x1b[32m"
-#define COL_YELLOW  "\x1b[33m"
-#define COL_BLUE    "\x1b[34m"
-#define COL_MAGENTA "\x1b[35m"
-#define COL_CYAN    "\x1b[36m"
-#define COL_WHITE   "\x1b[37m"
-
 static inline void outb(uint16_t port, uint8_t val)
 {
     __asm__ volatile ("outb %0, %1" :: "a"(val), "Nd"(port));

@@ -3,7 +3,6 @@
 #include <x86/context.h>
 #include <x86/ports.h>
 
-#define USER        0x03
 #define CS_KERNEL   0x08
 #define DS_KERNEL   0x10
 #define CS_USER     0x1b

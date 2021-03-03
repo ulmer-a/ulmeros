@@ -27,7 +27,7 @@ userstack_t *create_stack(proc_t* proc)
   stack->page_count = page_count;
   stack->index = index;
   stack->allocated = true;
-  stack->stack_ptr = (void*)(USER_BREAK - (index * STACK_SIZE));
+  stack->stack_ptr = (void*)(USER_BREAK - (index * STACK_SIZE)) - sizeof(void*);
 
   mutex_unlock(&proc->stack_list_lock);
   return stack;

@@ -18,3 +18,6 @@ typedef unsigned short uint16_t;
 typedef short int16_t;
 typedef unsigned char uint8_t;
 typedef char int8_t;
+
+#define min(a, b) (((a) > (b)) ? (b) : (a))
+#define max(a, b) (((a) > (b)) ? (a) : (b))

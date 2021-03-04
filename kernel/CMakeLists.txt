@@ -10,9 +10,7 @@ target_compile_options(kernel PRIVATE
 )
 
 target_include_directories(kernel PRIVATE
-    "${UTIL_INCLUDE}"
-    "${PROJECT_SOURCE_DIR}/arch/${ARCH}/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${TARGET_INCLUDE}"
 )
 
 target_link_libraries(kernel util)

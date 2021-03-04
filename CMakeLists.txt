@@ -1,7 +1,7 @@
 # UlmerOS CMake TopLevel Configuration
 # Recommended way of invocation is via 'menuconf'
 # For more information, see README.md
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 
 # General project settings
 project(UlmerOS VERSION 0.1 LANGUAGES C ASM)
@@ -26,8 +26,8 @@ endif()
 message(STATUS "building for ${ARCH}-${PLATFORM}")
 
 # Compiler choices
-set(CMAKE_C_COMPILER "${ARCH}-elf-gcc")
-set(CMAKE_ASM_COMPILER "${ARCH}-elf-gcc")
+set(CMAKE_C_COMPILER "clang")
+set(CMAKE_ASM_COMPILER "clang")
 
 string(TOUPPER "ARCH_${ARCH}" ARCH_FLAG)
 add_compile_definitions(
@@ -38,10 +38,8 @@ add_compile_definitions(
 add_compile_options(
     $<$<CONFIG:DEBUG>:-O0>
     $<$<CONFIG:RELEASE>:-O2>
-    -Wall -Werror -fvar-tracking
-    -ffreestanding -fno-strict-aliasing
+    -ffreestanding -nostdinc -fno-strict-aliasing
     -fno-builtin -fno-stack-protector
-    -nostdlib -nostdinc -mno-sse2
 )
 
 add_link_options(
@@ -49,7 +47,6 @@ add_link_options(
     -Wl,-nmagic
     -Wl,-gc-sections
     -Wl,--build-id=none
-    -Wl,--no-relax
 )
 
 set(TARGET_INCLUDE
@@ -60,7 +57,7 @@ set(TARGET_INCLUDE
 
 include(arch/${ARCH}/${ARCH}.cmake)
 
-add_subdirectory(drivers/${PLATFORM})
 add_subdirectory(libutil)
 add_subdirectory(kernel)
+add_subdirectory(drivers/${PLATFORM})
 add_subdirectory(arch/${ARCH})

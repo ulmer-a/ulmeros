@@ -15,4 +15,6 @@ target_compile_options(util PUBLIC ${TARGET_CFLAGS})
 add_library(util32 STATIC ${UTIL_HEADERS} ${UTIL_SOURCES})
 target_include_directories(util32 PUBLIC ${TARGET_INCLUDE})
 target_compile_definitions(util32 PRIVATE BOOT32)
-target_compile_options(util32 PUBLIC -m32 -mno-sse2)
+target_compile_options(util32 PUBLIC
+    --target=i386-elf
+)

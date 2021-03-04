@@ -26,8 +26,8 @@ endif()
 message(STATUS "building for ${ARCH}-${PLATFORM}")
 
 # Compiler choices
-set(CMAKE_C_COMPILER clang)
-set(CMAKE_ASM_COMPILER clang)
+set(CMAKE_C_COMPILER "${ARCH}-elf-gcc")
+set(CMAKE_ASM_COMPILER "${ARCH}-elf-gcc")
 
 string(TOUPPER "ARCH_${ARCH}" ARCH_FLAG)
 add_compile_definitions(
@@ -38,11 +38,10 @@ add_compile_definitions(
 add_compile_options(
     $<$<CONFIG:DEBUG>:-O0>
     $<$<CONFIG:RELEASE>:-O2>
-    "--target=${ARCH}-elf"
-    -Wall -Werror
+    -Wall -Werror -fvar-tracking
     -ffreestanding -fno-strict-aliasing
     -fno-builtin -fno-stack-protector
-    -nostdlib -nostdinc
+    -nostdlib -nostdinc -mno-sse2
 )
 
 add_link_options(

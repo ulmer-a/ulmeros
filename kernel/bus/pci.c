@@ -24,6 +24,7 @@ static int pci_is_present(uint8_t bus, uint8_t slot, uint8_t func)
 void pci_init()
 {
   assert(!pci_initialized, "PCI bus already initialized");
+  pci_initialized = true;
 
   debug(PCIBUS, "enumerating PCI bus\n");
 

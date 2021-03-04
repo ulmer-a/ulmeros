@@ -1,5 +1,5 @@
 #include <util/types.h>
-#include <util/mutex.h>
+#include <sched/mutex.h>
 #include <mm/memory.h>
 #include <mm/vspace.h>
 #include <arch/common.h>

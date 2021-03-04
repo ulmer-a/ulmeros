@@ -1,0 +1,54 @@
+#! /bin/bash
+
+source_dir=$(dirname "$0")
+
+# ask for architecture and platform
+dialog_msg="Please select target architecture and platform"
+arch_plat=`dialog --menu "${dialog_msg}" 20 60 10 \
+ "x86_64-pc" "AMD x86_64 on PC" \
+ "i386-pc" "Intel 386 on PC (Unsupported)" \
+ "aarch64-raspi" "Raspberry Pi 64bit (Unsupported)" \
+ "armv7-raspi" "Raspberry Pi 32bit (Unsupported)" \
+  3>&1 1>&2 2>&3`
+
+if [ ! "$?" -eq "0" ]; then
+    exit 1
+fi
+
+# parse architecture and platform name
+IFS='-' read -ra TARGET_ARCH_PLAT <<< "${arch_plat}"
+arch=${TARGET_ARCH_PLAT[0]}
+platform=${TARGET_ARCH_PLAT[1]}
+
+# read the corresponding menuconfig files
+arch_conf=$(< "${source_dir}/arch/${arch}/menuconf.txt")
+driver_conf=$(< "${source_dir}/drivers/${platform}/menuconf.txt")
+generic_conf=$(< "${source_dir}/menuconf.txt")
+
+dialog_msg="Features to be compiled for target ${arch}-${platform}"
+user_feat=`echo -e "${generic_conf}\n${arch_conf}\n${driver_conf}" | \
+ xargs dialog --checklist "${dialog_msg}" 20 60 10 3>&1 1>&2 2>&3`
+
+if [ ! "$?" -eq "0" ]; then
+    exit 1
+fi
+
+cmake_def="-DARCH=${arch} -DPLATFORM=${platform}"
+for option in ${user_feat}
+do
+    case "${option}" in
+
+        "b_debug")
+            cmake_def="${cmake_def} -DCMAKE_BUILD_TYPE=Debug"
+            ;;
+
+        *)
+            cmake_def=" ${cmake_def} -D${option^^}=ON"
+            ;;
+
+    esac
+done
+
+clear
+echo cmake ${cmake_def} ${source_dir}
+cmake ${cmake_def} ${source_dir}

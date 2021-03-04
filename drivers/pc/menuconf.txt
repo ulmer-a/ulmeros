@@ -1,0 +1,4 @@
+"d_ata" "PCI IDE Hard Drive Controller driver" on
+"d_vgacon" "VGA Console" off
+"d_ps2kbd" "PS/2 Keyboard driver" off
+"d_serial" "Serial port" off

@@ -8,7 +8,6 @@
 #include <debug.h>
 #include <mm/memory.h>
 
-static void* ramfs;
 static size_t major_counter = 1;
 
 static list_t driver_list;
@@ -42,13 +41,6 @@ size_t bd_register_driver(bd_driver_t *bd_driver)
   mutex_unlock(&driver_list_lock);
 
   return major;
-}
-
-static void bdname(char* buffer, const char* prefix, size_t minor)
-{
-  strcpy(buffer, prefix);
-  char ibuffer[32];
-  strcat(buffer, ultoa(minor, ibuffer, 10));
 }
 
 void bd_register(bd_t *blkdev)

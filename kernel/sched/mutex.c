@@ -1,5 +1,6 @@
-#include <util/mutex.h>
-#include <util/system.h>
+#include <sched/mutex.h>
+#include <sched/task.h>
+#include <debug.h>
 
 #ifndef BOOT32
 extern task_t* current_task;

@@ -8,7 +8,6 @@
 #include <mm/vspace.h>
 #include <fs/vfs.h>
 #include <arch/common.h>
-#include <bits.h>
 #include <debug.h>
 #include <syscalls.h>
 

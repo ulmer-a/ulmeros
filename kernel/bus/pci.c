@@ -1,7 +1,7 @@
 #include <bus/pci.h>
 #include <debug.h>
 #include <util/list.h>
-#include <util/mutex.h>
+#include <sched/mutex.h>
 #include <mm/memory.h>
 
 static list_t device_list;

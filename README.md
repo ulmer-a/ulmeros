@@ -15,128 +15,37 @@ support that I just need to move over to this repository.
 As a result of the reimplementation, I took down the old repository as it doesn't
 contain anything that anyone could learn from anymore.
 
+# Features
+
+## Features currently supported
+* Full x86\_64 architecture support
+* Preemtive multitasking
+* PCI ATA HDD Driver (DMA)
+* ext2 read support
+* Unix-like virtual filesystem
+
+Features that will be supported in the feature:
+* Ports of `bash` and `coreutils`/`busybox`
+* Ports of `newlib` C library, `libstdc++`
+* ext2 filesystem write support
+* VBE Graphics console
+* PS/2 Keyboard driver
+* Network stack with ethernet driver
+* `fork()` and `exec()` with `copy and write`
+* Run userspace programs in 32bit compatibility mode on x86\_64
+
 # Building Ulmer OS
 
-Building UlmerOS is rather easy. Make sure you've got your latest binutils and
-gcc installed from the repositories for the architecture you're building. You'll
-also need `cmake`.
+## Build instructions
 
-## Build instructions for amd64-pc platform
-
-As for now, this is the only supported platform. First clone the repository into
-any directory on your machine. We're going to assume you cloned into `~/ulmeros`.
+Configuration can be done by passing the configuration arguments to `cmake`. The
+`menuconf` script in the project root directory automates this project and lets
+you choose configuration options via a text GUI, similar to menuconfig in the linux
+kernel.
 
 ```
-$ mkdir /tmp/ulmeros
-$ cd /tmp/ulmeros
-$ cmake ~/ulmeros
+$ mkdir build && cd build
+$ ../menuconf
 $ make
 ```
 
-After that you can copy the files to a hard drive, install grub and boot it. You
-can also start the OS in an emulator:
-
-```
-$ make qemu
-```
-
-# Overview
-
-## Programming on UlmerOS
-
-As of December 2020, the public domain C library (pdclibc) has been added to the project.
-That means, it is now possible to develop applications for the OS in C with a
-little bit more comfort than just on bare metal. Currently, the following features of the C standard
-library are supported:
-
-* stdio
-* stdlib
-* ctype
-* string
-* time
-* unistd (incomplete)
-
-However, due to PDClib not being a complete standard C library, this is not enough to port
-entire UNIX applications over. It will be necessary to port another C library (newlib?) in the future.
-
-## Boot
-
-### Booting on x86-PC
-
-Booting on x86\_64 architecture is realized with an additional 32bit boot stage that
-is loaded by GRUB using the _Multiboot_ specification. The `boot32` stage does some
-basic initialization like setting up a GDT and scanning the multiboot memory map to
-setup a free-page bitmap that is passed on to the 64-bit kernel after setting up a mapping
-of the entire RAM at address `0xffff800000000000` (which is also duplicated at `0x0`). The
-64-bit kernel is loaded and control is transferred to it via a far jump to the kernel
-load address at `0x01000000`. A small assembly routine will then perform a jump to
-the final kernel address at `0xffff800001000000`. From there on, the x86 architecture init
-code will reload the GDT and cleanup any artefacts left by the boot32 stage. After the
-kernel is running stable and the processor is initialized, control is finally handed to `kmain()`.
-
-## Virtual memory
-The `vspace_t` type represents a virtual address space in UlmerOS. The generic
-header interface `vspace.h` is implemented by each architecture. The exact memory
-layout is architecture-dependent.
-
-## Scheduling
-Currently, the scheduler implements a basic round-robin scheduling policy. The
-scheduler calls `task_schedulable()` on a given task to determine whether it can be
-scheduled or not. Don't modify the `state` field, but instead modify `task_schedulable()`.
-
-## Syscalls
-System calls provide a way for user space programs to call kernel routines.
-
-## Debugging
-The `debug()` macro provides an easy-to-use thread-safe logging mechanism which
-prints to the QEMU or Bochs emulator debug output. Different log levels can be
-individually switched on or off in `debug.h`.
-
-## Interrupts
-Proper interrupt handling has to be implemented.
-
-## Virtual file system
-Not yet implemented.
-
-## Kernel C-library
-
-### Linked list (list_t)
-`list_t` is an important implementation of a linked list heavily used
-in the entire kernel. It provides a lot of helper functions to make
-dealing with linked lists as easy as possible.
-
-### String library (kstring.h)
-The kernel string library provides functionality similar to what can be found
-in userspace `string.h` libraries. Beware that some less-frequently used
-functions might not yet be implemented.
-
-### FIFO (fifo_t)
-Not implemented yet.
-
-### Mutex (mutex_t)
-Mutexes provide a way to synchronize access to shared resources. Before
-scheduling is enabled, mutexes can be used too, although in that case they
-behave like spinlocks.
-
-### Condition variables (cond_t)
-Condition variables provide a convenient way of signaling events to other
-kernel threads. Using condition variables only makes sense after scheduling
-was enabled.
-
-## PCI bus
-The initialization thread performs a PCI scan before drivers are loaded. This
-will create a list of devices. The `bus/pci.h` header provides access to the PCI
-configuration space and allows drivers to register themselves.
-
-### Supported PCI devices
-* `pc/ata.c`: Intel 82371AB/EB/MB PIIX4 IDE Controller
-* `pc/ata.c`: Intel 82371SB PIIX3 IDE Controller (Natoma/Triton II)
-
-## Supported platforms
-The OS is implemented in a portable way to allow easy portability to new
-processor architectures and hardware platforms. Currently, the following
-architectures are supported:
-
-### amd64-pc
-Supports 64bit PC's. On this architecture, an additional 32bit boot stage is
-required, which sets up boot page tables and jumps into 64bit mode.

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <util/types.h>
-#include <util/mutex.h>
+#include <sched/mutex.h>
 #include <util/list.h>
 #include <mm/vspace.h>
 #include <fs/vfs.h>

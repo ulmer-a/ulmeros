@@ -18,8 +18,3 @@ size_t atomic_add(size_t* mem, ssize_t increment)
           : "memory");
   return increment;
 }
-
-void idle()
-{
-  __asm__ volatile ("hlt");
-}

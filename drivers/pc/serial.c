@@ -1,6 +1,5 @@
-#pragma once
 
-#include <types.h>
+// TODO: integrate into the build.
 
 enum BaudRate
 {

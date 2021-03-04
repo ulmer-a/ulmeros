@@ -2,7 +2,7 @@
 
 #include <util/types.h>
 #include <util/list.h>
-#include <util/mutex.h>
+#include <sched/mutex.h>
 
 #define BLOCK_SIZE 512
 
@@ -144,6 +144,8 @@ void fs_register(fs_t *fs);
 #define SEEK_SET	1
 #define SEEK_CUR	2
 #define SEEK_END	3
+
+#define O_RDONLY BIT(0)
 
 int vfs_open(const char* filename, int flags, int mode, fd_t **fd);
 ssize_t vfs_read(fd_t* fd, void* buffer, uint64_t length);

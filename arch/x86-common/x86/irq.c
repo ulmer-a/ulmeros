@@ -1,12 +1,11 @@
 #include <util/string.h>
 #include <sched/task.h>
 #include <sched/interrupt.h>
-#include <x86/context.h>
 #include <x86/ports.h>
+#include <x86/context.h>
 #include <debug.h>
 #include <syscalls.h>
 #include <errno.h>
-
 
 extern int page_fault(size_t address, int present,
                        int write, int user, int exec);
@@ -46,24 +45,6 @@ int x86_exception(size_t exc, size_t error)
 
 extern void irq_handler(size_t id);
 
-typedef struct
-{
-  size_t baseptr;
-  size_t ret_addr;
-} stack_frame_t;
-
-static void backtrace(size_t baseptr)
-{
-  int i = 5;
-  debug(IRQ, "-- Backtrace:\n");
-  while (i--)
-  {
-    stack_frame_t* sf = (stack_frame_t*)baseptr;
-    debug(IRQ, "  %p\n", sf->ret_addr);
-    baseptr = sf->baseptr;
-  }
-}
-
 context_t* x86_irq_handler(context_t* ctx)
 {
   if (ctx->irq == 0x80)
@@ -73,17 +54,30 @@ context_t* x86_irq_handler(context_t* ctx)
     {
       /* if the system call id is invalid,
        * report ENOSYS error and return  */
-      ctx->rax = -ENOSYS;
+      #ifdef ARCH_X86_64
+        ctx->rax = -ENOSYS;
+      #else
+        ctx->eax = -ENOSYS;
+      #endif
       return ctx;
     }
 
     /* call the corresponding syscall routine */
-    size_t (*sys_func)(size_t a1, size_t a2, size_t a3,
-        size_t a4, size_t a5, size_t a6) = syscall_table[ctx->rax];
-    ctx->rax = sys_func(
-      ctx->r8,  ctx->r9,  ctx->r10,
-      ctx->r11, ctx->r12, ctx->r13
-    );
+    #ifdef ARCH_X86_64
+      size_t (*sys_func)(size_t a1, size_t a2, size_t a3,
+          size_t a4, size_t a5, size_t a6) = syscall_table[ctx->rax];
+      ctx->rax = sys_func(
+        ctx->r8,  ctx->r9,  ctx->r10,
+        ctx->r11, ctx->r12, ctx->r13
+      );
+    #else
+      size_t (*sys_func)(size_t a1, size_t a2, size_t a3,
+          size_t a4, size_t a5) = syscall_table[ctx->eax];
+      ctx->eax = sys_func(
+        ctx->ebx,  ctx->ecx,  ctx->edx,
+        ctx->esi, ctx->edi
+      );
+    #endif
   }
   else if (ctx->irq < 32)
   {
@@ -102,7 +96,6 @@ context_t* x86_irq_handler(context_t* ctx)
                    "rax=%p, rbx=%p, rcx=%p, rdx=%p\n",
               ctx->rip, ctx->rsp, ctx->rdi, ctx->rsi,
               ctx->rax, ctx->rbx, ctx->rcx, ctx->rdx);
-        backtrace(ctx->rbp);
         assert(false, "Unhandled exception\n");
       }
       preempt_disable();
@@ -145,4 +138,9 @@ void yield()
    * in an interrupt context but without
    * the timer being fired. */
   __asm__ volatile("int $0x1f;");
+}
+
+void idle()
+{
+  __asm__ volatile ("hlt");
 }

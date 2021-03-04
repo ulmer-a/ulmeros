@@ -2,7 +2,7 @@
 #include <sched/proc.h>
 #include <sched/sched.h>
 #include <util/list.h>
-#include <util/mutex.h>
+#include <sched/mutex.h>
 #include <mm/memory.h>
 #include <mm/vspace.h>
 #include <debug.h>

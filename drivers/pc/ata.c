@@ -16,7 +16,7 @@
 
 #include <util/types.h>
 #include <util/list.h>
-#include <util/mutex.h>
+#include <sched/mutex.h>
 #include <util/string.h>
 #include <bus/pci.h>
 #include <mm/memory.h>
@@ -218,7 +218,7 @@ static void ide_write(pci_ide_dev_t* controller, uint8_t channel,
 static uint8_t ide_read(pci_ide_dev_t* controller, uint8_t channel,
                         uint8_t reg)
 {
-  uint8_t result;
+  uint8_t result = 0;
   if (reg > 0x07 && reg < 0x0c)
   {
     ide_write(controller, channel, ATA_REG_CONTROL,

@@ -20,7 +20,7 @@ void alloc_boot32_pages()
   /* pages that are used by boot32 stage code/data/BSS */
   const uint64_t boot_start_page = (uint64_t)&_boot_start >> PAGE_SHIFT;
   const uint64_t boot_page_count =
-      (((uint64_t)&_boot_end - (uint64_t)&_boot_start) >> PAGE_SHIFT) + 1;
+      (((size_t)&_boot_end - (uint64_t)&_boot_start) >> PAGE_SHIFT) + 1;
   mark_pages_used(boot_start_page, boot_page_count);
 
   /* pages that are used by boot32 stack */

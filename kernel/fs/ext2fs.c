@@ -1,5 +1,5 @@
 #include <util/types.h>
-#include <util/mutex.h>
+#include <sched/mutex.h>
 #include <util/list.h>
 #include <util/string.h>
 #include <sched/task.h>
@@ -316,7 +316,6 @@ static ssize_t ext2_read(void* drvdata,
 static ssize_t ext2_write(void* drvdata,
                          void* buffer, size_t len, uint64_t offset)
 {
-  file_t* file = drvdata;
   return -ENOSYS;
 }
 

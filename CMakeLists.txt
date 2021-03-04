@@ -1,44 +1,67 @@
+# UlmerOS CMake TopLevel Configuration
+# Recommended way of invocation is via 'menuconf'
+# For more information, see README.md
 cmake_minimum_required(VERSION 3.10)
 
-option(PC_DISKIMAGE_GEN "generate GRUB hdd diskimage" ON)
-
-# build the kernel image
+# General project settings
 project(UlmerOS VERSION 0.1 LANGUAGES C ASM)
-message(STATUS "ulmeros: building v${CMAKE_PROJECT_VERSION}")
-
+message(STATUS "ulmeros: v${CMAKE_PROJECT_VERSION}")
 enable_language(ASM)
 
-set(CMAKE_C_COMPILER "clang")
-set(CMAKE_ASM_COMPILER "clang")
-
-
-# Default build type
+# default configuration in cmake is release, activate
+# debug configuration in menuconf.
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
-    set(CMAKE_BUILD_TYPE "Debug")
+    set(CMAKE_BUILD_TYPE "Release")
 endif()
-message(STATUS "ulmeros: building ${CMAKE_BUILD_TYPE} configuration")
+message(STATUS "configuration: ${CMAKE_BUILD_TYPE}")
 
-if(NOT DEFINED ARCH)
-    set(ARCH "x86")
-    set(PLATFORM "pc")
-    set(ARCH_PREFIX "x86_64-elf")
-    set(ARCH_PREFIX_32 "i386-elf")
-endif(NOT DEFINED ARCH)
+if(NOT DEFINED ARCH OR NOT EXISTS "${PROJECT_SOURCE_DIR}/arch/${ARCH}")
+    message(FATAL_ERROR "invalid architecture ${ARCH}")
+endif()
 
-add_compile_definitions($<$<CONFIG:DEBUG>:DEBUG>)
+if(NOT DEFINED PLATFORM OR NOT EXISTS "${PROJECT_SOURCE_DIR}/drivers/${PLATFORM}")
+    message(FATAL_ERROR "invalid platform ${PLATFORM}")
+endif()
+
+message(STATUS "building for ${ARCH}-${PLATFORM}")
+
+# Compiler choices
+set(CMAKE_C_COMPILER clang)
+set(CMAKE_ASM_COMPILER clang)
+
+string(TOUPPER "ARCH_${ARCH}" ARCH_FLAG)
+add_compile_definitions(
+    $<$<CONFIG:DEBUG>:DEBUG>
+    "${ARCH_FLAG}"
+)
 
 add_compile_options(
     $<$<CONFIG:DEBUG>:-O0>
     $<$<CONFIG:RELEASE>:-O2>
-    -ffreestanding -nostdinc -fno-strict-aliasing
+    "--target=${ARCH}-elf"
+    -Wall -Werror
+    -ffreestanding -fno-strict-aliasing
     -fno-builtin -fno-stack-protector
+    -nostdlib -nostdinc
 )
 
 add_link_options(
-    -nostdlib -Wl,-nmagic -Wl,-gc-sections -Wl,--build-id=none
+    -nostdlib
+    -Wl,-nmagic
+    -Wl,-gc-sections
+    -Wl,--build-id=none
+    -Wl,--no-relax
 )
 
+set(TARGET_INCLUDE
+    "${PROJECT_SOURCE_DIR}/kernel/include"
+    "${PROJECT_SOURCE_DIR}/arch/${ARCH}/include"
+    "${PROJECT_SOURCE_DIR}/libutil/include"
+)
+
+include(arch/${ARCH}/${ARCH}.cmake)
+
+add_subdirectory(drivers/${PLATFORM})
 add_subdirectory(libutil)
 add_subdirectory(kernel)
-add_subdirectory(drivers/${PLATFORM})
 add_subdirectory(arch/${ARCH})

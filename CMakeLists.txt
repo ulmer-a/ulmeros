@@ -24,4 +24,4 @@ add_subdirectory(diskimage)
 
 # Build /bin/init program
 option(U_INIT "build /bin/init program" OFF)
-add_subdirectory(init)
+add_subdirectory(util/init)

@@ -15,8 +15,3 @@ ${srcdir}/newlib/configure --prefix="/usr" --target="${arch}-ulmeros" && \
     make DESTDIR="${sysdir}" install && \
     ln -s ${arch}-ulmeros/include ${sysdir}/usr/include
     ln -s ${arch}-ulmeros/lib ${sysdir}/usr/lib
-
-
-if ! test "$?" = "0" ; then
-    exit 1
-fi

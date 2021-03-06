@@ -10,6 +10,7 @@
 #include <fs/ramdisk.h>
 #include <fs/blockdev.h>
 #include <bus/pci.h>
+#include <util/string.h>
 
 static void* s_initrd;
 static size_t s_initrd_size;
@@ -51,8 +52,14 @@ static void init_task_func()
    * run as PID 1, which is passed on the kernel
    * command line. */
   const char* init_program = cmdline_get("init");
-  assert(init_program, "cmdline: no 'init' binary");
-  proc_start(init_program);
+  kpanic(init_program, "cmdline: no 'init' parameter given");
+  int status = proc_start(init_program);
+  if (status < 0)
+  {
+    debug(ASSERT, "%s: cannot start program: %s\n",
+          init_program, strerror(-status));
+    kpanic(false, "kernel startup failed");
+  }
 }
 
 void kmain(const char *cmdline, void *initrd, size_t initrd_size)

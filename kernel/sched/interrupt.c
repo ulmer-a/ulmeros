@@ -25,8 +25,11 @@ void irq_kernel_init()
 void irq_subscribe(size_t irq, const char* driver,
                    void (*func)(void*), void *drv)
 {
-  assert(!irq_ongoing, "irq_subscribe() not available from irq context");
-  assert(irq < IRQ_COUNT, "invalid IRQ subscription");
+  if (irq_ongoing || irq >= IRQ_COUNT)
+  {
+    assert(!irq_ongoing, "irq_subscribe() not available from irq context");
+    assert(irq < IRQ_COUNT, "invalid IRQ subscription");
+  }
 
   preempt_disable();
   irq_handler_t* handler = kmalloc(sizeof(irq_handler_t));

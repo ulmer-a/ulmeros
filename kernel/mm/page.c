@@ -15,7 +15,7 @@ void setup_page_bitmap(void* bitmap_addr, size_t size)
 size_t alloc_page()
 {
   size_t ppn = bitmap_find_free(&free_pages);
-  assert(ppn != (size_t)-1, "alloc_page() out of memory");
+  kpanic(ppn != (size_t)-1, "alloc_page() out of memory");
   bitmap_set(&free_pages, ppn);
   memset(ppn_to_virt(ppn), 0, PAGE_SIZE);
   return ppn;
@@ -30,7 +30,7 @@ void* alloc_dma_region()
   /* validate */
   if (ppn_start == (size_t)-1 || ppn_start + dma_pages > max_page)
   {
-    assert(false, "No DMA region could be allocated!");
+    kpanic(false, "No DMA region could be allocated!");
     return NULL;
   }
 
@@ -44,7 +44,11 @@ void* alloc_dma_region()
 
 void free_page(size_t page)
 {
-  assert(page < free_pages.size, "page out of bounds");
+  if (page >= free_pages.size)
+  {
+    assert(false, "page out of bounds");
+    return;
+  }
   assert(bitmap_get(&free_pages, page) == 1, "double free page");
   bitmap_clr(&free_pages, page);
 }

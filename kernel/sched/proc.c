@@ -10,25 +10,25 @@
 #include <arch/common.h>
 #include <debug.h>
 #include <syscalls.h>
+#include <errno.h>
 
 static size_t pid_counter = 1;
 
-void proc_start(const char *filename)
+int proc_start(const char *filename)
 {
   /* create an ELF loader object to load
    * the binary from file. */
   fd_t* fd;
-  if (vfs_open(filename, O_RDONLY, 0, &fd) < 0)
+  int error;
+  if ((error = vfs_open(filename, O_RDONLY, 0, &fd)) < 0)
   {
-    assert(false, "cannot open init binary");
-    return;
+    return error;
   }
 
   loader_t* ldr = loader_create(fd);
   if (ldr == NULL)
   {
-    assert(false, "elf-loader: invalid executable format");
-    return;
+    return -ENOEXEC;
   }
 
   /* create a new process object and initialize
@@ -57,6 +57,7 @@ void proc_start(const char *filename)
   list_add(&proc->task_list, main_thread);
 
   sched_insert(main_thread);
+  return SUCCESS;
 }
 
 fd_t *proc_get_fd(proc_t *process, int fd)
@@ -73,7 +74,7 @@ int proc_new_fd(proc_t *process, fd_t *fd)
 
 void sys_exit(int status)
 {
-  assert(current_task->process, "user task has no associated process");
+  kpanic(current_task->process, "user task has no associated process");
   debug(PROCESS, "exit(%d) called by PID %zu\n", status, current_task->process);
 
   /* by setting the current process state to killed,

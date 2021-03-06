@@ -38,6 +38,7 @@ add_compile_definitions(
 add_compile_options(
     $<$<CONFIG:DEBUG>:-O0>
     $<$<CONFIG:RELEASE>:-O2>
+    -Wall -Werror
     -ffreestanding -nostdinc -fno-strict-aliasing
     -fno-builtin -fno-stack-protector
 )

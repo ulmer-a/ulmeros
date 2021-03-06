@@ -16,7 +16,7 @@ int page_fault(size_t address, int present, int write, int user, int exec)
         bool_str(user), bool_str(exec));
   const size_t virt_page = address >> PAGE_SHIFT;
 
-  assert(current_task && current_task->process,
+  kpanic(current_task && current_task->process,
          "current_task has no associated user-process!");
   proc_t* process = current_task->process;
 

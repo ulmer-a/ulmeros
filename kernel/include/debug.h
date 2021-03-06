@@ -26,14 +26,16 @@
 extern void debug(unsigned level, const char* fmt, ...);
 extern void panic();
 
-#ifdef DEBUG
-#define assert(x, msg) if (!(x)) {                          \
+#define kpanic(x, msg) if (!(x)) {                          \
   debug(ASSERT, "\n\n"                                      \
-                "assert failed in %s() line %u (%s)\n"      \
+                "panic: %s() line %u (%s)\n"                \
                 "error: %s\n",                              \
     __func__, __LINE__, __FILE__, msg);                     \
   panic();                                                  \
   }
+
+#ifdef DEBUG
+#define assert(x, msg) kpanic(x, "assert failed: " msg)
 #else
 #define assert(x, msg)
 #endif

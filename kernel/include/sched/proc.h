@@ -40,7 +40,7 @@ typedef struct
 /* start a new process by loading the ELF binary
  * specified with 'filename' and creating a new
  * task and process. */
-void proc_start(const char* filename);
+int proc_start(const char* filename);
 
 int proc_new_fd(proc_t* process, fd_t* fd);
 fd_t* proc_get_fd(proc_t* process, int fd);

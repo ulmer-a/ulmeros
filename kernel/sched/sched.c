@@ -50,7 +50,7 @@ static task_t* get_next_task()
   do
   {
     next = list_get(&sched_tasks, 0);
-    assert(next, "no schedulable task");
+    kpanic(next, "no schedulable task");
     list_rotate(&sched_tasks);
   }
   while (!task_schedulable(next));

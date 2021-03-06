@@ -50,7 +50,7 @@ void vfs_init(const char* rootfs)
   if (!bd_get_by_name(rootfs, &major, &minor))
   {
     debug(VFS, "error: cannot mount rootfs: no such device\n");
-    assert(false, "Cannot mount root file system\n");
+    kpanic(false, "Cannot mount root file system\n");
     return;
   }
 
@@ -59,7 +59,7 @@ void vfs_init(const char* rootfs)
   if ((error = bd_open(&fd, major, minor)) < 0)
   {
     debug(VFS, "error: cannot open device: %s\n", strerror(-error));
-    assert(false, "Cannot mount root file system\n");
+    kpanic(false, "Cannot mount root file system\n");
     return;
   }
 
@@ -68,7 +68,7 @@ void vfs_init(const char* rootfs)
   if (fsdata == NULL)
   {
     debug(VFS, "error: unknown file system\n");
-    assert(false, "Cannot mount root file system\n");
+    kpanic(false, "Cannot mount root file system\n");
     return;
   }
 
@@ -76,7 +76,7 @@ void vfs_init(const char* rootfs)
   if (mp == NULL)
   {
     debug(VFS, "error: unknown file system\n");
-    assert(false, "Cannot mount root file system\n");
+    kpanic(false, "Cannot mount root file system\n");
     return;
   }
 

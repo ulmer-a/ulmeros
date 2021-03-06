@@ -37,7 +37,7 @@ void kheap_print()
   for (entry = heap_start; entry != NULL; entry = entry->next)
   {
     if (entry->magic != HEAP_MAGIC) {
-      assert(false, "kheap: heap corruption detected");
+      kpanic(false, "kheap: heap corruption detected");
     }
 
     if (entry->available)
@@ -67,7 +67,7 @@ void _kheap_check_corrupt(const char* func, unsigned line)
     if (entry->magic != HEAP_MAGIC)
     {
       debug(ASSERT, "heap corruption detected in %s():%u\n", func, line);
-      assert(false, "heap corruption detected");
+      kpanic(false, "heap corruption detected");
     }
   }
 }
@@ -149,7 +149,7 @@ void *_kmalloc(size_t size)
   for (entry = heap_start; entry != NULL; entry = entry->next)
   {
     if (entry->magic != HEAP_MAGIC) {
-      assert(false, "kheap: heap corruption detected");
+      kpanic(false, "kheap: heap corruption detected");
     }
 
     size_t required_size = HEADER_SIZE + size;
@@ -200,7 +200,7 @@ void *_kmalloc(size_t size)
 static void merge_blocks(hblock_t *first, hblock_t *second)
 {
   if (first->magic != HEAP_MAGIC || second->magic != HEAP_MAGIC) {
-    assert(false, "kheap: heap corruption detected");
+    kpanic(false, "kheap: heap corruption detected");
   }
 
   first->size += second->size;
@@ -223,14 +223,14 @@ void kfree(void *ptr)
 
   if (heap_last == NULL || heap_start == NULL ||
         ptr < (void*)(heap_start) || ptr > (void*)(heap_last + 1)) {
-    assert(false, "kheap: heap corruption detected");
+    kpanic(false, "kheap: heap corruption detected");
   }
 
   mutex_lock(&kheap_mutex);
 
   hblock_t *tofree = (hblock_t *)ptr - 1;
   if (tofree->magic != HEAP_MAGIC || tofree->available) {
-    assert(false, "kheap: heap corruption detected");
+    kpanic(false, "kheap: heap corruption detected");
   }
 
   tofree->available = 1;

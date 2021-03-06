@@ -96,7 +96,7 @@ context_t* x86_irq_handler(context_t* ctx)
                    "rax=%p, rbx=%p, rcx=%p, rdx=%p\n",
               ctx->rip, ctx->rsp, ctx->rdi, ctx->rsi,
               ctx->rax, ctx->rbx, ctx->rcx, ctx->rdx);
-        assert(false, "Unhandled exception\n");
+        kpanic(false, "Unhandled exception\n");
       }
       preempt_disable();
     }

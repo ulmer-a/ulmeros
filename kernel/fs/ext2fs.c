@@ -258,7 +258,7 @@ static size_t ext2_get_file_block(ext2_inode_t* inode, size_t index)
 {
   if (index < 12)
     return inode->i_block[index];
-  assert(false, "ext2fs: indirect pointers are unimplemented");
+  kpanic(false, "ext2fs: indirect pointers are unimplemented");
   return 0;
 }
 

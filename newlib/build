@@ -11,7 +11,7 @@ sysdir="$(pwd)/rootfs"
 mkdir -p newlib && cd newlib
 
 ${srcdir}/newlib/configure --prefix="/usr" --target="${arch}-ulmeros" && \
-    make -j8 && \
+    make -j && \
     make DESTDIR="${sysdir}" install && \
     ln -s ${arch}-ulmeros/include ${sysdir}/usr/include
     ln -s ${arch}-ulmeros/lib ${sysdir}/usr/lib

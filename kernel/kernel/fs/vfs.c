@@ -215,6 +215,7 @@ int vfs_open(const char *filename, int flags, int mode, fd_t** fd)
 
   if (target->type == F_REGULAR)
   {
+    *fd = kmalloc(sizeof(fd_t));
     (*fd)->file = target;
     (*fd)->fpos = 0;
     assert(target->parent, "file_t has no parent!");

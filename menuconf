@@ -1,0 +1,30 @@
+#! /bin/bash
+
+source_dir=$(dirname "$0")
+
+# first step: kernel configuration
+# save the configuration in kconf.txt
+${source_dir}/kernel/menuconf kconf.txt
+kconf=$(< kconf.txt)
+
+# read the corresponding menuconfig files
+generic_conf=$(< "${source_dir}/menuconf.txt")
+
+dialog_msg="Select OS components to build"
+os_feat=`echo -e "${generic_conf}" | \
+ xargs dialog --checklist "${dialog_msg}" 20 60 10 3>&1 1>&2 2>&3`
+
+if [ ! "$?" -eq "0" ]; then
+    exit 1
+fi
+
+cmake_def=""
+for option in ${os_feat}
+do
+    cmake_def=" ${cmake_def} -D${option^^}=ON"
+done
+
+clear
+echo cmake ${kconf} ${cmake_def} ${source_dir} > uconf.txt
+uconf=$(< uconf.txt)
+echo -n "${uconf}" | xargs cmake

@@ -41,7 +41,7 @@ add_compile_definitions(
 add_compile_options(
     $<$<CONFIG:DEBUG>:-O0>
     $<$<CONFIG:RELEASE>:-O2>
-    -Wall -Werror -ffreestanding
+    -Wall -Werror -ffreestanding -fno-strict-aliasing
 )
 
 add_link_options(

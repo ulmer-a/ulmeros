@@ -50,8 +50,6 @@ sudo mount /dev/loop99 ${mount_dir}
 
 # install GRUB2 on the boot partition
 if test ${install_grub} = on ; then
-  sudo mkdir -p ${sysroot}/boot/grub
-  sudo cp ${srcdir}/grub.cfg ${sysroot}/boot/grub/grub.cfg
   sudo grub-install --root-directory=${mount_dir} \
       --boot-directory=${mount_dir}/boot \
       --no-floppy \
@@ -60,6 +58,8 @@ if test ${install_grub} = on ; then
 fi
 
 # create directories and copy files to the image
+mkdir -p ${sysroot}/boot/grub
+cp ${srcdir}/grub.cfg ${sysroot}/boot/grub/grub.cfg
 sudo cp -R ${sysroot}/* ${mount_dir}
 
 sudo umount ${mount_dir}

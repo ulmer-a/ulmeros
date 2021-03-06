@@ -1,3 +1,6 @@
 [submodule "kernel"]
 	path = kernel
 	url = https://github.com/ulmer-a/ulmeros
+[submodule "newlib/newlib"]
+	path = newlib/newlib
+	url = https://github.com/ulmer-a/newlib

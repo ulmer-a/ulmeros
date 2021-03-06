@@ -1,0 +1,22 @@
+#! /bin/bash
+
+srcdir=$(dirname "$0")
+
+arch=x86_64
+if ! test "x$1" = "x" ; then
+    arch=$1
+fi
+
+sysdir="$(pwd)/rootfs"
+mkdir -p newlib && cd newlib
+
+${srcdir}/newlib/configure --prefix="/usr" --target="${arch}-ulmeros" && \
+    make -j8 && \
+    make DESTDIR="${sysdir}" install && \
+    ln -s ${arch}-ulmeros/include ${sysdir}/usr/include
+    ln -s ${arch}-ulmeros/lib ${sysdir}/usr/lib
+
+
+if ! test "$?" = "0" ; then
+    exit 1
+fi

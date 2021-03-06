@@ -254,10 +254,23 @@ static int fetch_inode(ext2fs_t* fs, size_t inode_no, ext2_inode_t* inode)
   return SUCCESS;
 }
 
-static size_t ext2_get_file_block(ext2_inode_t* inode, size_t index)
+static size_t ext2_get_file_block(
+    ext2fs_t* fs, ext2_inode_t* inode, char* block_buffer, size_t index)
 {
+  const size_t ptrs_per_block = fs->block_size / sizeof(uint32_t);
+  const size_t block_lba_size = fs->block_size / LBA_SIZE;
+
   if (index < 12)
     return inode->i_block[index];
+
+  if (index < 12 + ptrs_per_block)
+  {
+    if (!ext2_get_block(fs, block_buffer,
+          inode->i_block[12], block_lba_size))
+      return (size_t)-1;
+    return *((uint32_t*)block_buffer + (index - 12));
+  }
+
   kpanic(false, "ext2fs: indirect pointers are unimplemented");
   return 0;
 }
@@ -284,7 +297,7 @@ static ssize_t ext2_read(void* drvdata,
   while (bytes_read < len)
   {
     const size_t current_block = (offset + bytes_read) / fs->block_size;
-    const size_t block_no = ext2_get_file_block(inode, current_block);
+    const size_t block_no = ext2_get_file_block(fs, inode, block_buffer, current_block);
     const size_t block_lba = block_no * fs->block_size / LBA_SIZE;
     const size_t block_lba_size = fs->block_size / LBA_SIZE;
 

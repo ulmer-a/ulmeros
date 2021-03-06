@@ -266,7 +266,7 @@ static size_t ext2_get_file_block(
   if (index < 12 + ptrs_per_block)
   {
     if (!ext2_get_block(fs, block_buffer,
-          inode->i_block[12], block_lba_size))
+          inode->i_block[12] * block_lba_size, block_lba_size))
       return (size_t)-1;
     return *((uint32_t*)block_buffer + (index - 12));
   }

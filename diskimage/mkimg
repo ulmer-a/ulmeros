@@ -1,0 +1,67 @@
+#! /bin/bash
+
+# Create diskimage and install GRUB2
+# requires root permissions
+# Tested on Ubuntu with grub-install (GRUB) 2.04-1ubuntu26.8
+
+mount_dir="diskimage_mnt"
+
+sysroot=$1
+srcdir=$2
+
+# install grub yes/no?
+install_grub=off
+if test "x$3" = "x--grub=on" ; then
+  echo "[Option $3: Installing GRUB2 bootloader]"
+  install_grub=on
+fi
+
+echo "Sysroot: ${sysroot}"
+echo "Source directory: ${srcdir}"
+
+# create some directories
+mkdir -p ${mount_dir}
+
+# create the empty disk image (40MB)
+dd if=/dev/zero of=disk.img bs=8192 count=5120
+
+# generate msdos partition table and
+# ext2 partition starting on sector 2048
+sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk disk.img
+  o # clear the in memory partition table
+  n # new partition
+  p # primary partition
+  1 # partition number 1
+    # default - start at beginning of disk 
+    # default - use entire disk
+  a # make the partition bootable
+  p # print the in-memory partition table
+  w # write the partition table
+  q # and we're done
+EOF
+
+# create loopback block devices
+sudo losetup /dev/loop98 disk.img
+sudo losetup /dev/loop99 disk.img -o 1048576
+
+# format ext2 filesystem
+sudo mkfs.ext2 /dev/loop99
+sudo mount /dev/loop99 ${mount_dir}
+
+# install GRUB2 on the boot partition
+if test ${install_grub} = on ; then
+  sudo mkdir -p ${sysroot}/boot/grub
+  sudo cp ${srcdir}/grub.cfg ${sysroot}/boot/grub/grub.cfg
+  sudo grub-install --root-directory=${mount_dir} \
+      --boot-directory=${mount_dir}/boot \
+      --no-floppy \
+      --target=i386-pc \
+      --modules="normal part_msdos ext2 multiboot" /dev/loop98
+fi
+
+# create directories and copy files to the image
+sudo cp -R ${sysroot}/* ${mount_dir}
+
+sudo umount ${mount_dir}
+sudo losetup -d /dev/loop99
+sudo losetup -d /dev/loop98

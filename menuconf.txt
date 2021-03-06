@@ -1,2 +1,4 @@
+"u_newlib" "Build and install Newlib C standard library" on
+"u_pcimg" "Generate PC Hard Disk Image" on
 "u_grub" "Install GRUB2 bootloader" on
 "u_init" "Install /bin/init program" on

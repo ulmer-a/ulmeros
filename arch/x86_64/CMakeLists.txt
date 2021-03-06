@@ -79,3 +79,5 @@ set_target_properties(boot32
     OUTPUT_NAME "vmulmer"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
+
+add_custom_target(kernel_img ALL DEPENDS boot32)

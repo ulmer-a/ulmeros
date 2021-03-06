@@ -3,22 +3,9 @@
 # For more information, see README.md
 cmake_minimum_required(VERSION 3.14)
 
-if(NOT DEFINED ARCH OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/arch/${ARCH}")
-    message(FATAL_ERROR "invalid architecture ${ARCH}")
-endif()
-
-if(NOT DEFINED PLATFORM OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/drivers/${PLATFORM}")
-    message(FATAL_ERROR "invalid platform ${PLATFORM}")
-endif()
-
 # Toolchain settings
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR ${ARCH})
-
-# Compiler choices
-set(CMAKE_C_COMPILER "${ARCH}-elf-gcc")
-set(CMAKE_ASM_COMPILER "${ARCH}-elf-gcc")
-set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 
 # General project settings
 project(UlmerOS VERSION 0.1 LANGUAGES C ASM)
@@ -31,7 +18,19 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
     set(CMAKE_BUILD_TYPE "Release")
 endif()
 message(STATUS "configuration: ${CMAKE_BUILD_TYPE}")
+
+if(NOT DEFINED ARCH OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/arch/${ARCH}")
+    message(FATAL_ERROR "invalid architecture ${ARCH}")
+endif()
+
+if(NOT DEFINED PLATFORM OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/drivers/${PLATFORM}")
+    message(FATAL_ERROR "invalid platform ${PLATFORM}")
+endif()
 message(STATUS "building for ${ARCH}-${PLATFORM}")
+
+# Compiler choices
+set(CMAKE_C_COMPILER "${ARCH}-elf-gcc")
+set(CMAKE_ASM_COMPILER "${ARCH}-elf-gcc")
 
 string(TOUPPER "ARCH_${ARCH}" ARCH_FLAG)
 add_compile_definitions(

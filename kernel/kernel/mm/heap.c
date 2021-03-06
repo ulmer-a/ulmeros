@@ -31,8 +31,9 @@ static mutex_t  kheap_mutex = MUTEX_INITIALIZER;
 void kheap_print()
 {
   mutex_lock(&kheap_mutex);
+  const unsigned loglevel = KHEAP|OUTPUT_ENABLED;
 
-  debug(KHEAP, "-- heap dump:\n");
+  debug(loglevel, "-- heap dump:\n");
   hblock_t *entry;
   for (entry = heap_start; entry != NULL; entry = entry->next)
   {
@@ -42,15 +43,15 @@ void kheap_print()
 
     if (entry->available)
     {
-      debug(KHEAP, "  @ %p: %zu bytes (free)\n");
+      debug(loglevel, "  @ %p: %zu bytes (free)\n");
     }
     else
     {
 #ifdef DEBUG
-      debug(KHEAP, "  @ %p: %zu bytes (%s:%u)\n", entry + 1, entry->size,
+      debug(loglevel, "  @ %p: %zu bytes (%s:%u)\n", entry + 1, entry->size,
             entry->function, entry->line);
 #else
-      debug(KHEAP, "  @ %p: %zu bytes\n", entry + 1, entry->size);
+      debug(loglevel, "  @ %p: %zu bytes\n", entry + 1, entry->size);
 #endif
     }
   }

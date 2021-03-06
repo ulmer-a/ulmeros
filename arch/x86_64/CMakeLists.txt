@@ -80,11 +80,3 @@ set_target_properties(boot32
     OUTPUT_NAME "vmulmer"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
-
-# ------------- DISK IMAGE ---------------------
-
-add_custom_target(pc-diskimg ALL
-    ${PROJECT_SOURCE_DIR}/tools/mkimg ${CMAKE_BINARY_DIR}/vmulmer ${PROJECT_SOURCE_DIR}
-    WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
-    DEPENDS boot32
-)

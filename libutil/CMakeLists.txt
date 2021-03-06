@@ -6,7 +6,7 @@ file(GLOB UTIL_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.c")
 add_library(util STATIC ${UTIL_HEADERS} ${UTIL_SOURCES})
 target_include_directories(util PUBLIC
     ${TARGET_INCLUDE}
-    ${PROJECT_SOURCE_DIR}/kernel/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../kernel/include
 )
 target_compile_options(util PUBLIC ${TARGET_CFLAGS})
 

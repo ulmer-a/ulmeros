@@ -15,11 +15,11 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
 endif()
 message(STATUS "configuration: ${CMAKE_BUILD_TYPE}")
 
-if(NOT DEFINED ARCH OR NOT EXISTS "${PROJECT_SOURCE_DIR}/arch/${ARCH}")
+if(NOT DEFINED ARCH OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/arch/${ARCH}")
     message(FATAL_ERROR "invalid architecture ${ARCH}")
 endif()
 
-if(NOT DEFINED PLATFORM OR NOT EXISTS "${PROJECT_SOURCE_DIR}/drivers/${PLATFORM}")
+if(NOT DEFINED PLATFORM OR NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/drivers/${PLATFORM}")
     message(FATAL_ERROR "invalid platform ${PLATFORM}")
 endif()
 
@@ -51,9 +51,9 @@ add_link_options(
 )
 
 set(TARGET_INCLUDE
-    "${PROJECT_SOURCE_DIR}/kernel/include"
-    "${PROJECT_SOURCE_DIR}/arch/${ARCH}/include"
-    "${PROJECT_SOURCE_DIR}/libutil/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/kernel/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/arch/${ARCH}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/libutil/include"
 )
 
 include(arch/${ARCH}/${ARCH}.cmake)

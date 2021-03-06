@@ -1,6 +1,11 @@
 #! /bin/bash
 
 source_dir=$(dirname "$0")
+conf_file=off
+
+if ! test "x${1}" = "x" ; then
+    conf_file=${1}
+fi
 
 # ask for architecture and platform
 dialog_msg="Please select target architecture and platform"
@@ -50,5 +55,10 @@ do
 done
 
 clear
+
 echo cmake ${cmake_def} ${source_dir}
-cmake ${cmake_def} ${source_dir}
+if test ${conf_file} = off ; then
+    cmake ${cmake_def} ${source_dir}
+else
+    echo ${cmake_def} ${source_dir} > ${conf_file}
+fi

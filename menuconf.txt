@@ -1,2 +1,1 @@
 "b_debug" "Debug configuration" on
-"u_init" "Userspace initialization" on

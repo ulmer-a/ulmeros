@@ -1,7 +1,7 @@
 #pragma once
 
 #define NULL ((void*)0)
-#define BIT(x) (1ul << (x))
+#define BIT(x) (1ull << (x))
 #define MMIO32(addr) ((volatile unsigned int*)(MMIO_BASE+(addr)))
 
 #define true 1

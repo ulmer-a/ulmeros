@@ -31,7 +31,7 @@ void alloc_boot32_pages();
 
 extern void halt_core();
 extern void gdt_init();
-extern void* gdt_long_init();
+extern void gdt_long_init();
 extern void print_heap();
 extern size_t paging_init(size_t idmapPages);
 extern uint64_t create_mmap(multiboot_mmape_t *mmap, size_t length);

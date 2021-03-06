@@ -1,69 +1,45 @@
 #include "boot32.h"
 
-#define PRESENT     BIT(15)             // selector is present
-#define OPSIZE_32   BIT(22)             // default operand size 32bit
-#define LONGMODE    BIT(21)             // enable long mode
-#define DPL_USER    (BIT(31)|BIT(14))   // allow user mode
-#define GRAN_4K     BIT(23)             // granularity = 4K
-#define ACC_EXC_RD  BIT(9)              // execute & read
+#define GDT_ENTRIES     3
 
-#define CODESEG     (BIT(11)|BIT(12))
-#define DATASEG     (BIT(12))
+/* segment descriptor flags. they can be combined to
+ * create different variations of segment descriptors. */
+#define PRESENT         BIT(47)             // selector is present
+#define CODE            BIT(43) | BIT(44)   // code segment
+#define CODE_R          BIT(41)             // code segment readable
+#define DATA            BIT(44)             // data segment
+#define DATA_W          BIT(41)             // data segment writable
+#define LONGMODE        BIT(53)             // long mode / compatibility mode
+#define DPL_USER        BIT(45) | BIT(46)   // user mode
+#define OPSIZE32        BIT(54)             // set compat. op size to 32bit
+#define MAX_LIMIT       0x8f00000000ffff    // maximum segment limit´
 
-// null, kcode, kdata
-#define GDT_ENTRIES 5
-
-struct gdtd_struct // GDT descriptor for CPU
+typedef struct
 {
   uint16_t size;
-  struct gdte_struct *addr;
-} __attribute__((packed));
+  uint64_t* addr;
+} __attribute__((packed)) gdt_t;
 
-struct gdte_struct // GDT entry
+static gdt_t s_gdt_descriptor;
+static uint64_t s_gdt[GDT_ENTRIES];
+
+static void load_gdt()
 {
-  uint16_t limit;
-  uint16_t base_low;
-  uint8_t base_middle;
-  uint8_t flags0;
-  uint8_t flags1_limit;
-  uint8_t base_high;
-} __attribute__((packed));
-
-struct gdt_page_struct
-{
-  struct gdtd_struct descriptor;
-  struct gdte_struct gdt[GDT_ENTRIES];
-} __attribute__((packed));
-
-static void setup_entry(struct gdt_page_struct* gdt, int id,
-        uint32_t base, uint32_t limit, uint32_t flags)
-{
-  gdt->gdt[id].base_low    = base & 0xffff;
-  gdt->gdt[id].base_middle = (base >> 16) & 0xff;
-  gdt->gdt[id].base_high   = (base >> 24) & 0xff;
-
-  gdt->gdt[id].limit = limit & 0xffff;
-  gdt->gdt[id].flags1_limit = (limit >> 16) & 0b1111;
-
-  *((uint32_t*)&(gdt->gdt[id].base_middle)) |= flags;
+  /* tell the CPU the location of the GDT by writing it's
+   * size and location to the hidden GDT register */
+  s_gdt_descriptor.size = sizeof(uint64_t) * GDT_ENTRIES;
+  s_gdt_descriptor.addr = s_gdt;
+  __asm__ volatile("lgdt %0" : : "g"(s_gdt_descriptor));
 }
 
-void* gdt_long_init(void)
+void gdt_long_init()
 {
-  struct gdt_page_struct* gdt = kmalloc(sizeof(struct gdt_page_struct));
+  s_gdt[0] = 0;
 
-  gdt->descriptor.size = sizeof(struct gdte_struct) * GDT_ENTRIES;
-  gdt->descriptor.addr = gdt->gdt;
+  /* 64bit long mode kernel segment descriptors */
+  s_gdt[1] = PRESENT | LONGMODE | MAX_LIMIT | CODE | CODE_R;
+  s_gdt[2] = PRESENT | LONGMODE | MAX_LIMIT | DATA | DATA_W;
 
-  setup_entry(gdt, 0, 0, 0xf0000, GRAN_4K); // null descriptor required by design
-
-  setup_entry(gdt, 1, 0, 0xf0000, PRESENT | GRAN_4K | LONGMODE | ACC_EXC_RD | CODESEG);  // kcode
-  setup_entry(gdt, 2, 0, 0xf0000, PRESENT | GRAN_4K | LONGMODE | ACC_EXC_RD | DATASEG);  // kdata
-  setup_entry(gdt, 3, 0, 0xf0000, PRESENT | GRAN_4K | LONGMODE | ACC_EXC_RD | CODESEG | DPL_USER);  // ucode
-  setup_entry(gdt, 4, 0, 0xf0000, PRESENT | GRAN_4K | LONGMODE | ACC_EXC_RD | DATASEG | DPL_USER);  // udata
-
-  debug("setting up long mode GDT... ");
-  __asm__ volatile("lgdt %0" : : "g"(gdt->descriptor));
-  debug("done\n");
-  return gdt->gdt;
+  /* load the global descriptor table */
+  load_gdt();
 }

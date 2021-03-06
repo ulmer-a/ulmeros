@@ -43,7 +43,7 @@ void alloc_boot32_pages()
   const size_t kernel_start_page = (uint64_t)KERNEL_LOAD_ADDR >> PAGE_SHIFT;
   const size_t kernel_page_count = (kernel_size >> PAGE_SHIFT) + 1;
   for (uint64_t page = kernel_start_page;
-       page < kernel_start_page + kernel_page_count; page++)
+       page < (kernel_start_page + kernel_page_count); page++)
     bitmap_set(&free_pages, page);
 
   boot_info.boot32_start_page = boot_start_page;

@@ -54,5 +54,5 @@ void boot32_main(multiboot_t* mb)
   boot_info.pml4_ppn = pml4;
 
   debug("entering 64bit long mode\n");
-  jmp_longmode(&boot_info + IDENT_OFFSET);
+  jmp_longmode(&boot_info);
 }

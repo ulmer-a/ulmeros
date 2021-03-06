@@ -12,6 +12,8 @@
 
 vspace_t _vspace_kernel;
 
+extern void tlb_invalidate(size_t virt);
+
 /*
  * the generic page table entry structure
  * defines the fields that entries on all
@@ -44,6 +46,7 @@ typedef struct
   size_t pml4_ppn, pdpt_ppn,
     pdir_ppn, ptbl_ppn, page_ppn;
 
+
   /* indices into the respective table. */
   size_t pml4i, pdpti, pdiri, ptbli;
 
@@ -66,6 +69,7 @@ void vspace_setup(size_t pml4_ppn)
   /* clear the lower identity mapping, so we can
    * detect nullpointer dereferences and similar errors. */
   memset(ppn_to_virt(_vspace_kernel.pml4_ppn), 0, PAGE_SIZE/2);
+  vspace_apply(VSPACE_KERNEL);
 }
 
 static void vspace_update_kernel_mapping(vspace_t* vspace)
@@ -97,11 +101,6 @@ void* phys_to_virt(void* phys_addr)
 void* ppn_to_virt(size_t ppn)
 {
   return phys_to_virt((void*)(ppn << PAGE_SHIFT));
-}
-
-static void tlb_invalidate(size_t virt)
-{
-  __asm__ volatile ("invlpg %0;" :: "g"(virt));
 }
 
 static void resolve_mapping(vspace_t* vspace, size_t virt, vaddr_t* vaddr)

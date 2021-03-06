@@ -78,44 +78,45 @@ void delete_init_stack()
   free_pages(stack_start_page, stack_page_count);
 }
 
-void amd64_main(bootinfo_t* boot_info)
+void amd64_main(bootinfo_t* bi)
 {
   /* clear BSS segment */
+  bootinfo_t boot_info = *bi;
   memset(&_bss_start, 0, (size_t)&_bss_end - (size_t)&_bss_start);
 
   debug(INIT, "welcome to 64bit long mode!\n");
   debug(INIT, "kernel is at %p (size=%uk)\n",
-        boot_info->kernel_addr, boot_info->kernel_size >> 10);
+        boot_info.kernel_addr, boot_info.kernel_size >> 10);
 
   setup_gdt();
 
   /* since alloc_page() is needed for the heap to work,
    * it has to be setup first. this will use the free
    * pages bitmap located in the boot32 heap. */
-  setup_page_bitmap((void*)boot_info->free_pages_ptr,
-                    boot_info->total_pages);
+  setup_page_bitmap((void*)boot_info.free_pages_ptr,
+                    boot_info.total_pages);
 
   /* setup virtual memory. all the page table pages
    * are already marked used in the free pages bitmap
    * at this point. */
-  vspace_setup(boot_info->pml4_ppn);
+  vspace_setup(boot_info.pml4_ppn);
 
   /* copy any information that is going to be used
    * by the kernel and that is located in the boot32
    * heap over to the kernel64 heap. */
-  const char* cmdline = copy_cmdline(boot_info);
-  copy_page_bitmap(boot_info);
-  const size_t initrd_size = boot_info->ramdisk_size;
-  void* initrd = copy_initrd(boot_info);
-  stack_start_page = boot_info->stack_start_page;
-  stack_page_count = boot_info->stack_pages;
+  const char* cmdline = copy_cmdline(&boot_info);
+  copy_page_bitmap(&boot_info);
+  const size_t initrd_size = boot_info.ramdisk_size;
+  void* initrd = copy_initrd(&boot_info);
+  stack_start_page = boot_info.stack_start_page;
+  stack_page_count = boot_info.stack_pages;
 
   /* at this point, all the data from the old heap is
    * already copied over to the kernel64 heap, so we
    * can free the pages used by boot32 code/data as well
    * as the boot32 heap. */
-  free_pages(boot_info->boot32_start_page, boot_info->boot32_page_count);
-  free_pages(boot_info->heap_start_page, boot_info->heap_pages);
+  free_pages(boot_info.boot32_start_page, boot_info.boot32_page_count);
+  free_pages(boot_info.heap_start_page, boot_info.heap_pages);
 
   x86_irq_init();
 

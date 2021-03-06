@@ -21,16 +21,6 @@ _start64:
     /* setup the initilization stack */
     movabs $0xffff800001000000, %rsp
 
-    /* enable SSE registers */
-    mov %cr0, %rax
-    btr $2, %rcx
-    btsq $1, %rax
-    mov %rax, %cr0
-    mov %cr4, %rax
-    btsq $9, %rax
-    btsq $10, %rax
-    mov %rax, %cr4
-
     /* a pointer to the boot info structure is
      * located in the RDI register. save it. */
     push %rdi
@@ -53,4 +43,9 @@ preempt_disable:
 .global preempt_enable
 preempt_enable:
     sti
+    ret
+
+.global tlb_invalidate
+tlb_invalidate:
+    invlpg (%rdi)
     ret

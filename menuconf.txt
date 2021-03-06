@@ -1,0 +1,2 @@
+"u_grub" "Install GRUB2 bootloader" on
+"u_init" "Install /bin/init program" on

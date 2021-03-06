@@ -68,9 +68,8 @@ add_executable(boot32
 add_dependencies(boot32 kernelbin)
 
 target_link_libraries(boot32 util32)
-target_compile_options(boot32 PRIVATE
-    "--target=i386-elf"
-)
+target_compile_options(boot32 PRIVATE -m32 -mno-mmx
+    -mno-sse -mno-sse2 -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast)
 target_link_options(boot32 PRIVATE
     -Wl,-T "${CMAKE_CURRENT_SOURCE_DIR}/../x86-common/i386.ld"
 )

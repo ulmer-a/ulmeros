@@ -4,15 +4,6 @@ file(GLOB_RECURSE KERNEL_SOURCES "*.c")
 file(GLOB_RECURSE KERNEL_HEADERS "*.h")
 
 add_library(kernel ${KERNEL_SOURCES} ${KERNEL_HEADERS})
-
-target_compile_options(kernel PRIVATE
-    ${TARGET_CFLAGS}
-)
-
-target_include_directories(kernel PRIVATE
-    "${TARGET_INCLUDE}"
-)
-
+target_compile_options(kernel PRIVATE ${TARGET_CFLAGS})
+target_include_directories(kernel PRIVATE ${TARGET_INCLUDE})
 target_link_libraries(kernel util)
-
-set(KERNEL_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/include" PARENT_SCOPE)

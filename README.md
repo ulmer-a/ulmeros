@@ -1,4 +1,10 @@
-# UlmerOS Userspace Environment
+# UlmerOS Distribution
+
+This repository consists of custom utilities, ports and build scripts to build
+a functional hard drive image that can boot and provide an environment for the
+UlmerOS Operating System kernel.
+
+If you're looking for the OS kernel, have a look at the 'ulmeros' repository.
 
 ## Features under development for version 1:
 

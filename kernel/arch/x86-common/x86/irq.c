@@ -49,9 +49,12 @@ context_t* x86_irq_handler(context_t* ctx)
 {
   if (ctx->irq == 0x80)
   {
+    /* for convenience, the interrupt handler will set ctx->error
+     * to the number of the system call for any x86 architecture. */
     const size_t sys_count = syscall_count();
     if (ctx->error >= sys_count)
     {
+      debug(SYSCALL, " #0x%zx: invalid\n", ctx->error);
       /* if the system call id is invalid,
        * report ENOSYS error and return  */
       #ifdef ARCH_X86_64
@@ -61,6 +64,10 @@ context_t* x86_irq_handler(context_t* ctx)
       #endif
       return ctx;
     }
+
+    assert(current_task && current_task->process, "Syscall task has no proc_t");
+    debug(SYSCALL, "PID %zu: syscall #0x%zx\n",
+          current_task->process->pid, ctx->error);
 
     /* call the corresponding syscall routine */
     #ifdef ARCH_X86_64

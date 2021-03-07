@@ -17,24 +17,25 @@ static char kprintf_buffer[2048];
 #define COL_WHITE   "\x1b[37m"
 
 const char* debug_type[] = {
-  COL_MAGENTA   " VSPACE" COL_RESET,
-  COL_WHITE     "   INIT" COL_RESET,
-  COL_WHITE     " ASSERT" COL_RESET,
-  COL_MAGENTA   "PAGEMGR" COL_RESET,
-  COL_MAGENTA   "  KHEAP" COL_RESET,
-  COL_GREEN     "    IRQ" COL_RESET,
-  COL_MAGENTA   "PAGEFLT" COL_RESET,
-  COL_YELLOW    "  SCHED" COL_RESET,
-  COL_BLUE      "FILESYS" COL_RESET,
-  COL_BLUE      "VIRT_FS" COL_RESET,
-  COL_BLUE      "   DISK" COL_RESET,
-  COL_CYAN      " PCIBUS" COL_RESET,
-  COL_BLUE      " BLKDEV" COL_RESET,
-  COL_YELLOW    " LOADER" COL_RESET,
-  COL_YELLOW    "   TASK" COL_RESET,
-  COL_YELLOW    "TASKMGR" COL_RESET,
-  COL_BLUE      "FILESYS" COL_RESET,
-  COL_YELLOW    "PROCESS" COL_RESET
+  COL_MAGENTA   " VSPACE",
+  COL_WHITE     "   INIT",
+  COL_WHITE     " ASSERT",
+  COL_MAGENTA   "PAGEMGR",
+  COL_MAGENTA   "  KHEAP",
+  COL_RED       "    IRQ",
+  COL_GREEN     "PAGEFLT",
+  COL_YELLOW    "  SCHED",
+  COL_BLUE      "FILESYS",
+  COL_BLUE      "VIRT_FS",
+  COL_BLUE      "   DISK",
+  COL_CYAN      " PCIBUS",
+  COL_BLUE      " BLKDEV",
+  COL_GREEN     " LOADER",
+  COL_YELLOW    "   TASK",
+  COL_YELLOW    "TASKMGR",
+  COL_BLUE      "FILESYS",
+  COL_YELLOW    "PROCESS",
+  COL_YELLOW    "SYSCALL"
 };
 
 void debug(unsigned level, const char *fmt, ...)
@@ -50,5 +51,6 @@ void debug(unsigned level, const char *fmt, ...)
 
   _sprintf(kprintf_buffer, fmt, args);
   printdbg(kprintf_buffer);
+  printdbg(COL_RESET);
   va_end(args);
 }

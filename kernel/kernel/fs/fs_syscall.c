@@ -41,6 +41,12 @@ ssize_t sys_write(int fd, char* buffer, size_t len)
   assert(current_task && current_task->process,
          "sys_open() called from kernel mode. use vfs_write()");
 
+  if (fd == 1)
+  {
+    debug(VFS, "write() to stdout: %s\n", buffer);
+    return len;
+  }
+
   fd_t* fdp = proc_get_fd(current_task->process, fd);
   if (fdp == NULL)
     return -EBADF;

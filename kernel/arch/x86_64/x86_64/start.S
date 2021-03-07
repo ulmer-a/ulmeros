@@ -44,8 +44,3 @@ preempt_disable:
 preempt_enable:
     sti
     ret
-
-.global tlb_invalidate
-tlb_invalidate:
-    invlpg (%rdi)
-    ret

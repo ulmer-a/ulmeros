@@ -12,7 +12,11 @@
 
 vspace_t _vspace_kernel;
 
-extern void tlb_invalidate(size_t virt);
+static void tlb_invalidate(size_t virt)
+{
+  virt <<= PAGE_SHIFT;
+  __asm__ volatile ("invlpg (%0)" : : "b"(virt) : "memory");
+}
 
 /*
  * the generic page table entry structure

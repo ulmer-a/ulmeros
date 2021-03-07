@@ -1,42 +1,45 @@
 # Ulmer OS
 
-UlmerOS is a general purpose portable unix-like educational operating system. Please
-note that this (incomplete) repository contains a rewrite of the original OS project
-started in 2017. The rewrite was necessary due to lots of synchronization issues and
-design flaws in the original code. After quite some years of experimenting and taking
-the OS course at University of Technology in Graz, Austria (where we implemented
-multithreading, advanced memory management and page swapping almost from scratch),
-I eventually decided to do a full rewrite with the gained knowledge.
+UlmerOS is a general purpose, portable unix-like operating system. Please
+note that this repository contains a rewrite of the original OS project
+started in 2017. The rewrite was necessary due to lots of design flaws and
+synchronization issues in the original code. After quite some years of
+experimenting and taking the OS course at University of Technology in Graz,
+Austria, I eventually decided to do a full rewrite with the gained knowledge.
 
-Since then, many parts of the OS have greatly improved, such as the ATA hard disk driver
-that now uses DMA and the virtual memory management system with very stable copy-on-write
-support that I just need to move over to this repository.
+Since then, many parts of the OS have greatly improved, such as the ATA hard
+disk driver that now is capable of doing DMA transfers, the virtual memory
+management system with copy-on-write and full x86\_64 architecture support.
 
-As a result of the reimplementation, I took down the old repository as it doesn't
-contain anything that anyone could learn from anymore.
+## Project status
 
-# Features
+Development is aiming at shipping version 1.0 of the OS, which requires the
+following features to be implemented and stable:
+* Architecture support for `x86\_64` (and maybe `i386`)
+* Preemptive multitasking & virtual memory
+* Basic set of supported system calls (`read()`, `write()`, `fork()`, `execve()`, `sbrk()`, ...)
+* Virtual file system and `ext2` filesystem read (maybe also write) support
+* ATA disk driver
+* PC console and keyboard drivers
+* C standard library
+* Working ports of `bash` and `coreutils`
 
-## Features currently supported
-* Full x86\_64 architecture support
-* Preemtive multitasking
-* PCI ATA HDD Driver (DMA)
-* ext2 read support
-* Unix-like virtual filesystem
+### Kernel
+Currently the kernel can successfully boot and mount an ext2 root filesystem,
+and then run a binary passed on the kernel command line (such as `/bin/init`).
+Full support for virtual memory as well as a few system calls (`exit()`, `sbrk()`,
+`read()`, `write()`) and lazy allocation of code, data and stack pages is
+implemented and working. 
+ 
+### Userspace
+For developing userspace programs, a full C Standard library is available
+(RedHat Newlib) by a port and programs can be statically linked against it.
+However, a dedicated toolchain is still missing and not many programs have
+been developed yet.
 
-Features that will be supported in the feature:
-* Ports of `bash` and `coreutils`/`busybox`
-* Ports of `newlib` C library, `libstdc++`
-* ext2 filesystem write support
-* VBE Graphics console
-* PS/2 Keyboard driver
-* Network stack with ethernet driver
-* `fork()` and `exec()` with `copy and write`
-* Run userspace programs in 32bit compatibility mode on x86\_64
+## Building Ulmer OS
 
-# Building Ulmer OS
-
-## Build instructions
+### Build instructions
 
 Configuration can be done by passing the configuration arguments to `cmake`. The
 `menuconf` script in the project root directory automates this project and lets
@@ -48,16 +51,3 @@ $ mkdir build && cd build
 $ ../menuconf
 $ make
 ```
-
-# Userland distribution
-
-## Features under development for version 1:
-
-I consider the following features as a minimal enivironment
-for the Operating System to be usable.
-
-* Standard C library (e.g. `newlib` or `mlibc`) _[Done]_
-* GCC Cross toolchain with integration for libc
-* `/bin/init` program to initialize userspace
-* `bash` shell 
-* basic command line tools (e.g. `busybox`)

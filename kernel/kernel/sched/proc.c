@@ -44,6 +44,8 @@ int proc_start(const char *filename)
   /* allocate new virtual address space
    * for the process. */
   proc->vspace = vspace_create();
+  proc->heap_brk = ldr->min_heap_break;
+  mutex_init(&proc->heap_lock);
 
   /* create a new stack for the main thread. */
   list_init(&proc->stack_list);
@@ -75,7 +77,8 @@ int proc_new_fd(proc_t *process, fd_t *fd)
 void sys_exit(int status)
 {
   kpanic(current_task->process, "user task has no associated process");
-  debug(PROCESS, "exit(%d) called by PID %zu\n", status, current_task->process);
+  debug(PROCESS, "exit(%d) called by PID %zu\n",
+        status, current_task->process->pid);
 
   /* by setting the current process state to killed,
    * all other threads will be killed during the next

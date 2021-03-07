@@ -65,45 +65,6 @@ static const char* arch_str(uint16_t arch)
   }
 }
 
-loader_t *loader_create(fd_t *file)
-{
-  elf64_t* elf_hdr_buf = kmalloc(sizeof(elf64_t));
-  vfs_seek(file, 0, SEEK_SET);
-  if (vfs_read(file, elf_hdr_buf, sizeof(elf64_t)) < 0)
-  {
-    kfree(elf_hdr_buf);
-    return NULL;
-  }
-
-  if (elf_hdr_buf->magic != 0x464c457f)
-  {
-    debug(LOADER, "ELF magic number not correct\n");
-    kfree(elf_hdr_buf);
-    return NULL;
-  }
-
-  debug(LOADER, "ELF header loaded: %s bit, %s endian %s\n",
-        elf_hdr_buf->type == 1 ? "32" : "64",
-        elf_hdr_buf->endianness == 1 ? "little" : "big",
-        arch_str(elf_hdr_buf->isa));
-
-  if (elf_hdr_buf->isa != ELF_ISA ||
-      elf_hdr_buf->endianness != ELF_ENDIANNESS)
-  {
-    debug(LOADER, "ELF program has incorrect architecture or endianness\n");
-    kfree(elf_hdr_buf);
-    return NULL;
-  }
-
-  loader_t* ldr = kmalloc(sizeof(loader_t));
-  mutex_init(&ldr->lock);
-  ldr->file = file;
-  ldr->entry_addr = (void*)elf_hdr_buf->entry;
-  ldr->header = elf_hdr_buf;
-  ldr->pht = NULL;
-  return ldr;
-}
-
 static int load_pht(loader_t* ldr)
 {
   assert(mutex_held_by(&ldr->lock, current_task), "loader lock not held");
@@ -171,6 +132,89 @@ static int loader_map_page(loader_t* ldr,
   debug(LOADER, "loading PPN %zu with code/data @ %p\n",
         ppn, virt_page << PAGE_SHIFT);
   return SUCCESS;
+}
+
+static int load_heap_brk(loader_t* ldr)
+{
+  assert(ldr && ldr->header && ldr->file, "invalid loader_t object");
+
+  mutex_lock(&ldr->lock);
+  if (!ldr->pht)
+  {
+    /* load the program header table from the binary file if
+     * it hasn't yet been loaded. */
+    int status = load_pht(ldr);
+    if (status < 0)
+      return status;
+  }
+
+  size_t min_heap_break = 0;
+  for (size_t i = 0; i < ldr->header->pht_entries; i++)
+  {
+    elf64_phte_t* phte = &ldr->pht[i];
+
+    /* if the ELF PHT segment type should not be loaded,
+     * then don't do anything. */
+    if (phte->type != LOAD)
+      continue;
+
+    const size_t phte_end_addr = phte->p_vaddr + phte->p_memsz;
+    if (phte_end_addr > min_heap_break)
+      min_heap_break = ((phte_end_addr >> PAGE_SHIFT) + 1) << PAGE_SHIFT;
+  }
+
+  if (min_heap_break == 0)
+  {
+    assert(false, "invalid heap break");
+    ldr->min_heap_break = (size_t)-1;
+  }
+  else
+  {
+    ldr->min_heap_break = min_heap_break;
+  }
+  mutex_unlock(&ldr->lock);
+  return SUCCESS;
+}
+
+loader_t *loader_create(fd_t *file)
+{
+  elf64_t* elf_hdr_buf = kmalloc(sizeof(elf64_t));
+  vfs_seek(file, 0, SEEK_SET);
+  if (vfs_read(file, elf_hdr_buf, sizeof(elf64_t)) < 0)
+  {
+    kfree(elf_hdr_buf);
+    return NULL;
+  }
+
+  if (elf_hdr_buf->magic != 0x464c457f)
+  {
+    debug(LOADER, "ELF magic number not correct\n");
+    kfree(elf_hdr_buf);
+    return NULL;
+  }
+
+  debug(LOADER, "ELF header loaded: %s bit, %s endian %s\n",
+        elf_hdr_buf->type == 1 ? "32" : "64",
+        elf_hdr_buf->endianness == 1 ? "little" : "big",
+        arch_str(elf_hdr_buf->isa));
+
+  if (elf_hdr_buf->isa != ELF_ISA ||
+      elf_hdr_buf->endianness != ELF_ENDIANNESS)
+  {
+    debug(LOADER, "ELF program has incorrect architecture or endianness\n");
+    kfree(elf_hdr_buf);
+    return NULL;
+  }
+
+  loader_t* ldr = kmalloc(sizeof(loader_t));
+  mutex_init(&ldr->lock);
+  ldr->file = file;
+  ldr->entry_addr = (void*)elf_hdr_buf->entry;
+  ldr->header = elf_hdr_buf;
+  ldr->pht = NULL;
+  if (load_heap_brk(ldr) < 0)
+    ldr->min_heap_break = (size_t)-1;
+  return ldr;
 }
 
 int loader_load(loader_t *ldr, size_t virt_page, vspace_t *vspace)

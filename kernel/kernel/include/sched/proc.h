@@ -32,6 +32,10 @@ typedef struct
   /* the process' virtual address space */
   vspace_t* vspace;
 
+  /* heap data */
+  size_t heap_brk;
+  mutex_t heap_lock;
+
   dir_t* working_dir;
 
   loader_t* loader;

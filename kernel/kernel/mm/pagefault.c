@@ -27,6 +27,9 @@ int page_fault(size_t address, int present, int write, int user, int exec)
   if (stack_load(process, virt_page) >= 0)
     return true;
 
+  if (heap_load(process, address) >= 0)
+    return true;
+
   /* check whether the fault is caused by a missing code
    * or data page. it will be reloaded from the binary. */
   if (loader_load(process->loader, virt_page, current_task->vspace) >= 0)

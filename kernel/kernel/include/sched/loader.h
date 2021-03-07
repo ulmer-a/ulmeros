@@ -21,6 +21,7 @@ typedef struct
   elf64_t* header;
   elf64_phte_t* pht;
   mutex_t lock;
+  size_t min_heap_break;
 } loader_t;
 
 loader_t* loader_create(fd_t* file);

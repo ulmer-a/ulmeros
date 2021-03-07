@@ -1,6 +1,7 @@
 #pragma once
 
 #include <util/types.h>
+#include <sched/proc.h>
 
 #define __init__
 
@@ -21,3 +22,5 @@ void kfree(void* ptr);
 size_t alloc_page();
 void* alloc_dma_region();
 void free_page(size_t page);
+
+int heap_load(proc_t* proc, size_t addr);

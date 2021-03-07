@@ -13,6 +13,9 @@ int       sys_exec(char *path, char** argv);
 int       sys_wait(size_t pid, int* exit_code);
 size_t    sys_getpid();
 
+/* memory management and allocation */
+void*     sys_sbrk(ssize_t increment);
+
 /* filesystem access */
 ssize_t   sys_read(int fd, char* buffer, size_t len);
 ssize_t   sys_write(int fd, char* buffer, size_t len);

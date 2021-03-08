@@ -67,7 +67,7 @@ static const char* arch_str(uint16_t arch)
 
 static int load_pht(loader_t* ldr)
 {
-  assert(mutex_held_by(&ldr->lock, current_task), "loader lock not held");
+  assert(mutex_held(&ldr->lock), "loader lock not held");
 
   const size_t phte_count = ldr->header->pht_entries;
   const size_t phte_size = ldr->header->pht_entry_size;
@@ -92,7 +92,7 @@ static int load_pht(loader_t* ldr)
 static int loader_map_page(loader_t* ldr,
     elf64_phte_t* phte, size_t virt_page, vspace_t* vspace)
 {
-  assert(mutex_held_by(&ldr->lock, current_task), "loader lock not held");
+  assert(mutex_held(&ldr->lock), "loader lock not held");
 
   /* load the correct ELF file contents into the
    * the newly allocated page, which must have

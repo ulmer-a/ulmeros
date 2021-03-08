@@ -32,3 +32,4 @@ extern void printdbg(const char *str);
 void set_kernel_sp(uint64_t sp);
 
 size_t atomic_add(size_t* mem, ssize_t increment);
+size_t xchg(size_t value, size_t* mem);

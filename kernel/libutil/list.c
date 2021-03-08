@@ -1,8 +1,6 @@
 #include <util/list.h>
 #include <util/system.h>
 
-#define LIST_MAGIC 0xbadbeef
-
 struct _list_item_struct
 {
   list_item_t* next;

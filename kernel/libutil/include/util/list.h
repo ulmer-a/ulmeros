@@ -2,6 +2,8 @@
 
 #include <util/types.h>
 
+#define LIST_MAGIC 0xbadbeef
+
 struct _list_item_struct;
 typedef struct _list_item_struct list_item_t;
 
@@ -13,6 +15,13 @@ struct _list_struct
   list_item_t* last;
 };
 typedef struct _list_struct list_t;
+
+#define LIST_INITIALIZER {    \
+  .items = 0,                 \
+  .magic = 0,                 \
+  .first = NULL,              \
+  .last = NULL                \
+}
 
 list_item_t* list_it_front(list_t* list);
 list_item_t* list_it_back(list_t* list);

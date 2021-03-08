@@ -218,7 +218,7 @@ static void* ext2_probe(fd_t* fd)
 
 static int fetch_inode(ext2fs_t* fs, size_t inode_no, ext2_inode_t* inode)
 {
-  assert(mutex_held_by(&fs->fs_lock, current_task), "fs_lock not acquired");
+  assert(mutex_held(&fs->fs_lock), "fs_lock not acquired");
 
   /* check if inode_no value is plausible */
   if (inode_no > fs->sb.total_inodes)

@@ -252,3 +252,20 @@ size_t virt_to_ppn(vspace_t* vspace, void *virt_addr)
   resolve_mapping(vspace, virt, &vaddr);
   return vaddr.page_ppn;
 }
+
+void vspace_delete(vspace_t *vspace)
+{
+  for (size_t pml4i = 0; pml4i < 256; pml4i++)
+  {
+    for (size_t pdpti = 0; pdpti < 512; pdpti++)
+    {
+      for (size_t pdiri = 0; pdiri < 512; pdiri++)
+      {
+        for (size_t ptbli = 0; ptbli < 512; ptbli++)
+        {
+          // TODO  unmap
+        }
+      }
+    }
+  }
+}

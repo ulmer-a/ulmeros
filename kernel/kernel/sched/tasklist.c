@@ -15,10 +15,18 @@ static void task_delete(task_t *task)
 {
   assert(task && task->state == TASK_KILLED, "invalid task_t*");
 
-  /* release kernel stack memory */
-  size_t kstack_ppn = virt_to_ppn(VSPACE_KERNEL, task->kstack_base);
-  free_page(kstack_ppn);
+  /* remove the task from the corresponding process' task list */
+  if (task->process)
+  {
+    mutex_lock(&task->process->task_list_lock);
+    list_item_t* it = list_find(&task->process->task_list, task);
+    if (it)
+      list_it_remove(&task->process->task_list, it);
+    mutex_unlock(&task->process->task_list_lock);
+  }
 
+  /* release the memory occupied by the task */
+  kfree(task->kstack_base);
   kfree(task);
 }
 
@@ -26,12 +34,6 @@ static void cleanup_task_func()
 {
   while (task_count > 0)
   {
-    break;
-#ifdef DEBUG
-    /* occasionally, check for heap corruption */
-    //kheap_check_corrupt();
-#endif
-
     /* iterate through the list of tasks, remove
      * and delete any one with state TASK_KILLED */
     mutex_lock(&task_list_lock);
@@ -48,7 +50,6 @@ static void cleanup_task_func()
         list_it_remove(&task_list, it);
         atomic_add(&task_count, -1);
       }
-
       it = next;
     }
     mutex_unlock(&task_list_lock);

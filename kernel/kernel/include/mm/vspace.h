@@ -2,6 +2,7 @@
 
 #include <util/types.h>
 #include <arch/common.h>
+#include <sched/mutex.h>
 
 #define PG_USER     BIT(0)
 #define PG_WRITE    BIT(1)
@@ -9,6 +10,7 @@
 
 struct _vspace_struct
 {
+  mutex_t lock;
   size_t pml4_ppn;
 };
 typedef struct _vspace_struct vspace_t;

@@ -23,6 +23,7 @@
 #define RAMFS       16  | OUTPUT_ENABLED
 #define PROCESS     17  | OUTPUT_ENABLED
 #define SYSCALL     18  | OUTPUT_ENABLED
+#define VSPACE_INFO 19  | OUTPUT_ENABLED
 
 extern void debug(unsigned level, const char* fmt, ...);
 extern void panic();

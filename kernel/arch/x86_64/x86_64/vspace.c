@@ -69,6 +69,7 @@ void vspace_setup(size_t pml4_ppn)
   assert(sizeof(gpte_t) == 8, "gpte_t is not of size 64bit");
   debug(INIT, "PML4 uses page frame %zu\n", pml4_ppn);
   _vspace_kernel.pml4_ppn = pml4_ppn;
+  mutex_init(&_vspace_kernel.lock);
 
   /* clear the lower identity mapping, so we can
    * detect nullpointer dereferences and similar errors. */
@@ -93,6 +94,7 @@ vspace_t* vspace_create()
 {
   vspace_t* vspace = kmalloc(sizeof(vspace_t));
   vspace->pml4_ppn = alloc_page();
+  mutex_init(&vspace->lock);
   vspace_update_kernel_mapping(vspace);
   return vspace;
 }
@@ -255,17 +257,51 @@ size_t virt_to_ppn(vspace_t* vspace, void *virt_addr)
 
 void vspace_delete(vspace_t *vspace)
 {
+  mutex_lock(&vspace->lock);
+  int vspace_delete = vspace->pml4_ppn != (size_t)-1;
+  const size_t pml4_ppn = vspace->pml4_ppn;
+  vspace->pml4_ppn = (size_t)-1;
+  mutex_unlock(&vspace->lock);
+  if (!vspace_delete)
+    return;
+
+  debug(VSPACE_INFO, "deleting address space %p\n", vspace);
+  gpte_t* pml4 = ppn_to_virt(pml4_ppn);
   for (size_t pml4i = 0; pml4i < 256; pml4i++)
   {
+    if (!pml4[pml4i].present)
+      continue;
+
+    const size_t pdpt_ppn = pml4[pml4i].ppn;
+    gpte_t* pdpt = ppn_to_virt(pdpt_ppn);
     for (size_t pdpti = 0; pdpti < 512; pdpti++)
     {
+      if (!pdpt[pdpti].present)
+        continue;
+
+      const size_t pdir_ppn = pdpt[pdpti].ppn;
+      gpte_t* pdir = ppn_to_virt(pdir_ppn);
       for (size_t pdiri = 0; pdiri < 512; pdiri++)
       {
+        if (!pdir[pdiri].present)
+          continue;
+
+        const size_t ptbl_ppn = pdir[pdiri].ppn;
+        gpte_t* ptbl = ppn_to_virt(ptbl_ppn);
         for (size_t ptbli = 0; ptbli < 512; ptbli++)
         {
-          // TODO  unmap
+          if (!ptbl[ptbli].present)
+            continue;
+
+          free_page(ptbl[ptbli].ppn);
         }
+        free_page(ptbl_ppn);
       }
+      free_page(pdir_ppn);
     }
+    free_page(pdpt_ppn);
   }
+  free_page(pml4_ppn);
+
+  kfree(vspace);
 }

@@ -35,7 +35,8 @@ const char* debug_type[] = {
   COL_YELLOW    "TASKMGR",
   COL_BLUE      "FILESYS",
   COL_YELLOW    "PROCESS",
-  COL_YELLOW    "SYSCALL"
+  COL_YELLOW    "SYSCALL",
+  COL_GREEN     " VSPACE"
 };
 
 void debug(unsigned level, const char *fmt, ...)

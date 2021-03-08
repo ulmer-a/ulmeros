@@ -71,3 +71,13 @@ int mutex_held(mutex_t *mtx)
   return mtx->held_by == current_task;
 }
 
+
+void mutex_destroy(mutex_t *mtx)
+{
+  CHECK_MAGIC(mtx);
+  assert(mtx->lock == 0, "mutex_destroy() called while locked");
+  mtx->magic = 0;
+  list_destroy(&mtx->waiting_tasks);
+  spin_destroy(&mtx->waiting_tasks_lock);
+  mtx->held_by = NULL;
+}

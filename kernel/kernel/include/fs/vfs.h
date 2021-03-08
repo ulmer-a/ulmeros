@@ -148,6 +148,7 @@ void fs_register(fs_t *fs);
 #define O_RDONLY BIT(0)
 
 int vfs_open(const char* filename, int flags, int mode, fd_t **fd);
+void vfs_close(fd_t* fd);
 ssize_t vfs_read(fd_t* fd, void* buffer, uint64_t length);
 uint64_t vfs_seek(fd_t* fd, uint64_t offset, int whence);
 fd_t* vfs_dup(fd_t* fd);

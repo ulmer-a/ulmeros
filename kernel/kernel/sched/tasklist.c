@@ -11,18 +11,43 @@ static size_t task_count = 0;
 static list_t task_list;
 static mutex_t task_list_lock;
 
+static void proc_delete(proc_t* proc)
+{
+  /* destroy locks, lists, vspace and loader */
+  loader_release(proc->loader);
+  list_destroy(&proc->task_list);
+  mutex_destroy(&proc->heap_lock);
+  mutex_destroy(&proc->stack_list_lock);
+  mutex_destroy(&proc->task_list_lock);
+  vspace_delete(proc->vspace);
+
+  /* delete all the user stacks */
+  // TODO: delete stacks
+}
+
 static void task_delete(task_t *task)
 {
   assert(task && task->state == TASK_KILLED, "invalid task_t*");
 
   /* remove the task from the corresponding process' task list */
-  if (task->process)
+  proc_t* process = task->process;
+  if (process)
   {
-    mutex_lock(&task->process->task_list_lock);
-    list_item_t* it = list_find(&task->process->task_list, task);
-    if (it)
-      list_it_remove(&task->process->task_list, it);
-    mutex_unlock(&task->process->task_list_lock);
+    /* remove the task from the process' list of tasks */
+    mutex_lock(&process->task_list_lock);
+    list_item_t* it = list_find(&process->task_list, task);
+    assert(it, "cleanup task_list: task has already been removed");
+    list_it_remove(&process->task_list, it);
+    int proc_dead = list_size(&process->task_list) == 0;
+    mutex_unlock(&process->task_list_lock);
+
+    /* after the process' last thread has been removed,
+     * delete the process as well. */
+    if (proc_dead)
+    {
+      debug(TASK, "deleting process %zu\n", process->pid);
+      proc_delete(process);
+    }
   }
 
   /* release the memory occupied by the task */

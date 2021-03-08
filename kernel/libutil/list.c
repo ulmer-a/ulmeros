@@ -30,6 +30,7 @@ void list_delete(list_t* list)
   assert(list, "list is null");
 
   list_clear(list);
+  list->magic = 0;
   kfree(list);
 }
 
@@ -179,4 +180,10 @@ list_item_t *list_find(list_t *list, void *item)
   }
 
   return NULL;
+}
+
+void list_destroy(list_t *list)
+{
+  list_clear(list);
+  list->magic = 0;
 }

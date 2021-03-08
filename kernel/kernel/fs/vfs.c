@@ -239,3 +239,9 @@ int vfs_open(const char *filename, int flags, int mode, fd_t** fd)
 
   return -ENOTSUP;
 }
+
+void vfs_close(fd_t *fd)
+{
+  // TODO: implement
+  kfree(fd);
+}

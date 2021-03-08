@@ -34,6 +34,8 @@ void vspace_init(vspace_t* vspace);
  * address space. */
 vspace_t* vspace_create();
 
+void vspace_delete(vspace_t* vspace);
+
 /* switch to the specified virtual address space. */
 void vspace_apply(vspace_t* vspace);
 

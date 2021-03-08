@@ -3,6 +3,7 @@
 #include <arch/definitions.h>
 #include <util/string.h>
 #include <mm/memory.h>
+#include <fs/vfs.h>
 #include <debug.h>
 #include <errno.h>
 
@@ -212,6 +213,7 @@ loader_t *loader_create(fd_t *file)
   ldr->entry_addr = (void*)elf_hdr_buf->entry;
   ldr->header = elf_hdr_buf;
   ldr->pht = NULL;
+  ldr->refs = 1;
   if (load_heap_brk(ldr) < 0)
     ldr->min_heap_break = (size_t)-1;
   return ldr;
@@ -255,4 +257,23 @@ int loader_load(loader_t *ldr, size_t virt_page, vspace_t *vspace)
   debug(LOADER, "no loadable section refers to address %p\n", vaddr);
   mutex_unlock(&ldr->lock);
   return -ENOENT;
+}
+
+void loader_release(loader_t *ldr)
+{
+  mutex_lock(&ldr->lock);
+  int delete_loader = --ldr->refs == 0;
+  mutex_unlock(&ldr->lock);
+
+  if (delete_loader)
+  {
+    /* no more references to the loader are
+     * held and we can deallocate it's memory. */
+    vfs_close(ldr->file);
+    kfree(ldr->header);
+    if (ldr->pht)
+      kfree(ldr->pht);
+    mutex_destroy(&ldr->lock);
+    kfree(ldr);
+  }
 }

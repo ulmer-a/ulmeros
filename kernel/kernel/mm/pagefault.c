@@ -20,8 +20,6 @@ int page_fault(size_t address, int present, int write, int user, int exec)
     return false;
   proc_t* process = current_task->process;
 
-  kheap_check_corrupt();
-
   /* check whether the fault is caused by reading or
    * writing to a userspace stack page. */
   if (stack_load(process, virt_page) >= 0)

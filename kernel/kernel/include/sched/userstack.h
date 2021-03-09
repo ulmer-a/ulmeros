@@ -13,9 +13,6 @@ typedef struct
    * guard slot between each 32MB stack). */
   size_t index;
 
-  /* the thread that owns the stack */
-  size_t tid;
-
   /* convenience variables that store the
    * start of the memory block as well as
    * the end (where the initial stack pointer
@@ -27,8 +24,11 @@ typedef struct
   /* specifies whether the stack is allocated
    * or can be used by a new thread. */
   int allocated;
+  size_t pages_mapped;
 } userstack_t;
 
 userstack_t* create_stack(proc_t *process);
 
 int stack_load(proc_t* proc, size_t virt_page);
+
+void delete_stack(proc_t* process, size_t tid);

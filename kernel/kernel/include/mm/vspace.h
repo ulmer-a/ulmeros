@@ -49,5 +49,5 @@ void vspace_map(vspace_t* vspace, size_t virt, size_t phys, int flags);
 
 /* unmap the specified page from the referenced virtual
  * address space. */
-void vspace_unmap(vspace_t* vspace, size_t virt);
+int vspace_unmap(vspace_t* vspace, size_t virt);
 

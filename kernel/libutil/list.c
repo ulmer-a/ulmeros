@@ -149,6 +149,11 @@ list_item_t *list_it_front(list_t *list)
   return list->first;
 }
 
+list_item_t *list_it_back(list_t *list)
+{
+  return list->last;
+}
+
 void list_it_remove(list_t* list, list_item_t *item)
 {
   assert(list, "list is null");

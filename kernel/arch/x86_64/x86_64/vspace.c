@@ -221,8 +221,9 @@ void vspace_map(vspace_t *vspace, size_t virt, size_t phys, int flags)
   tlb_invalidate(virt);
 }
 
-void vspace_unmap(vspace_t *vspace, size_t virt)
+int vspace_unmap(vspace_t *vspace, size_t virt)
 {
+  int ret = false;
   vaddr_t vaddr;
   resolve_mapping(vspace, virt, &vaddr);
 
@@ -230,9 +231,12 @@ void vspace_unmap(vspace_t *vspace, size_t virt)
   {
     *(uint64_t*)vaddr.ptble = 0;
     free_page(vaddr.page_ppn);
+    ret = true;
   }
+
   debug(VSPACE, "unmapped PPN %zu @ %p\n", vaddr.page_ppn, virt << PAGE_SHIFT);
   tlb_invalidate(virt);
+  return ret;
 }
 
 void vspace_apply(vspace_t *vspace)

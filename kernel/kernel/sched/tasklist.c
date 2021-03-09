@@ -6,6 +6,7 @@
 #include <mm/memory.h>
 #include <mm/vspace.h>
 #include <debug.h>
+#include <sched/userstack.h>
 
 static size_t task_count = 0;
 static list_t task_list;
@@ -13,16 +14,17 @@ static mutex_t task_list_lock;
 
 static void proc_delete(proc_t* proc)
 {
+  assert(list_size(&proc->stack_list) == 0, "stack list not empty");
+  assert(list_size(&proc->task_list) == 0, "task list not empty");
+
   /* destroy locks, lists, vspace and loader */
   loader_release(proc->loader);
   list_destroy(&proc->task_list);
+  list_destroy(&proc->stack_list);
   mutex_destroy(&proc->heap_lock);
   mutex_destroy(&proc->stack_list_lock);
   mutex_destroy(&proc->task_list_lock);
   vspace_delete(proc->vspace);
-
-  /* delete all the user stacks */
-  // TODO: delete stacks
 }
 
 static void task_delete(task_t *task)
@@ -33,6 +35,9 @@ static void task_delete(task_t *task)
   proc_t* process = task->process;
   if (process)
   {
+    /* delete and unmapp the task's userspace stack */
+    delete_stack(process, task->user_stack);
+
     /* remove the task from the process' list of tasks */
     mutex_lock(&process->task_list_lock);
     list_item_t* it = list_find(&process->task_list, task);

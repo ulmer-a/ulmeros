@@ -24,6 +24,7 @@ void spin_lock(spin_t *spin)
 void spin_unlock(spin_t *spin)
 {
   CHECK_MAGIC(spin);
+  assert(spin->lock, "spinlock is not acquired");
   spin->lock = 0;
 }
 

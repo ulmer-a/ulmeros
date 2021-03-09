@@ -15,6 +15,12 @@ typedef enum
 
 typedef struct
 {
+  size_t user_fd;
+  fd_t* fd_ptr;
+} user_fd_t;
+
+typedef struct
+{
   /* PID = process id */
   size_t pid;
 
@@ -26,8 +32,13 @@ typedef struct
   list_t task_list;
   mutex_t task_list_lock;
 
+  /* list of userstack_t objects */
   list_t stack_list;
   mutex_t stack_list_lock;
+
+  size_t fd_counter;
+  list_t fd_list;
+  mutex_t fd_list_lock;
 
   /* the process' virtual address space */
   vspace_t* vspace;

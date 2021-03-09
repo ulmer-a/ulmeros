@@ -14,6 +14,21 @@
 
 static size_t pid_counter = 1;
 
+static void proc_base_init(proc_t* proc)
+{
+  proc->state = PROC_RUNNING;
+  proc->pid = atomic_add(&pid_counter, 1);
+
+  list_init(&proc->task_list);
+  list_init(&proc->fd_list);
+  list_init(&proc->stack_list);
+
+  mutex_init(&proc->heap_lock);
+  mutex_init(&proc->task_list_lock);
+  mutex_init(&proc->fd_list_lock);
+  mutex_init(&proc->stack_list_lock);
+}
+
 int proc_start(const char *filename)
 {
   /* create an ELF loader object to load
@@ -34,22 +49,19 @@ int proc_start(const char *filename)
   /* create a new process object and initialize
    * all the fields */
   proc_t* proc = kmalloc(sizeof(proc_t));
-  proc->pid = atomic_add(&pid_counter, 1);
-  proc->loader = ldr;
-  proc->state = PROC_RUNNING;
-
-  list_init(&proc->task_list);
-  mutex_init(&proc->task_list_lock);
+  proc_base_init(proc);
+  proc->fd_counter = 0;
 
   /* allocate new virtual address space
    * for the process. */
   proc->vspace = vspace_create();
+
+  /* initialize the loader and get the heap
+   * start address */
+  proc->loader = ldr;
   proc->heap_brk = ldr->min_heap_break;
-  mutex_init(&proc->heap_lock);
 
   /* create a new stack for the main thread. */
-  list_init(&proc->stack_list);
-  mutex_init(&proc->stack_list_lock);
   userstack_t* stack = create_stack(proc);
 
   /* create the main thread and insert it into
@@ -64,14 +76,46 @@ int proc_start(const char *filename)
 
 fd_t *proc_get_fd(proc_t *process, int fd)
 {
-  assert(false, "fixme: implement");
-  return NULL;
+  if (fd < 0)
+    return NULL;
+
+  /* lookup the corresponding file descriptor
+   * object in the process' list of fd's. */
+  fd_t* ret = NULL;
+  mutex_lock(&process->fd_list_lock);
+  for (list_item_t* it = list_it_front(&process->fd_list);
+       it != LIST_IT_END;
+       it = list_it_next(it))
+  {
+    user_fd_t* user_fd = list_it_get(it);
+    if (user_fd->user_fd == (size_t)fd)
+    {
+      ret = user_fd->fd_ptr;
+      break;
+    }
+  }
+  mutex_unlock(&process->fd_list_lock);
+  return ret;
 }
 
 int proc_new_fd(proc_t *process, fd_t *fd)
 {
-  assert(false, "fixme: implement");
-  return -1;
+  /* allocate a new file descriptor number by
+   * atomically incrementing the process' counter */
+  const size_t new_fd = atomic_add(&process->fd_counter, 1);
+
+  /* create a new file descriptor list entry */
+  user_fd_t* userfd = kmalloc(sizeof(user_fd_t));
+  userfd->fd_ptr = fd;
+  userfd->user_fd = new_fd;
+
+  /* add the file descriptor to the process' list
+   * of open files. */
+  mutex_lock(&process->fd_list_lock);
+  list_add(&process->fd_list, userfd);
+  mutex_unlock(&process->fd_list_lock);
+
+  return new_fd;
 }
 
 void sys_exit(int status)

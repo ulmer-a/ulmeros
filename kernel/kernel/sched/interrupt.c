@@ -51,9 +51,8 @@ void irq_handler(size_t id)
   if (irq_handlers == NULL)
     return;
 
-  if (id == 15)
-    (void)id;
-
+  /* on interrupt, call all the handlers that drivers
+   * have registered for this specific interrupt number. */
   for (list_item_t* it = list_it_front(&irq_handlers[id]);
        it != LIST_IT_END;
        it = list_it_next(it))

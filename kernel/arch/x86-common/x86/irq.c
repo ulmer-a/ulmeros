@@ -65,6 +65,9 @@ context_t* x86_irq_handler(context_t* ctx)
       return ctx;
     }
 
+    /* enable preemption during a system call handler */
+    preempt_enable();
+
     assert(current_task && current_task->process, "Syscall task has no proc_t");
     debug(SYSCALL, "PID %zu: syscall #0x%zx\n",
           current_task->process->pid, ctx->error);
@@ -85,6 +88,8 @@ context_t* x86_irq_handler(context_t* ctx)
         ctx->esi, ctx->edi
       );
     #endif
+
+    preempt_disable();
   }
   else if (ctx->irq < 32)
   {

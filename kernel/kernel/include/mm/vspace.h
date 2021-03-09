@@ -8,11 +8,6 @@
 #define PG_WRITE    BIT(1)
 #define PG_NOEXEC   BIT(2)
 
-struct _vspace_struct
-{
-  mutex_t lock;
-  size_t pml4_ppn;
-};
 typedef struct _vspace_struct vspace_t;
 
 extern vspace_t _vspace_kernel;

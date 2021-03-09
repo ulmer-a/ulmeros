@@ -64,6 +64,12 @@ typedef struct
   void* page;
 } vaddr_t;
 
+struct _vspace_struct
+{
+  mutex_t lock;
+  size_t pml4_ppn;
+};
+
 void vspace_setup(size_t pml4_ppn)
 {
   assert(sizeof(gpte_t) == 8, "gpte_t is not of size 64bit");
@@ -111,6 +117,8 @@ void* ppn_to_virt(size_t ppn)
 
 static void resolve_mapping(vspace_t* vspace, size_t virt, vaddr_t* vaddr)
 {
+  assert(mutex_held(&vspace->lock), "vspace lock not held");
+
   vaddr->ptbli = virt & 0x1ff;
   vaddr->pdiri = (virt >> 9) & 0x1ff;
   vaddr->pdpti = (virt >> 18) & 0x1ff;
@@ -179,6 +187,7 @@ static void resolve_mapping(vspace_t* vspace, size_t virt, vaddr_t* vaddr)
 void vspace_map(vspace_t *vspace, size_t virt, size_t phys, int flags)
 {
   vaddr_t vaddr;
+  mutex_lock(&vspace->lock);
   resolve_mapping(vspace, virt, &vaddr);
 
   if (!vaddr.pml4e->present)
@@ -219,12 +228,14 @@ void vspace_map(vspace_t *vspace, size_t virt, size_t phys, int flags)
 
   debug(VSPACE, "mapped PPN %zu @ %p\n", phys, virt << PAGE_SHIFT);
   tlb_invalidate(virt);
+  mutex_unlock(&vspace->lock);
 }
 
 int vspace_unmap(vspace_t *vspace, size_t virt)
 {
   int ret = false;
   vaddr_t vaddr;
+  mutex_lock(&vspace->lock);
   resolve_mapping(vspace, virt, &vaddr);
 
   if (vaddr.page)
@@ -236,6 +247,7 @@ int vspace_unmap(vspace_t *vspace, size_t virt)
 
   debug(VSPACE, "unmapped PPN %zu @ %p\n", vaddr.page_ppn, virt << PAGE_SHIFT);
   tlb_invalidate(virt);
+  mutex_unlock(&vspace->lock);
   return ret;
 }
 

@@ -1,19 +1,16 @@
 #include <util/list.h>
 #include <util/system.h>
 
+#define SANITY_CHECK(list)                        \
+  assert((list) && (list)->magic == LIST_MAGIC,  \
+    "list is invalid or corrupt")
+
 struct _list_item_struct
 {
   list_item_t* next;
   list_item_t* prev;
   void* payload;
 };
-
-int list_is_valid(list_t* list)
-{
-  if (list == NULL)
-    return false;
-  return (list->magic == LIST_MAGIC);
-}
 
 void list_init(list_t* list)
 {
@@ -25,18 +22,9 @@ void list_init(list_t* list)
   list->magic  = LIST_MAGIC;
 }
 
-void list_delete(list_t* list)
-{
-  assert(list, "list is null");
-
-  list_clear(list);
-  list->magic = 0;
-  kfree(list);
-}
-
 void list_clear(list_t* list)
 {
-  assert(list, "list is null");
+  SANITY_CHECK(list);
 
   while (list->items > 0)
     list_remove(list, 0);
@@ -44,7 +32,7 @@ void list_clear(list_t* list)
 
 size_t list_add(list_t* list, void* payload)
 {
-  assert(list, "list is null");
+  SANITY_CHECK(list);
 
   list_item_t* item = kmalloc(sizeof(list_item_t));
   item->payload = payload;
@@ -63,7 +51,7 @@ size_t list_add(list_t* list, void* payload)
 
 static list_item_t* list_get_index(list_t* list, size_t index)
 {
-  assert(list, "list is null");
+  SANITY_CHECK(list);
 
   size_t i = 0;
   for (list_item_t* item = list->first;
@@ -83,7 +71,7 @@ static list_item_t* list_get_index(list_t* list, size_t index)
 
 void* list_pop_front(list_t* list)
 {
-  assert(list, "list is null");
+  SANITY_CHECK(list);
 
   if (list->items == 0)
     return NULL;
@@ -95,7 +83,7 @@ void* list_pop_front(list_t* list)
 
 void list_remove(list_t* list, size_t index)
 {
-  assert(list, "list is null");
+  SANITY_CHECK(list);
 
   list_item_t* item = list_get_index(list, index);
   list_it_remove(list, item);
@@ -103,7 +91,7 @@ void list_remove(list_t* list, size_t index)
 
 void* list_get(list_t* list, size_t index)
 {
-  assert(list, "list is null");
+  SANITY_CHECK(list);
 
   list_item_t* item = list_get_index(list, index);
   if (item == NULL)
@@ -113,14 +101,14 @@ void* list_get(list_t* list, size_t index)
 
 size_t list_size(list_t* list)
 {
-  assert(list, "list is null");
+  SANITY_CHECK(list);
 
   return list->items;
 }
 
 void list_rotate(list_t* list)
 {
-  assert(list, "list is null");
+  SANITY_CHECK(list);
 
   if (list->items < 2)
     return;
@@ -146,17 +134,19 @@ list_item_t *list_it_next(list_item_t *it)
 
 list_item_t *list_it_front(list_t *list)
 {
+  SANITY_CHECK(list);
   return list->first;
 }
 
 list_item_t *list_it_back(list_t *list)
 {
+  SANITY_CHECK(list);
   return list->last;
 }
 
 void list_it_remove(list_t* list, list_item_t *item)
 {
-  assert(list, "list is null");
+  SANITY_CHECK(list);
   assert(item, "list iterator is null");
 
   if (item->prev)
@@ -174,7 +164,7 @@ void list_it_remove(list_t* list, list_item_t *item)
 
 list_item_t *list_find(list_t *list, void *item)
 {
-  assert(list, "list is null");
+  SANITY_CHECK(list);
 
   for (list_item_t* it = list->first;
        it != NULL;
@@ -189,6 +179,7 @@ list_item_t *list_find(list_t *list, void *item)
 
 void list_destroy(list_t *list)
 {
+  SANITY_CHECK(list);
   list_clear(list);
   list->magic = 0;
 }

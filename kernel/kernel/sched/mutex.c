@@ -44,6 +44,9 @@ void mutex_lock(mutex_t* mtx)
 void mutex_unlock(mutex_t* mtx)
 {
   CHECK_MAGIC(mtx);
+  assert(mtx->lock, "mutex released but not locked");
+  assert(mtx->held_by == current_task, "mutex released by other task");
+
   mtx->held_by = NULL;
   mtx->lock = 0;
 

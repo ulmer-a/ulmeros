@@ -3,6 +3,7 @@
 extern void pc_ata_init();
 extern void pc_ps2kbd_init();
 extern void pc_vgacon_init();
+extern void pc_serial_init();
 
 void platform_init_drivers()
 {
@@ -12,11 +13,15 @@ void platform_init_drivers()
   pc_ata_init();
 #endif
 
-#ifdef D_PS2KBD
+#ifdef D_PC_PS2KBD
   pc_ps2kbd_init();
 #endif
 
-#ifdef D_VGACON
+#ifdef D_PC_VGACON
   pc_vgacon_init();
+#endif
+
+#ifdef D_PC_SERIAL
+  pc_serial_init();
 #endif
 }

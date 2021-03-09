@@ -1,6 +1,3 @@
-
-// TODO: integrate into the build.
-
 enum BaudRate
 {
   BAUD_115200 = 1,
@@ -16,5 +13,7 @@ enum BaudRate
   BAUD_7680 = 15
 };
 
-void serial0_init(int divisor);
-void serial0_write(char *buffer, size_t length);
+void pc_serial_init()
+{
+
+}

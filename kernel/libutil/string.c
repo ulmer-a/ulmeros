@@ -428,3 +428,14 @@ const char *strexcept(unsigned exc)
     return exceptions[exc];
   return "unknown";
 }
+
+size_t strclen(const char *src, char terminator)
+{
+  size_t length = 0;
+  while ((*src != terminator) && (*src != 0))
+  {
+    src++;
+    length++;
+  }
+  return length;
+}

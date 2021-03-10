@@ -7,6 +7,7 @@
 #include <mm/memory.h>
 #include <debug.h>
 #include <errno.h>
+#include <time.h>
 
 dir_t* _vfs_root;
 
@@ -85,6 +86,97 @@ void vfs_init(const char* rootfs)
   debug(VFS, "mounted root file system\n");
 }
 
+static dir_t* get_working_dir(proc_t* proc)
+{
+  /* return a process' working directory. if the
+   * working directory could not be determined,
+   * the root directory will be returned. */
+  if (proc && proc->working_dir)
+    return proc->working_dir;
+  return VFS_ROOT;
+}
+
+static file_t* falloc(proc_t* proc, ftype_t type, fmode_t mode)
+{
+  /* allocate a file structure with common defaults */
+  file_t* file = kmalloc(sizeof(file_t));
+  file->mode = mode;
+  file->uid = proc ? proc->uid : 0;
+  file->gid = proc ? proc->gid : 0;
+  file->inode = 0;
+  file->driver1 = NULL;
+  file->driver2 = NULL;
+  file->t_created =
+      file->t_last_accessed =
+      file->t_last_modified = time();
+  file->type = type;
+  file->length = 0;
+  return file;
+}
+
+
+int vfs_mknod(proc_t *proc, const char *pathname,
+              ftype_t type, fmode_t mode, size_t major, size_t minor)
+{
+  if (type != F_BLOCK && type != F_CHAR &&
+      type != F_FIFO && type != F_SOCKET)
+    return -EINVAL;
+
+  /* check if the file exists. mknod() can only be used if
+   * the file doesn't yet exist. */
+  dir_t* working_dir = get_working_dir(proc);
+  int status = ffind(working_dir, pathname, NULL, 0);
+  if (status != -ENOENT)
+  {
+    if (status < 0)
+      return status;
+    return -EEXIST;
+  }
+
+  file_t* file = falloc(proc, type, mode);
+  file->inode = 0;
+  file->special.device.major = major;
+  file->special.device.minor = minor;
+
+  status = ffind(working_dir, pathname, &file, FFIND_CREATE);
+  if (status < 0)
+    kfree(file);
+  return status;
+}
+
+int vfs_mkdir(proc_t* proc, const char* pathname, fmode_t mode)
+{
+  /* check if the file exists. mknod() can only be used if
+   * the file doesn't yet exist. */
+  dir_t* working_dir = get_working_dir(proc);
+  int status = ffind(working_dir, pathname, NULL, 0);
+  if (status != -ENOENT)
+  {
+    if (status < 0)
+      return status;
+    return -EEXIST;
+  }
+
+  dir_t* dir = kmalloc(sizeof(dir_t));
+  dir->driver = NULL;
+  list_init(&dir->files);
+  dir->fstype = NULL;
+  dir->mounted = NULL;
+
+  file_t* file = falloc(proc, F_DIR, mode);
+  file->special.directory = dir;
+  file->inode = 0;
+  dir->file = file;
+
+  status = ffind(working_dir, pathname, &file, FFIND_CREATE);
+  if (status < 0)
+  {
+    kfree(file);
+    kfree(dir);
+  }
+  return status;
+}
+
 void fs_register(fs_t *fs)
 {
   assert(fs, "invalid fs");
@@ -124,77 +216,6 @@ fd_t *vfs_dup(fd_t *fd)
   return fd;
 }
 
-static void fs_fetch(dir_t* parent, direntry_t* entry)
-{
-  if (entry->file != NULL)
-    return;
-  assert(parent->fstype, "no filesystem info in directory");
-  parent->fstype->fetch(parent, entry);
-  entry->file->parent = parent;
-}
-
-static int namei_recursive(const char *pathname,
-                           dir_t *working_dir,
-                           file_t **node)
-{
-  char current_name[256];
-  const char *rem = strccpy(current_name, pathname, '/');
-
-  if (strlen(current_name) == 0)
-    strcpy(current_name, ".");
-
-  if (working_dir->mounted != NULL)
-    working_dir = working_dir->mounted;
-  if (list_size(&working_dir->files) == 0)
-    return -ENOENT;
-
-  for (list_item_t* it = list_it_front(&working_dir->files);
-       it != LIST_IT_END;
-       it = list_it_next(it))
-  {
-    direntry_t* entry = list_it_get(it);
-
-    if (strcmp(entry->name, current_name) == 0)
-    {
-      if (entry->file == NULL)
-        fs_fetch(working_dir, entry);
-
-      if (*rem == 0)
-      {
-        if (*(rem - 1) == '/' && entry->file->type != F_DIR)
-          return -ENOTDIR;
-
-        *node = entry->file;
-        return SUCCESS;
-      }
-
-      if (entry->file->type != F_DIR)
-        return -ENOENT;
-      return namei_recursive(rem, entry->file->special.directory, node);
-    }
-  }
-
-  return -ENOENT;
-}
-
-int namei(dir_t* working_dir, const char *pathname, file_t **node)
-{
-  if (pathname[0] == '/')
-  {
-    // absolute path
-    pathname += 1;
-    working_dir = VFS_ROOT;
-
-    if (pathname[1] == 0)
-    {
-      *node = working_dir->file;
-      return SUCCESS;
-    }
-  }
-
-  return namei_recursive(pathname, working_dir, node);
-}
-
 int vfs_open(const char *filename, int flags, int mode, fd_t** fd)
 {
   dir_t* working_dir = VFS_ROOT;
@@ -208,7 +229,7 @@ int vfs_open(const char *filename, int flags, int mode, fd_t** fd)
 
   int error;
   file_t* target;
-  if ((error = namei(working_dir, filename, &target)) < 0)
+  if ((error = ffind(working_dir, filename, &target, 0)) < 0)
     return error;
 
   /* TODO: perform access control checks */

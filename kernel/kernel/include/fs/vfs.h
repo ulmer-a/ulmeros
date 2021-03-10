@@ -75,13 +75,13 @@ typedef struct
 
 struct _fd_struct
 {
-  file_t* file;   // pointer to file object
-  uint64_t fpos;  // seek position
+  file_t* file;     // pointer to file object
+  uint64_t fpos;    // seek position
 
   f_ops_t f_ops;    // file operations
-  void* fs_data;  // driver/filesystem data (bd_t, inode)
+  void* fs_data;    // driver/filesystem data (bd_t, inode)
 
-  mutex_t fdmod;  // modification lock
+  mutex_t fdmod;    // modification lock
 };
 
 struct _dir_struct
@@ -134,10 +134,14 @@ struct _fs_struct
   f_ops_t f_ops;
 };
 
+struct _proc_struct;
+typedef struct _proc_struct proc_t;
+
 extern dir_t* _vfs_root;
 #define VFS_ROOT (_vfs_root)
 
 void vfs_init(const char *rootfs);
+int ffind(dir_t* working_dir, const char* pathname, file_t** node, int flags);
 
 void fs_register(fs_t *fs);
 
@@ -147,8 +151,16 @@ void fs_register(fs_t *fs);
 
 #define O_RDONLY BIT(0)
 
+#define FFIND_CREATE      BIT(0)
+
 int vfs_open(const char* filename, int flags, int mode, fd_t **fd);
 void vfs_close(fd_t* fd);
 ssize_t vfs_read(fd_t* fd, void* buffer, uint64_t length);
 uint64_t vfs_seek(fd_t* fd, uint64_t offset, int whence);
 fd_t* vfs_dup(fd_t* fd);
+
+/* filesystem manipulation functions */
+int vfs_mknod(proc_t* proc, const char* pathname, ftype_t type,
+              fmode_t mode, size_t major, size_t minor);
+int vfs_mkdir(proc_t* proc, const char* pathname, fmode_t mode);
+

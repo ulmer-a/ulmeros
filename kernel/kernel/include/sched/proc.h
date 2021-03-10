@@ -19,10 +19,12 @@ typedef struct
   fd_t* fd_ptr;
 } user_fd_t;
 
-typedef struct
+typedef struct _proc_struct
 {
   /* PID = process id */
   size_t pid;
+  size_t uid;
+  size_t gid;
 
   /* process state */
   proc_state_t state;

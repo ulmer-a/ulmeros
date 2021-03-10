@@ -53,6 +53,7 @@ int bd_open(fd_t **fd_, size_t major, size_t minor)
       fd->f_ops.read = bd_read;
       fd->f_ops.write = bd_write;
       *fd_ = fd;
+      mutex_unlock(&bd_list_lock);
       return SUCCESS;
     }
   }

@@ -30,6 +30,7 @@ typedef struct
 } bd_t;
 
 void blockdev_init();
+void blockdev_mknodes();
 
 int bd_get_by_name(const char* name, size_t* major, size_t* minor);
 

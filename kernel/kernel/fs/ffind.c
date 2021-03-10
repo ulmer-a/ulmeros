@@ -6,7 +6,6 @@
 
 static mutex_t fs_tree_lock = MUTEX_INITIALIZER;
 
-
 static void fs_fetch(dir_t* parent, direntry_t* entry)
 {
   if (entry->file != NULL)
@@ -18,7 +17,7 @@ static void fs_fetch(dir_t* parent, direntry_t* entry)
 
 static int ffind_noent(dir_t* parent, int flags, file_t* new_file)
 {
-  if ((flags & FFIND_CREATE) != 0)
+  if ((flags & FFIND_CREATE) == 0)
     return -ENOENT;
 
   list_add(&parent->files, new_file);
@@ -85,7 +84,7 @@ static int ffind_recursive(const char* pathname, dir_t* working_dir,
     }
   }
 
-  return ffind_noent(working_dir, flags, *node);
+  return ffind_noent(working_dir, flags, node ? *node : NULL);
 }
 
 int ffind(dir_t* working_dir, const char* pathname, file_t** node, int flags)

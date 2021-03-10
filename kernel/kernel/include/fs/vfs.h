@@ -153,6 +153,8 @@ void fs_register(fs_t *fs);
 
 #define FFIND_CREATE      BIT(0)
 
+extern int vfs_initialized;
+
 int vfs_open(const char* filename, int flags, int mode, fd_t **fd);
 void vfs_close(fd_t* fd);
 ssize_t vfs_read(fd_t* fd, void* buffer, uint64_t length);

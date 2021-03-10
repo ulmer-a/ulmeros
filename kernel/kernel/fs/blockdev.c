@@ -8,6 +8,15 @@
 #include <debug.h>
 #include <mm/memory.h>
 
+#define BLKDEV_MODE   {               \
+  .u_r = 1, .u_w = 1, .u_x = 0,       \
+  .g_r = 1, .g_w = 1, .g_x = 0,       \
+  .o_r = 0, .o_w = 0, .o_x = 0,       \
+  .sticky = 0,                        \
+  .setgid = 0,                        \
+  .setuid = 0                         \
+}
+
 static size_t major_counter = 1;
 
 static list_t driver_list;
@@ -46,6 +55,19 @@ size_t bd_register_driver(bd_driver_t *bd_driver)
   return major;
 }
 
+static void try_mknod_blkdevice(bd_t* blkdev)
+{
+  char path_buffer[256];
+  static const fmode_t blkdev_mode = BLKDEV_MODE;
+  sprintf(path_buffer, "/dev/%s", blkdev->name);
+  int status = vfs_mknod(NULL, path_buffer, F_BLOCK, blkdev_mode,
+            blkdev->driver->major, blkdev->minor);
+  if (status < 0)
+    debug(BLKDEV, "error: cannot create %s: %s\n", strerror(-status));
+  else
+    debug(BLKDEV, "add new block device %s\n", path_buffer);
+}
+
 void bd_register(bd_t *blkdev)
 {
   assert(blkdev->capacity, "blkdev must have non-zero capacity");
@@ -57,6 +79,9 @@ void bd_register(bd_t *blkdev)
 
   debug(BLKDEV, "registered block device (%zd, %zd): %s\n",
         blkdev->driver->major, blkdev->minor, blkdev->name);
+
+  if (vfs_initialized)
+    try_mknod_blkdevice(blkdev);
 
   /* trigger a partition scan */
   partscan(blkdev);
@@ -82,3 +107,16 @@ int bd_get_by_name(const char *name, size_t *major, size_t *minor)
   return false;
 }
 
+
+void blockdev_mknodes()
+{
+  mutex_lock(&bd_list_lock);
+  for (list_item_t* it = list_it_front(&bd_list);
+       it != LIST_IT_END;
+       it = list_it_next(it))
+  {
+    bd_t* bd = list_it_get(it);
+    try_mknod_blkdevice(bd);
+  }
+  mutex_unlock(&bd_list_lock);
+}

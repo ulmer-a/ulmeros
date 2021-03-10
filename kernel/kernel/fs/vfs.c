@@ -9,10 +9,21 @@
 #include <errno.h>
 #include <time.h>
 
+#define FMODE_DEFAULT {               \
+  .u_r = 1, .u_w = 1, .u_x = 1,       \
+  .g_r = 1, .g_w = 0, .g_x = 1,       \
+  .o_r = 1, .o_w = 0, .o_x = 1,       \
+  .sticky = 0,                        \
+  .setgid = 0,                        \
+  .setuid = 0                         \
+}
+
 dir_t* _vfs_root;
 
 static list_t fs_list;
 static mutex_t fs_list_lock;
+
+int vfs_initialized = false;
 
 extern void ext2fs_init();
 
@@ -84,6 +95,13 @@ void vfs_init(const char* rootfs)
   VFS_ROOT = mp;
   mp->parent = mp;
   debug(VFS, "mounted root file system\n");
+
+  debug(VFS, "mkdir /dev\n");
+  fmode_t default_mode = FMODE_DEFAULT;
+  vfs_mkdir(NULL, "/dev", default_mode);
+
+  vfs_initialized = true;
+  blockdev_mknodes();
 }
 
 static dir_t* get_working_dir(proc_t* proc)

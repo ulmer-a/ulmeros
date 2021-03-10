@@ -24,6 +24,8 @@ void mutex_lock(mutex_t* mtx)
 {
   CHECK_MAGIC(mtx);
 
+  assert(mtx->lock == 0, "mutex already acquired");
+
   while (xchg(1, &mtx->lock))
   {
     /* lock the mutex's waiting tasks list and
